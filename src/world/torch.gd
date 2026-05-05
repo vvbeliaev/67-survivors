@@ -5,7 +5,7 @@ extends Node2D
 # the same positions (deterministic seed in Arena._spawn_torches).
 
 const TORCH_TEX: Texture2D = preload("res://assets/images/torch.png")
-const TORCH_DRAW_SIZE := 72.0
+const TORCH_DRAW_SIZE := 36.0
 const LIGHT_COLOR := Color(1.0, 0.7, 0.35)
 const FLICKER_FAST := 9.0
 const FLICKER_SLOW := 2.3
