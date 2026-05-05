@@ -87,12 +87,19 @@ func _apply_class_selection() -> void:
 		sprite_rect.texture = null
 	Network.set_local_class(StringName(klass))
 
+func _exit_tree() -> void:
+	Network.lobby_updated.disconnect(_refresh)
+	Network.ready_state_changed.disconnect(_refresh)
+	GameState.roster_changed.disconnect(_refresh)
+
 func _on_ready_toggle() -> void:
 	_is_ready = not _is_ready
 	Network.set_local_ready(_is_ready)
 	_refresh()
 
 func _refresh() -> void:
+	if not is_inside_tree():
+		return
 	var connected := multiplayer.multiplayer_peer != null
 	host_btn.disabled = connected
 	join_btn.disabled = connected
