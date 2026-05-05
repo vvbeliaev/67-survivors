@@ -78,3 +78,7 @@ func _spawn_projectile(pos: Vector2, vel: Vector2, dmg: float, color: Color, lif
 
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
+
+func trigger_visual_fx(kind: String, data: Dictionary = {}) -> void:
+	if owner_player != null and owner_player.has_method("play_visual_fx"):
+		owner_player.play_visual_fx(kind, data)

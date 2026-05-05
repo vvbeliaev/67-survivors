@@ -14,6 +14,7 @@ func on_pressed() -> void:
 		return
 	consume_cost()
 	start_cooldown()
+	trigger_visual_fx("ap", {})
 	_spawn_projectile(
 		owner_player.global_position + owner_player.aim_dir * (owner_player.radius + 4),
 		owner_player.aim_dir * speed,

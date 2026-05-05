@@ -44,6 +44,9 @@ var stats: StatBlock = StatBlock.new()
 var class_node: ClassNode = null
 var _class_def: ClassDef = null
 
+# Visual FX payloads keyed by kind; host announces via RPC call_local.
+var _fx_local: Dictionary = {}
+
 # Latest input mirror (host stores input received from owner peer).
 var _in_move: Vector2 = Vector2.ZERO
 var _in_aim: Vector2 = Vector2.ZERO
@@ -107,7 +110,6 @@ func _rpc_apply_input(move: Vector2, aim_world: Vector2, primary_just: bool, sec
 # ---- Per-tick simulation -----------------------------------------------
 
 func _physics_process(delta: float) -> void:
-	queue_redraw()
 	if not GameState.is_authority():
 		return
 	if not alive:
@@ -215,10 +217,48 @@ func apply_damage(amount: float, _src_team: String) -> void:
 	if Time.get_ticks_msec() / 1000.0 < iframes_until:
 		return
 	hp -= amount
+	_broadcast_damage_number(amount, global_position)
 	EventBus.damage_dealt.emit(self, amount, _src_team)
 	if hp <= 0.0:
 		hp = 0.0
 		_go_down()
+
+func play_visual_fx(kind: String, data: Dictionary = {}) -> void:
+	if not GameState.is_authority():
+		return
+	if multiplayer.multiplayer_peer != null:
+		_rpc_play_vis_fx.rpc(kind, data)
+	else:
+		_rpc_play_vis_fx(kind, data)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_play_vis_fx(kind: String, data: Dictionary) -> void:
+	var entry: Dictionary = data.duplicate(true)
+	entry["t"] = Time.get_ticks_msec() / 1000.0
+	_fx_local[kind] = entry
+
+func fx_age(kind: String) -> float:
+	if not _fx_local.has(kind):
+		return -1.0
+	return (Time.get_ticks_msec() / 1000.0) - float(_fx_local[kind].get("t", 0.0))
+
+func fx_get(kind: String, key: String, default_value: Variant = null) -> Variant:
+	if not _fx_local.has(kind):
+		return default_value
+	return _fx_local[kind].get(key, default_value)
+
+func _broadcast_damage_number(amount: float, world_pos: Vector2) -> void:
+	var crit := amount >= 30.0
+	if multiplayer.multiplayer_peer != null:
+		_rpc_damage_number.rpc(amount, world_pos, crit)
+	else:
+		_rpc_damage_number(amount, world_pos, crit)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_damage_number(amount: float, world_pos: Vector2, crit: bool) -> void:
+	var arena := get_tree().get_first_node_in_group("arena")
+	if arena != null and arena.has_method("spawn_damage_number"):
+		arena.spawn_damage_number(amount, world_pos, crit)
 
 func heal(amount: float) -> void:
 	if not GameState.is_authority():

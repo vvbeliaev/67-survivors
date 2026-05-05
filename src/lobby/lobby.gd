@@ -1,31 +1,86 @@
 extends Control
 
-@onready var nick_edit: LineEdit = $Panel/VBox/NickRow/Nick
-@onready var addr_edit: LineEdit = $Panel/VBox/AddrRow/Addr
-@onready var port_edit: LineEdit = $Panel/VBox/AddrRow/Port
-@onready var class_option: OptionButton = $Panel/VBox/ClassRow/ClassOption
-@onready var host_btn: Button = $Panel/VBox/Buttons/Host
-@onready var join_btn: Button = $Panel/VBox/Buttons/Join
-@onready var leave_btn: Button = $Panel/VBox/Buttons/Leave
-@onready var start_btn: Button = $Panel/VBox/Buttons/Start
-@onready var roster_label: Label = $Panel/VBox/Roster
-@onready var status_label: Label = $Panel/VBox/Status
+const CLASS_INFO := {
+	"berserker": {
+		"name": "БЕРСЕРК",
+		"subtitle": "Безумец крови",
+		"sprite": "res://assets/images/berserker.png",
+		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг",
+	},
+	"mage": {
+		"name": "ВОЛШЕБНИК",
+		"subtitle": "Архимаг разрушения",
+		"sprite": "res://assets/images/wizard.png",
+		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору",
+	},
+	"bard": {
+		"name": "БАРД",
+		"subtitle": "Голос пати",
+		"sprite": "res://assets/images/bard.png",
+		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]",
+	},
+	"crossbow": {
+		"name": "АРБАЛЕТЧИК",
+		"subtitle": "Тихий охотник",
+		"sprite": "res://assets/images/crossbowman.png",
+		"desc": "[center][i][color=#c8c8d0]«Один выстрел. Одна цель. Тишина.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ffd060]Single-target[/color] · Убийца боссов\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — заряжаемый болт ([color=#ffd060]12→45 урона[/color] при удержании ЛКМ)\n[b][color=#ff7878]Зарядка[/color][/b] замедляет — ловите момент\n[b][color=#ffd060]ПКМ[/color][/b] — бронебойный пробивной болт\n[b][color=#ffd060]Space[/color][/b] — перекат с [color=#78f078]i-frames[/color]",
+	},
+}
+
+@onready var nick_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/NickRow/Nick
+@onready var addr_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/AddrRow/Addr
+@onready var port_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/PortRow/Port
+@onready var sprite_rect: TextureRect = $Center/Panel/HBox/ClassPicker/Sprite
+@onready var prev_btn: Button = $Center/Panel/HBox/ClassPicker/Arrows/Prev
+@onready var next_btn: Button = $Center/Panel/HBox/ClassPicker/Arrows/Next
+@onready var class_name_label: Label = $Center/Panel/HBox/ClassPicker/Arrows/ClassName
+@onready var subtitle_label: Label = $Center/Panel/HBox/ClassPicker/Subtitle
+@onready var desc_label: RichTextLabel = $Center/Panel/HBox/ClassPicker/Description
+@onready var host_btn: Button = $Center/Panel/HBox/RightCol/Buttons/HostWrap/Host
+@onready var join_btn: Button = $Center/Panel/HBox/RightCol/Buttons/JoinWrap/Join
+@onready var leave_btn: Button = $Center/Panel/HBox/RightCol/Buttons/LeaveWrap/Leave
+@onready var start_btn: Button = $Center/Panel/HBox/RightCol/Buttons/StartWrap/Start
+@onready var roster_label: Label = $Center/Panel/HBox/RightCol/Roster
+@onready var status_label: Label = $Center/Panel/HBox/RightCol/Status
+
+var _class_idx: int = 0
 
 func _ready() -> void:
 	nick_edit.text = GameState.local_nick
 	port_edit.text = str(Network.DEFAULT_PORT)
-	for klass in GameState.VALID_CLASSES:
-		class_option.add_item(String(klass))
-	class_option.select(GameState.VALID_CLASSES.find(GameState.local_class))
+	_class_idx = max(GameState.VALID_CLASSES.find(GameState.local_class), 0)
+	prev_btn.pressed.connect(_on_prev_class)
+	next_btn.pressed.connect(_on_next_class)
 	host_btn.pressed.connect(_on_host)
 	join_btn.pressed.connect(_on_join)
 	leave_btn.pressed.connect(_on_leave)
 	start_btn.pressed.connect(_on_start)
-	class_option.item_selected.connect(_on_class_selected)
 	nick_edit.text_changed.connect(func(t): GameState.local_nick = t)
 	Network.lobby_updated.connect(_refresh)
 	GameState.roster_changed.connect(_refresh)
+	_apply_class_selection()
 	_refresh()
+
+func _on_prev_class() -> void:
+	_class_idx = (_class_idx - 1 + GameState.VALID_CLASSES.size()) % GameState.VALID_CLASSES.size()
+	_apply_class_selection()
+
+func _on_next_class() -> void:
+	_class_idx = (_class_idx + 1) % GameState.VALID_CLASSES.size()
+	_apply_class_selection()
+
+func _apply_class_selection() -> void:
+	var klass: String = String(GameState.VALID_CLASSES[_class_idx])
+	var info: Dictionary = CLASS_INFO.get(klass, {})
+	class_name_label.text = info.get("name", klass)
+	subtitle_label.text = info.get("subtitle", "")
+	desc_label.text = info.get("desc", "")
+	var path: String = info.get("sprite", "")
+	if path != "" and ResourceLoader.exists(path):
+		sprite_rect.texture = load(path)
+	else:
+		sprite_rect.texture = null
+	Network.set_local_class(StringName(klass))
 
 func _refresh() -> void:
 	var connected := multiplayer.multiplayer_peer != null
@@ -39,16 +94,14 @@ func _refresh() -> void:
 		var entry: Dictionary = GameState.roster[pid]
 		var marker := " (you)" if pid == multiplayer.get_unique_id() else ""
 		var role := " [host]" if pid == 1 else ""
-		lines.append("- %s as %s%s%s" % [entry.get("nick", "?"), String(entry.get("klass", &"?")), role, marker])
-	roster_label.text = "Roster:\n" + ("\n".join(lines) if lines.size() > 0 else "(empty)")
+		var rk: String = String(entry.get("klass", "?"))
+		var rname: String = CLASS_INFO.get(rk, {}).get("name", rk)
+		lines.append("- %s — %s%s%s" % [entry.get("nick", "?"), rname, role, marker])
+	roster_label.text = "Пати:\n" + ("\n".join(lines) if lines.size() > 0 else "(пусто)")
 	if connected:
-		status_label.text = "Connected. id=%d host=%s" % [multiplayer.get_unique_id(), str(multiplayer.is_server())]
+		status_label.text = "Подключено. id=%d host=%s" % [multiplayer.get_unique_id(), str(multiplayer.is_server())]
 	else:
-		status_label.text = "Offline"
-
-func _on_class_selected(idx: int) -> void:
-	var klass: StringName = GameState.VALID_CLASSES[idx]
-	Network.set_local_class(klass)
+		status_label.text = "Оффлайн"
 
 func _on_host() -> void:
 	GameState.local_nick = nick_edit.text.strip_edges()

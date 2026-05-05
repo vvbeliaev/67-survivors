@@ -17,3 +17,4 @@ func on_pressed() -> void:
 	for e in Targeting.enemies_in_radius(get_tree(), owner_player.global_position, r):
 		if e.has_method("force_target"):
 			e.force_target(owner_player.peer_id, hold_duration)
+	trigger_visual_fx("roar", {"r": r})

@@ -28,3 +28,4 @@ func on_tick(_delta: float) -> void:
 		projectile_radius,
 		0,
 	)
+	trigger_visual_fx("auto", {})

@@ -16,4 +16,6 @@ func on_pressed() -> void:
 	var d: float = min(off.length(), max_distance)
 	if d <= 0.0:
 		return
+	var from_pos: Vector2 = owner_player.global_position
 	owner_player.teleport(owner_player.global_position + off.normalized() * d)
+	trigger_visual_fx("blink", {"from": from_pos, "to": owner_player.global_position})

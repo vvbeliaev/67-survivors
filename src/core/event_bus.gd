@@ -8,6 +8,8 @@ extends Node
 
 # Combat / lifecycle.
 signal damage_dealt(target: Node, amount: float, src_team: String)
+## Local cosmetic — emitted on each peer when that peer spawns floating combat text.
+signal damage_number_spawned(world_pos: Vector2, amount: int, crit: bool)
 signal enemy_killed(enemy: Node, killer_peer: int)
 signal player_downed(peer_id: int)
 signal player_revived(peer_id: int)

@@ -7,6 +7,7 @@ extends Node2D
 const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const ENEMY_SCENE := preload("res://src/enemy/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
+const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
 
 @onready var players_container: Node = $PlayersContainer
 @onready var enemies_container: Node = $EnemiesContainer
@@ -82,6 +83,15 @@ func spawn_projectile(data: Dictionary) -> void:
 	if not GameState.is_authority():
 		return
 	projectiles_spawner.spawn(data)
+
+func spawn_damage_number(amount: float, world_pos: Vector2, crit: bool = false) -> void:
+	var n := Node2D.new()
+	n.set_script(DAMAGE_NUMBER_SCRIPT)
+	n.amount = int(round(amount))
+	n.crit = crit
+	n.position = world_pos + Vector2(0, -20)
+	add_child(n)
+	EventBus.damage_number_spawned.emit(world_pos, n.amount, crit)
 
 # ---- Roster --------------------------------------------------------------
 

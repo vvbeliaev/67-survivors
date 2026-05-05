@@ -21,3 +21,4 @@ func on_pressed() -> void:
 			e.stun(stun_duration)
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
+	trigger_visual_fx("quake", {"r": r})

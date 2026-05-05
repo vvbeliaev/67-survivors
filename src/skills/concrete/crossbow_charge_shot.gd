@@ -31,6 +31,7 @@ func on_released() -> void:
 	var t: float = clampf((charge_t - min_charge) / (max_charge - min_charge), 0.0, 1.0)
 	var dmg: float = damage_min + (damage_max - damage_min) * t
 	var speed: float = speed_base + speed_bonus * t
+	trigger_visual_fx("shot", {})
 	_spawn_projectile(
 		owner_player.global_position + owner_player.aim_dir * (owner_player.radius + 4),
 		owner_player.aim_dir * speed,
