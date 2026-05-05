@@ -36,10 +36,10 @@ const CLASS_INFO := {
 @onready var class_name_label: Label = $Center/Panel/HBox/ClassPicker/Arrows/ClassName
 @onready var subtitle_label: Label = $Center/Panel/HBox/ClassPicker/Subtitle
 @onready var desc_label: RichTextLabel = $Center/Panel/HBox/ClassPicker/Description
-@onready var host_btn: Button = $Center/Panel/HBox/RightCol/Buttons/Host
-@onready var join_btn: Button = $Center/Panel/HBox/RightCol/Buttons/Join
-@onready var leave_btn: Button = $Center/Panel/HBox/RightCol/Buttons/Leave
-@onready var start_btn: Button = $Center/Panel/HBox/RightCol/Buttons/Start
+@onready var host_btn: Button = $Center/Panel/HBox/RightCol/Buttons/HostWrap/Host
+@onready var join_btn: Button = $Center/Panel/HBox/RightCol/Buttons/JoinWrap/Join
+@onready var leave_btn: Button = $Center/Panel/HBox/RightCol/Buttons/LeaveWrap/Leave
+@onready var start_btn: Button = $Center/Panel/HBox/RightCol/Buttons/StartWrap/Start
 @onready var roster_label: Label = $Center/Panel/HBox/RightCol/Roster
 @onready var status_label: Label = $Center/Panel/HBox/RightCol/Status
 
