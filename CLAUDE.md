@@ -129,3 +129,168 @@ TBD. Дефолтная позиция: минимальная мета-прог
 - Расширение пула апгрейдов и архетипов.
 - Дополнительные классы.
 - Возможно: соло-режим с балансом под одного.
+
+---
+
+# Архитектура и working rules
+
+Высокоуровневая раскладка и принципы — в [README.md](README.md). Ниже — рабочие правила: что делать, чего не делать, типовые ошибки на Godot 4.6 / GDScript, как расширять.
+
+## Базовые контракты
+
+### Authority gate
+**Любая** мутация sim-стейта начинается с `if not GameState.is_authority(): return`. Это включает:
+- `apply_damage`, `heal`, `apply_upgrade_def` на Player/Enemy
+- `stun`, `force_target` на Enemy
+- любая RPC-обработка с `multiplayer.is_server()` — заменяй на `GameState.is_authority()`
+
+Solo-режим автоматически проходит этот гейт (нет peer'а → авторитет). Не пиши отдельных веток для соло.
+
+### Replication minimality
+Перед добавлением `@export` поля на Player/Enemy, спроси: **нужно ли это клиенту для рендера/UI?**
+- Нужно (hp, max_hp, aim_dir, charge_started_at) → `@export` + строка в `SceneReplicationConfig`.
+- Не нужно (cooldown_left у скилла, AI-таймеры, StatBlock) → обычный `var`, host-only.
+
+Лишняя репликация — лишний bandwidth и лишняя поверхность для desync'ов.
+
+### Stat composition
+**Запрещено** менять числовые поля игрока напрямую из апгрейдов/баффов/аур. Только через StatBlock:
+
+```gdscript
+# ПЛОХО
+player.dmg_mult += 0.10
+player.move_speed_bonus += 0.20
+
+# ХОРОШО
+player.stats.add_pct(StatBlock.STAT_DMG, &"upg_damage_3", 0.10)
+player.stats.add_pct(StatBlock.STAT_SPEED, &"buff_haste_42", 0.20)
+# снять
+player.stats.remove(&"buff_haste_42")
+```
+
+mod_id выбирай так, чтобы он был **уникален в пределах смысла**. Стак апгрейда → `upg_<id>_<stack_index>`. Бафф от барда → `buff_bard_<serial>` (см. [bard_buff.gd](src/skills/concrete/bard_buff.gd)). Класс-внутренний slow → `crossbow_charge_slow` (стейт-флаг, вешается-снимается на изменении состояния, см. [crossbow.gd](src/player/classes/crossbow.gd)).
+
+`max_hp`/`max_mp` снимаются со StatBlock'а каждый тик в Player._physics_process — апгрейды на capacity сразу видны клиенту через репликацию.
+
+### EventBus discipline
+Эмиттится **только на авторитети**. Подписчики на клиенте получат, но имеют смысл только UI-наблюдатели (HUD reagiert).
+
+Не вызывай `EventBus.<sig>.connect(...)` из кода, который может срабатывать у не-авторитети. Если делаешь системный узел, создавай его на host'е (или гейтит обработчики через `is_authority()`).
+
+## Расширение контента
+
+### Добавить класс
+1. `resources/classes/<id>.tres` — `ClassDef` с base stats, цветом, ссылкой на node_script.
+2. `src/player/classes/<id>.gd` — `extends ClassNode`, override `seed_stats()` (положить базы в StatBlock) и `build_skills()` (создать 4 скилл-инстанса, прицепить через `_attach()`).
+3. (опц.) `on_pre_move(delta)` — для класс-специфичных стат-модификаций по состоянию (пример: чарж-slow арбалетчика).
+4. Добавить в `GameState.VALID_CLASSES`.
+
+Никаких правок в `player.gd`, `arena.gd`, `hud.gd`, `network.gd`. Только лобби-список расширяется через `VALID_CLASSES`.
+
+### Добавить врага
+1. `resources/enemies/<id>.tres` — `EnemyDef` со статами + ссылкой на ai_script.
+2. `src/enemy/ai/<id>_ai.gd` — `extends EnemyAI`, override `tick(delta)`. Внутри читай поля у `owner_enemy` (move_speed, contact_damage, ranged_*, …). Не дублируй — переиспользуй стейт врага.
+3. Добавить id в нужные `WavePhase.enemy_types` в `resources/waves/arena_default.tres`.
+
+### Добавить скилл
+1. `src/skills/concrete/<name>.gd` — `extends Skill`, override нужные хуки:
+   - `_init()`: задать `base_cooldown`, `mana_cost`.
+   - `on_pressed()` / `on_held(delta)` / `on_released()` — реакция на ввод.
+   - `on_tick(delta)` — пассивная логика (auto-attack).
+2. Внутри: `if not ready_to_cast(): return`, потом `consume_cost()`, `start_cooldown()`, потом эффект.
+3. Прицепить в нужном `ClassNode.build_skills()` через `_attach(...)`.
+
+Хелперы из `Skill` базы: `_aoe_damage(center, r, dmg)`, `_spawn_projectile(...)`, `Targeting.*`.
+
+### Добавить апгрейд
+1. `resources/upgrades/<id>.tres` — `UpgradeDef`. Поля:
+   - `id` — StringName (уникальный).
+   - `stat` — id стата из `StatBlock.STAT_*`.
+   - `mode` — `0` (FLAT) или `1` (PCT).
+   - `amount` — величина.
+   - `class_filter` — `Array[StringName]([&"mage"])` чтобы оффрить только магу. Пустой массив — всем.
+   - `heal_on_pick`, `refill_mana` — побочные эффекты.
+2. **Никаких правок кода.** Defs.gd сам подхватит файл при следующем старте.
+
+### Добавить фазу волны
+Редактируй `resources/waves/arena_default.tres`. Phase'ы упорядочены по `from_time`. WaveDirector берёт последний с `from_time <= run_time`.
+
+## Запреты
+
+| Антипаттерн | Что делать вместо |
+| --- | --- |
+| `match klass:` или `match enemy_type:` в логике | ClassNode/EnemyAI override + Resource def |
+| Прямая мутация `*_mult`/`*_bonus` полей | `stats.add_pct/add_flat` с named mod_id |
+| Таймер с lambda, мутирующий поле и потом ревертящий | `apply_temp_pct_buff()` (он сам снимает через mod_id) |
+| `get_first_node_in_group("arena").on_X(...)` для событий | `EventBus.X.emit(...)` + подписчик |
+| Логика в `_draw()` | _draw — только рендер; логика в _physics_process на sim-узле |
+| `@export` поля host-only стейта | обычный `var` |
+| Новые автолоады для каждой системы | поддержи композицию через дочерние ноды арены |
+| Сцена и её скрипт в разных папках | держи рядом, `feature/feature.tscn` + `feature/feature.gd` |
+
+## GDScript-гочи (Godot 4.6)
+
+### Type inference со слабо-типизированным receiver
+```gdscript
+# owner_player: Node — компилятор не видит метода range_mult()
+var r := owner_player.range_mult()   # Parse error: cannot infer type
+var r: float = owner_player.range_mult()  # OK
+```
+В скиллах **всегда** аннотируй локалы, которые приходят от `owner_player.*`. Чем строже типизирован код, тем раньше ловятся опечатки.
+
+### Typed arrays в .tres
+```
+class_filter = Array[StringName]([&"mage"])
+phases = Array[WavePhase]([SubResource("Phase0"), SubResource("Phase1")])
+```
+Если поле объявлено `Array[T]`, .tres-литерал должен быть `Array[T]([...])`, не `Array[Resource]`.
+
+### SubResource'ы для Resource-полей внутри Resource
+WaveSet содержит массив WavePhase. Каждый Phase в .tres — `[sub_resource type="Resource" id="Phase0"]` со `script = ExtResource("phase_script")`. Не путай с обычным `[node]`.
+
+### `class_name` обязателен для script_class в .tres
+Если в .tres есть `script_class="ClassDef"`, в `src/data/class_def.gd` должно быть `class_name ClassDef extends Resource`.
+
+### MultiplayerSpawner.spawn_function вызывается ДО enter-tree
+Внутри `_spawn_player`/`_spawn_enemy` инстанс ещё не в дереве. `setup()` вызывай тут (он не должен лазить через `get_tree()` для внешних нод). `_ready` в child-узлах НЕ выстреливает до `add_child` спавнером.
+
+### `script_class` не принимает property type cohersion в `Variant`
+При обращении `res.get("id")` Variant не auto-кастится в StringName. Делай явный каст: `StringName(String(res.get("id")))`.
+
+### Replication mode (в SceneReplicationConfig)
+- `0` — spawn-only (передаётся при инстансе, дальше не синкается). Идёт для immutable identity (peer_id, klass).
+- `1` — always_replicate (каждый тик). Position, aim_dir.
+- `2` — on_change. hp, mp, alive, downed_until.
+
+Не делай always_replicate для редко меняющихся полей — раздуешь трафик.
+
+## Расширение архитектуры
+
+### Когда вводить новую папку в src/
+Если у фичи 3+ файлов и она не вписывается ни в одну существующую папку. Иначе — допиши в существующую (новый AI → `enemy/ai/`, новый скилл → `skills/concrete/`).
+
+### Когда новый автолоад
+Только если данные/функция нужны **из любой точки и до загрузки сцены**. Сейчас оправданы 4: GameState, EventBus, Defs, Network. Всё остальное — дочерние узлы арены.
+
+### Когда новый Resource-тип vs словарь
+Если поле имеет 3+ полей и/или будет редактироваться дизайнером — Resource. Если 1-2 поля и потребитель один — словарь.
+
+### Когда новый Skill base vs reuse
+Skill база покрывает 99% случаев (cooldown, mana, input hooks). Если новая механика требует, например, channel-каста или multi-stage — добавь хук в Skill (`on_channel_tick`, `on_stage_advance`), не плоди параллельную иерархию.
+
+## Тесты
+
+[`tests/smoke_test/smoke_test.gd`](tests/smoke_test/smoke_test.gd) — базовая проверка: спавн, AI-тик, kill→XP, boss-spawn, damage, upgrade. Любой нетривиальный рефакторинг — `make smoke` обязательно.
+
+При добавлении системного узла (новый автолоад, новая cross-arena логика) — добавь сценарный тест в `tests/<scenario>/<scenario>.tscn` + .gd. Print-based assertions достаточно для геймдева, юнит-фреймворк не нужен.
+
+## Migration heuristic
+
+Когда обнаруживаешь legacy god-object или процедурный switch:
+1. **Извлеки данные** в Resource (.tres). Не трогай поведение.
+2. **Запусти smoke** — поведение не сломалось.
+3. **Извлеки behavior** в node + base class. Старый код вызывает новый.
+4. **Smoke снова.**
+5. **Удали legacy путь.** Без backwards-compat.
+
+Не делай шаг 1+3+5 за один коммит — потеряешь возможность бисектить регрессию.
