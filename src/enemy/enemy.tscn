@@ -40,6 +40,9 @@ properties/9/replication_mode = 1
 properties/10/path = NodePath(".:boss_aoe_radius")
 properties/10/spawn = true
 properties/10/replication_mode = 0
+properties/11/path = NodePath(".:facing_dir")
+properties/11/spawn = true
+properties/11/replication_mode = 1
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")

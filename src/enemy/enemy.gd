@@ -21,6 +21,10 @@ const TEAM := "enemy"
 @export var boss_aoe_state: int = 0
 @export var boss_aoe_pos: Vector2 = Vector2.ZERO
 
+# Last meaningful movement direction. Replicated so the view rotates the
+# sprite consistently for every peer.
+@export var facing_dir: Vector2 = Vector2.DOWN
+
 # Host-only fields (not replicated).
 var move_speed: float = 180.0
 var contact_damage: float = 8.0
@@ -84,6 +88,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if ai != null:
 		ai.tick(delta)
+	if velocity.length_squared() > 1.0:
+		facing_dir = velocity.normalized()
 
 # ---- Status hooks called by skills -------------------------------------
 
