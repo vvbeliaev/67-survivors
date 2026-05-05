@@ -14,13 +14,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.07, 0.07, 0.09, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_bottom = 16
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(1180, 740)
 
 [node name="HBox" type="HBoxContainer" parent="Center/Panel"]
 theme_override_constants/separation = 32
