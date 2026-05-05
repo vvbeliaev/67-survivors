@@ -9,6 +9,7 @@ const TEAM := "player"
 const CLASS_SPRITES := {
 	"berserker": preload("res://images/berserker_top.png"),
 	"mage": preload("res://images/wizard_top.png"),
+	"bard": preload("res://images/bard_top.png"),
 	"crossbow": preload("res://images/crossbowman_top.png"),
 }
 const SPRITE_SIZE_MULT := 4.5  # sprite drawn ~ radius * mult px wide
