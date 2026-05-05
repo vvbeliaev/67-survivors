@@ -48,6 +48,7 @@ anchor_bottom = 1.0
 texture = ExtResource("3_menu_bg")
 expand_mode = 1
 stretch_mode = 6
+flip_h = true
 
 [node name="Center" type="MarginContainer" parent="."]
 anchors_preset = 15
