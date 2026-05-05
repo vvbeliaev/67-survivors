@@ -11,93 +11,48 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="Top" type="HBoxContainer" parent="Root"]
-anchors_preset = 5
+[node name="PartyAnchor" type="Control" parent="Root"]
+anchor_left = 0.0
+anchor_top = 0.0
+offset_left = 24.0
+offset_top = 24.0
+mouse_filter = 2
+
+[node name="StatusAnchor" type="Control" parent="Root"]
 anchor_left = 0.5
+anchor_top = 0.0
 anchor_right = 0.5
-offset_left = -240.0
-offset_top = 8.0
-offset_right = 240.0
-offset_bottom = 48.0
+mouse_filter = 2
 
-[node name="TimerLabel" type="Label" parent="Root/Top"]
-text = "Time left: 10:00"
-custom_minimum_size = Vector2(160, 0)
+[node name="MinimapAnchor" type="Control" parent="Root"]
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+mouse_filter = 2
 
-[node name="LevelLabel" type="Label" parent="Root/Top"]
-text = "Party lvl 1"
-custom_minimum_size = Vector2(120, 0)
-
-[node name="XPBar" type="ProgressBar" parent="Root/Top"]
-custom_minimum_size = Vector2(180, 0)
-size_flags_horizontal = 3
-
-[node name="TopLeft" type="VBoxContainer" parent="Root"]
-anchors_preset = 9
+[node name="LogAnchor" type="Control" parent="Root"]
+anchor_left = 0.0
+anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 240.0
-offset_bottom = 200.0
+mouse_filter = 2
 
-[node name="RosterLabel" type="Label" parent="Root/TopLeft"]
-text = "Party:"
+[node name="VitalsAnchor" type="Control" parent="Root"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+mouse_filter = 2
 
-[node name="Roster" type="VBoxContainer" parent="Root/TopLeft"]
-
-[node name="BottomLeft" type="Control" parent="Root"]
-anchors_preset = 12
+[node name="BossAnchor" type="Control" parent="Root"]
+anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = -120.0
-offset_right = -8.0
+mouse_filter = 2
 
-[node name="LocalPanel" type="VBoxContainer" parent="Root/BottomLeft"]
-custom_minimum_size = Vector2(360, 0)
-
-[node name="Nick" type="Label" parent="Root/BottomLeft/LocalPanel"]
-text = "—"
-
-[node name="HPBar" type="ProgressBar" parent="Root/BottomLeft/LocalPanel"]
-custom_minimum_size = Vector2(280, 16)
-
-[node name="MPBar" type="ProgressBar" parent="Root/BottomLeft/LocalPanel"]
-custom_minimum_size = Vector2(280, 16)
-
-[node name="Skills" type="HBoxContainer" parent="Root/BottomLeft/LocalPanel"]
-
-[node name="Center" type="Control" parent="Root"]
-anchors_preset = 8
+[node name="CenterAnchor" type="Control" parent="Root"]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-
-[node name="UpgradePanel" type="PanelContainer" parent="Root/Center"]
-offset_left = -320.0
-offset_top = -100.0
-offset_right = 320.0
-offset_bottom = 100.0
-
-[node name="VBox" type="VBoxContainer" parent="Root/Center/UpgradePanel"]
-
-[node name="Title" type="Label" parent="Root/Center/UpgradePanel/VBox"]
-text = "LEVEL UP — pick one"
-
-[node name="Buttons" type="HBoxContainer" parent="Root/Center/UpgradePanel/VBox"]
-
-[node name="EndgamePanel" type="PanelContainer" parent="Root/Center"]
-offset_left = -200.0
-offset_top = -80.0
-offset_right = 200.0
-offset_bottom = 80.0
-
-[node name="VBox" type="VBoxContainer" parent="Root/Center/EndgamePanel"]
-
-[node name="Title" type="Label" parent="Root/Center/EndgamePanel/VBox"]
-text = "—"
-
-[node name="Back" type="Button" parent="Root/Center/EndgamePanel/VBox"]
-text = "Back to lobby"
+mouse_filter = 2
