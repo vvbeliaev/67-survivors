@@ -15,11 +15,11 @@ const RUSHER_FRAME_DURATION := 0.18
 const SPRITE_SIZE_MULT := 2.6
 
 const SWARM_FRAME_DURATION := 0.28
-const SLIME_COLOR         := Color(0.25, 0.85, 0.20, 1.0)
 const SLIME_TRAIL_COLOR   := Color(0.15, 0.72, 0.10)
-const TRAIL_POINTS        := 10
-const TRAIL_INTERVAL      := 0.07   # seconds between trail snapshots
-const TRAIL_LIFETIME      := TRAIL_POINTS * TRAIL_INTERVAL
+const TRAIL_POINTS        := 14
+const TRAIL_INTERVAL      := 0.05
+const TRAIL_LIFETIME      := 0.9
+const TRAIL_MIN_STEP      := 2.0   # px — don't add a new point if slime barely moved
 
 @export var owner_path: NodePath = NodePath("..")
 
@@ -46,11 +46,19 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _enemy != null and is_instance_valid(_enemy) and _enemy.enemy_type == &"swarm":
 		var now: float = Time.get_ticks_msec() / 1000.0
+		# Drop expired tail points (so trail fades away when slime stops moving).
+		while not _trail.is_empty() and now - float(_trail[0]["t"]) > TRAIL_LIFETIME:
+			_trail.pop_front()
 		if now - _last_trail_t >= TRAIL_INTERVAL:
-			_trail.append({"pos": _enemy.global_position, "t": now})
-			_last_trail_t = now
-			if _trail.size() > TRAIL_POINTS:
-				_trail.pop_front()
+			var moved_enough := true
+			if not _trail.is_empty():
+				var last_pos: Vector2 = _trail[_trail.size() - 1]["pos"]
+				moved_enough = _enemy.global_position.distance_to(last_pos) >= TRAIL_MIN_STEP
+			if moved_enough:
+				_trail.append({"pos": _enemy.global_position, "t": now})
+				_last_trail_t = now
+				if _trail.size() > TRAIL_POINTS:
+					_trail.pop_front()
 	queue_redraw()
 
 func _draw() -> void:
@@ -74,14 +82,46 @@ func _draw() -> void:
 		draw_arc(_enemy.boss_aoe_pos - _enemy.global_position, _enemy.boss_aoe_radius, 0, TAU, 48, Color(1, 0.2, 0.2, 0.7), 3.0)
 
 func _draw_slime_trail() -> void:
-	var now: float = Time.get_ticks_msec() / 1000.0
+	# Build a single tapered ribbon polygon from oldest → newest position.
+	# Width grows toward the slime; alpha fades toward the tail.
+	var n: int = _trail.size()
+	if n < 2:
+		return
+	var pts: PackedVector2Array = PackedVector2Array()
 	for entry: Dictionary in _trail:
-		var age: float = now - float(entry["t"])
-		var frac: float = clampf(1.0 - age / TRAIL_LIFETIME, 0.0, 1.0)
-		var alpha: float = frac * 0.45
-		var r: float = _enemy.radius * (0.55 + (1.0 - frac) * 0.35)
-		var local_pos: Vector2 = to_local(entry["pos"])
-		draw_circle(local_pos, r, Color(SLIME_TRAIL_COLOR, alpha))
+		pts.append(to_local(entry["pos"]))
+	var max_width: float = _enemy.radius * 1.1
+	var left: PackedVector2Array = PackedVector2Array()
+	var right: PackedVector2Array = PackedVector2Array()
+	for i in n:
+		var dir: Vector2
+		if i == 0:
+			dir = pts[1] - pts[0]
+		elif i == n - 1:
+			dir = pts[n - 1] - pts[n - 2]
+		else:
+			dir = pts[i + 1] - pts[i - 1]
+		if dir.length() < 0.01:
+			dir = Vector2.RIGHT
+		dir = dir.normalized()
+		var perp: Vector2 = Vector2(-dir.y, dir.x)
+		# Tapered: 0 at the tail (i=0), full width at the slime (i=n-1).
+		var t_along: float = float(i) / float(n - 1)
+		var w: float = t_along * max_width
+		left.append(pts[i] + perp * w)
+		right.append(pts[i] - perp * w)
+	# Closed polygon: forward along left side, back along right side.
+	var poly: PackedVector2Array = PackedVector2Array()
+	var cols: PackedColorArray = PackedColorArray()
+	for i in n:
+		poly.append(left[i])
+		var t_along: float = float(i) / float(n - 1)
+		cols.append(Color(SLIME_TRAIL_COLOR, t_along * 0.55))
+	for i in range(n - 1, -1, -1):
+		poly.append(right[i])
+		var t_along: float = float(i) / float(n - 1)
+		cols.append(Color(SLIME_TRAIL_COLOR, t_along * 0.55))
+	draw_polygon(poly, cols)
 
 func _frames_for(t: StringName) -> Array[Texture2D]:
 	match t:
