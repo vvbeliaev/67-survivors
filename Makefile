@@ -7,9 +7,9 @@ PORT        ?= 7777
 MIN_PLAYERS ?= 2
 
 # Remote deploy settings — required for make deploy/logs/stop:
-#   make deploy IP=1.2.3.4 PASS=secret
-IP   ?=
-PASS ?=
+#   make deploy IP=1.2.3.4 KEY=~/.ssh/id_ed25519_selectel
+IP  ?=
+KEY ?= ~/.ssh/id_ed25519_selectel
 
 .PHONY: run editor import smoke check server deploy logs stop peer host join clean help
 
@@ -54,23 +54,19 @@ check:
 # ── Remote server management ────────────────────────────────────────────────
 
 # Install Godot + pull repo + open port + start server — all in one shot.
-# Requires sshpass locally (brew install hudochenkov/sshpass/sshpass on Mac).
 deploy:
-	@[ -n "$(IP)"   ] || (echo "Usage: make deploy IP=<ip> PASS=<password> [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
-	@[ -n "$(PASS)" ] || (echo "Usage: make deploy IP=<ip> PASS=<password> [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
-	@bash $(PROJECT_DIR)/scripts/deploy.sh "$(IP)" "$(PASS)" "$(PORT)" "$(MIN_PLAYERS)"
+	@[ -n "$(IP)" ] || (echo "Usage: make deploy IP=<ip> [KEY=~/.ssh/id_ed25519_selectel] [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
+	@bash $(PROJECT_DIR)/scripts/deploy.sh "$(IP)" "$(KEY)" "$(PORT)" "$(MIN_PLAYERS)"
 
 # Tail server logs in real time.
 logs:
-	@[ -n "$(IP)"   ] || (echo "Usage: make logs IP=<ip> PASS=<password>"; exit 1)
-	@[ -n "$(PASS)" ] || (echo "Usage: make logs IP=<ip> PASS=<password>"; exit 1)
-	sshpass -p "$(PASS)" ssh -o StrictHostKeyChecking=no root@$(IP) tail -f /var/log/67survivors.log
+	@[ -n "$(IP)" ] || (echo "Usage: make logs IP=<ip> [KEY=~/.ssh/id_ed25519_selectel]"; exit 1)
+	ssh -i "$(KEY)" -o StrictHostKeyChecking=no root@$(IP) tail -f /var/log/67survivors.log
 
 # Kill the running server process.
 stop:
-	@[ -n "$(IP)"   ] || (echo "Usage: make stop IP=<ip> PASS=<password>"; exit 1)
-	@[ -n "$(PASS)" ] || (echo "Usage: make stop IP=<ip> PASS=<password>"; exit 1)
-	sshpass -p "$(PASS)" ssh -o StrictHostKeyChecking=no root@$(IP) \
+	@[ -n "$(IP)" ] || (echo "Usage: make stop IP=<ip> [KEY=~/.ssh/id_ed25519_selectel]"; exit 1)
+	ssh -i "$(KEY)" -o StrictHostKeyChecking=no root@$(IP) \
 	    'kill $$(cat /var/run/67survivors.pid 2>/dev/null) 2>/dev/null && echo stopped || echo not running'
 
 clean:
@@ -78,9 +74,9 @@ clean:
 
 help:
 	@echo "make run                       - check scripts then launch game (lobby)"
-	@echo "make deploy IP=x PASS=x       - install + start server on remote VPS"
-	@echo "make logs   IP=x PASS=x       - tail server logs"
-	@echo "make stop   IP=x PASS=x       - kill server process"
+	@echo "make deploy IP=x [KEY=~/.ssh/id_ed25519_selectel]  - install + start server"
+	@echo "make logs   IP=x [KEY=...]                         - tail server logs"
+	@echo "make stop   IP=x [KEY=...]                         - kill server process"
 	@echo "make server [PORT=7777]        - headless server locally"
 	@echo "make check                     - parse-check all GDScript"
 	@echo "make editor                    - open Godot editor"
