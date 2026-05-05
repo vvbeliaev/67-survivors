@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const _EnemyPace := preload("res://src/data/enemy_pace.gd")
+
 # Slim host-authoritative enemy. Holds the replicated state needed for view +
 # host-only stats. Behaviour lives on the AI child node, which is built from
 # the EnemyDef referenced at spawn.
@@ -62,9 +64,9 @@ func setup(def: EnemyDef) -> void:
 	hp = max_hp
 	color_hint = def.color_hint
 	radius = def.radius
-	move_speed = def.move_speed
 	contact_damage = def.contact_damage
 	contact_cd = def.contact_cd
+	move_speed = _EnemyPace.move_speed(def)
 	ranged = def.ranged
 	ranged_dist = def.ranged_dist
 	projectile_speed = def.projectile_speed

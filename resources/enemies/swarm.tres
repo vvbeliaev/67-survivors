@@ -5,14 +5,14 @@
 
 [resource]
 script = ExtResource("1_def")
-id = &"rusher"
-max_hp = 25.0
-move_speed = 115.0
-contact_damage = 8.0
-contact_cd = 0.6
-xp_value = 3
-color_hint = Color(0.95, 0.4, 0.4, 1)
-radius = 12.0
+id = &"swarm"
+max_hp = 10.0
+move_speed = 200.0
+contact_damage = 5.0
+contact_cd = 0.45
+xp_value = 1
+color_hint = Color(0.95, 0.85, 0.25, 1)
+radius = 6.5
 ranged = false
 ranged_dist = 0.0
 projectile_speed = 0.0
