@@ -12,7 +12,7 @@ script = ExtResource("1_lobby")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.08, 0.08, 0.1, 1)
+color = Color(0.07, 0.07, 0.09, 1)
 
 [node name="Panel" type="PanelContainer" parent="."]
 anchors_preset = 8
@@ -20,71 +20,113 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -200.0
-offset_right = 240.0
-offset_bottom = 200.0
+offset_left = -340.0
+offset_top = -340.0
+offset_right = 340.0
+offset_bottom = 340.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
-custom_minimum_size = Vector2(460, 380)
+custom_minimum_size = Vector2(660, 660)
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Panel/VBox"]
-text = "67-survivors lobby"
+text = "67 SURVIVORS"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
 
-[node name="NickRow" type="HBoxContainer" parent="Panel/VBox"]
+[node name="ClassPicker" type="VBoxContainer" parent="Panel/VBox"]
+theme_override_constants/separation = 6
 
-[node name="NickLabel" type="Label" parent="Panel/VBox/NickRow"]
-text = "Nick: "
-custom_minimum_size = Vector2(80, 0)
+[node name="Sprite" type="TextureRect" parent="Panel/VBox/ClassPicker"]
+custom_minimum_size = Vector2(0, 280)
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Nick" type="LineEdit" parent="Panel/VBox/NickRow"]
+[node name="Arrows" type="HBoxContainer" parent="Panel/VBox/ClassPicker"]
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Prev" type="Button" parent="Panel/VBox/ClassPicker/Arrows"]
+text = "◀"
+custom_minimum_size = Vector2(48, 48)
+theme_override_font_sizes/font_size = 22
+
+[node name="ClassName" type="Label" parent="Panel/VBox/ClassPicker/Arrows"]
+text = "—"
+custom_minimum_size = Vector2(260, 48)
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="Next" type="Button" parent="Panel/VBox/ClassPicker/Arrows"]
+text = "▶"
+custom_minimum_size = Vector2(48, 48)
+theme_override_font_sizes/font_size = 22
+
+[node name="Description" type="Label" parent="Panel/VBox/ClassPicker"]
+text = "—"
+custom_minimum_size = Vector2(0, 84)
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Conn" type="HBoxContainer" parent="Panel/VBox"]
+theme_override_constants/separation = 8
+
+[node name="NickLabel" type="Label" parent="Panel/VBox/Conn"]
+text = "Ник:"
+custom_minimum_size = Vector2(48, 0)
+vertical_alignment = 1
+
+[node name="Nick" type="LineEdit" parent="Panel/VBox/Conn"]
 size_flags_horizontal = 3
 text = "P"
+placeholder_text = "Имя"
 
-[node name="AddrRow" type="HBoxContainer" parent="Panel/VBox"]
+[node name="AddrLabel" type="Label" parent="Panel/VBox/Conn"]
+text = "  IP:"
+vertical_alignment = 1
 
-[node name="AddrLabel" type="Label" parent="Panel/VBox/AddrRow"]
-text = "Addr: "
-custom_minimum_size = Vector2(80, 0)
-
-[node name="Addr" type="LineEdit" parent="Panel/VBox/AddrRow"]
+[node name="Addr" type="LineEdit" parent="Panel/VBox/Conn"]
 size_flags_horizontal = 3
 text = "127.0.0.1"
 
-[node name="Port" type="LineEdit" parent="Panel/VBox/AddrRow"]
+[node name="PortLabel" type="Label" parent="Panel/VBox/Conn"]
+text = "  Порт:"
+vertical_alignment = 1
+
+[node name="Port" type="LineEdit" parent="Panel/VBox/Conn"]
 custom_minimum_size = Vector2(80, 0)
 text = "7777"
 
-[node name="ClassRow" type="HBoxContainer" parent="Panel/VBox"]
-
-[node name="ClassLabel" type="Label" parent="Panel/VBox/ClassRow"]
-text = "Class: "
-custom_minimum_size = Vector2(80, 0)
-
-[node name="ClassOption" type="OptionButton" parent="Panel/VBox/ClassRow"]
-size_flags_horizontal = 3
-
 [node name="Buttons" type="HBoxContainer" parent="Panel/VBox"]
+alignment = 1
+theme_override_constants/separation = 10
 
 [node name="Host" type="Button" parent="Panel/VBox/Buttons"]
 text = "Host"
+custom_minimum_size = Vector2(110, 36)
 
 [node name="Join" type="Button" parent="Panel/VBox/Buttons"]
 text = "Join"
+custom_minimum_size = Vector2(110, 36)
 
 [node name="Leave" type="Button" parent="Panel/VBox/Buttons"]
 text = "Leave"
+custom_minimum_size = Vector2(110, 36)
 
 [node name="Start" type="Button" parent="Panel/VBox/Buttons"]
-text = "Start round (host)"
+text = "Старт раунда"
+custom_minimum_size = Vector2(160, 36)
 
 [node name="Roster" type="Label" parent="Panel/VBox"]
-text = "Roster:\n(empty)"
-custom_minimum_size = Vector2(0, 140)
+text = "Пати:\n(пусто)"
+custom_minimum_size = Vector2(0, 90)
 
 [node name="Status" type="Label" parent="Panel/VBox"]
-text = "Offline"
+text = "Оффлайн"
+modulate = Color(0.7, 0.7, 0.75, 1)
 
 [node name="Hint" type="Label" parent="Panel/VBox"]
-text = "WASD move, LMB cast1, RMB cast2, Space utility."
-modulate = Color(0.7, 0.7, 0.7, 1)
+text = "WASD — движение, ЛКМ/ПКМ — скиллы, Space — утилка."
+modulate = Color(0.6, 0.6, 0.6, 1)
+horizontal_alignment = 1
