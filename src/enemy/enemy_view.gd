@@ -13,6 +13,7 @@ const RUSHER_FRAME_DURATION := 0.18
 # only slightly bigger than the collision diameter — clusters no longer
 # visually merge into one blob when they pile up on a player.
 const SPRITE_SIZE_MULT := 2.6
+const SWARM_SPRITE_MULT := SPRITE_SIZE_MULT * 1.2
 
 const SWARM_FRAME_DURATION := 0.28
 const SLIME_TRAIL_COLOR   := Color(0.15, 0.72, 0.10)
@@ -70,7 +71,7 @@ func _draw() -> void:
 	if frames.is_empty():
 		draw_circle(Vector2.ZERO, _enemy.radius, _enemy.color_hint)
 	else:
-		_draw_animated_sprite(frames, _frame_duration_for(_enemy.enemy_type))
+		_draw_animated_sprite(frames, _frame_duration_for(_enemy.enemy_type), _sprite_mult_for(_enemy.enemy_type))
 	if _enemy.hp < _enemy.max_hp:
 		var w: float = _enemy.radius * 2.4
 		var h := 4.0
@@ -137,11 +138,16 @@ func _frame_duration_for(t: StringName) -> float:
 		return SWARM_FRAME_DURATION
 	return RUSHER_FRAME_DURATION
 
-func _draw_animated_sprite(frames: Array[Texture2D], frame_dur: float) -> void:
+func _sprite_mult_for(t: StringName) -> float:
+	if t == &"swarm":
+		return SWARM_SPRITE_MULT
+	return SPRITE_SIZE_MULT
+
+func _draw_animated_sprite(frames: Array[Texture2D], frame_dur: float, size_mult: float) -> void:
 	var t: float = Time.get_ticks_msec() / 1000.0
 	var idx: int = int(t / frame_dur) % frames.size()
 	var tex: Texture2D = frames[idx]
-	var s: float = _enemy.radius * SPRITE_SIZE_MULT
+	var s: float = _enemy.radius * size_mult
 	var rot: float = _enemy.facing_dir.angle() + PI * 0.5
 	var tint := Color(1, 1, 1, 1)
 	if not _enemy.alive:
