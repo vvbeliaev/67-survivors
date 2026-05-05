@@ -77,6 +77,9 @@ func _ready() -> void:
 	collision_layer = 1 << 1  # Players
 	collision_mask = (1 << 0) | (1 << 1) | (1 << 2)  # World, Players, Enemies
 	_apply_class_base()
+	if GameState.is_authority():
+		hp = max_hp
+		mp = max_mp
 	queue_redraw()
 
 func setup(peer: int, nck: String, kl: String) -> void:
