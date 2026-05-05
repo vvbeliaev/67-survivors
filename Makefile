@@ -6,7 +6,12 @@ PROJECT_DIR := $(CURDIR)
 PORT        ?= 7777
 MIN_PLAYERS ?= 2
 
-.PHONY: run editor import smoke check server peer host join clean help
+# Remote deploy settings — required for make deploy/logs/stop:
+#   make deploy IP=1.2.3.4 PASS=secret
+IP   ?=
+PASS ?=
+
+.PHONY: run editor import smoke check server deploy logs stop peer host join clean help
 
 run: check
 	$(GODOT) --path $(PROJECT_DIR)
@@ -46,15 +51,40 @@ check:
 		echo "OK"; \
 	fi
 
+# ── Remote server management ────────────────────────────────────────────────
+
+# Install Godot + pull repo + open port + start server — all in one shot.
+# Requires sshpass locally (brew install hudochenkov/sshpass/sshpass on Mac).
+deploy:
+	@[ -n "$(IP)"   ] || (echo "Usage: make deploy IP=<ip> PASS=<password> [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
+	@[ -n "$(PASS)" ] || (echo "Usage: make deploy IP=<ip> PASS=<password> [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
+	@bash $(PROJECT_DIR)/scripts/deploy.sh "$(IP)" "$(PASS)" "$(PORT)" "$(MIN_PLAYERS)"
+
+# Tail server logs in real time.
+logs:
+	@[ -n "$(IP)"   ] || (echo "Usage: make logs IP=<ip> PASS=<password>"; exit 1)
+	@[ -n "$(PASS)" ] || (echo "Usage: make logs IP=<ip> PASS=<password>"; exit 1)
+	sshpass -p "$(PASS)" ssh -o StrictHostKeyChecking=no root@$(IP) tail -f /var/log/67survivors.log
+
+# Kill the running server process.
+stop:
+	@[ -n "$(IP)"   ] || (echo "Usage: make stop IP=<ip> PASS=<password>"; exit 1)
+	@[ -n "$(PASS)" ] || (echo "Usage: make stop IP=<ip> PASS=<password>"; exit 1)
+	sshpass -p "$(PASS)" ssh -o StrictHostKeyChecking=no root@$(IP) \
+	    'kill $$(cat /var/run/67survivors.pid 2>/dev/null) 2>/dev/null && echo stopped || echo not running'
+
 clean:
 	rm -rf $(PROJECT_DIR)/.godot
 
 help:
-	@echo "make run              - check scripts then launch game (lobby)"
-	@echo "make server           - headless dedicated server (default PORT=7777 MIN_PLAYERS=2)"
-	@echo "make check            - parse-check all GDScript (headless, 90 frames)"
-	@echo "make editor           - open Godot editor"
-	@echo "make import           - reimport assets headless"
-	@echo "make smoke            - run headless smoke test"
-	@echo "make peer             - two windows for local multiplayer testing"
-	@echo "make clean            - drop .godot cache"
+	@echo "make run                       - check scripts then launch game (lobby)"
+	@echo "make deploy IP=x PASS=x       - install + start server on remote VPS"
+	@echo "make logs   IP=x PASS=x       - tail server logs"
+	@echo "make stop   IP=x PASS=x       - kill server process"
+	@echo "make server [PORT=7777]        - headless server locally"
+	@echo "make check                     - parse-check all GDScript"
+	@echo "make editor                    - open Godot editor"
+	@echo "make import                    - reimport assets headless"
+	@echo "make smoke                     - run headless smoke test"
+	@echo "make peer                      - two windows for local multiplayer"
+	@echo "make clean                     - drop .godot cache"
