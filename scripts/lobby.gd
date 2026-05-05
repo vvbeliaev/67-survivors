@@ -2,24 +2,28 @@ extends Control
 
 const CLASS_INFO := {
 	"berserker": {
-		"name": "Берсерк",
+		"name": "БЕРСЕРК",
+		"subtitle": "Безумец крови",
 		"sprite": "res://images/berserker.png",
-		"desc": "Танк ближнего боя.\nКрутилка-AoE вокруг себя, рывок-удар, рев-агро, землетрясение-стан.\nУрон по вам = ресурс: чем меньше HP, тем сильнее рывок.",
+		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг\n\n[i][color=#909098]Держи фронт. Без тебя — рассыпется.[/color][/i]",
 	},
 	"mage": {
-		"name": "Волшебник",
+		"name": "ВОЛШЕБНИК",
+		"subtitle": "Архимаг разрушения",
 		"sprite": "res://images/wizard.png",
-		"desc": "AoE и контроль волн.\nАвто-снаряд по ближнему, файрбол по курсору (мана), цепная молния по 3 целям, блинк.\nХрупкий, но самый дальний урон.",
+		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору\n\n[i][color=#909098]Хрупкий. Но никто не чистит толпу быстрее.[/color][/i]",
 	},
 	"bard": {
-		"name": "Бард",
+		"name": "БАРД",
+		"subtitle": "Голос пати",
 		"sprite": "res://images/bard.png",
-		"desc": "Единственный хилер пати.\nХил-аура (3 пульса), баф скорости и урона союзникам, дэш с i-frames.\nБез него никого не лечат — позиционируйтесь.",
+		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]\n\n[i][color=#909098]Единственный хилер. Умри — умрут все.[/color][/i]",
 	},
 	"crossbow": {
-		"name": "Арбалетчик",
+		"name": "АРБАЛЕТЧИК",
+		"subtitle": "Тихий охотник",
 		"sprite": "res://images/crossbowman.png",
-		"desc": "Single-target и боссы.\nЗаряжаемый болт (12→45 урона при удержании ЛКМ, замедляет), бронебойный пробивной болт, перекат с i-frames.",
+		"desc": "[center][i][color=#c8c8d0]«Один выстрел. Одна цель. Тишина.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ffd060]Single-target[/color] · Убийца боссов\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — заряжаемый болт ([color=#ffd060]12→45 урона[/color] при удержании ЛКМ)\n[b][color=#ff7878]Зарядка[/color][/b] замедляет — ловите момент\n[b][color=#ffd060]ПКМ[/color][/b] — бронебойный пробивной болт\n[b][color=#ffd060]Space[/color][/b] — перекат с [color=#78f078]i-frames[/color]\n\n[i][color=#909098]Элитки и боссы умирают первыми. Если ты успеешь.[/color][/i]",
 	},
 }
 
@@ -30,7 +34,8 @@ const CLASS_INFO := {
 @onready var prev_btn: Button = $Panel/HBox/ClassPicker/Arrows/Prev
 @onready var next_btn: Button = $Panel/HBox/ClassPicker/Arrows/Next
 @onready var class_name_label: Label = $Panel/HBox/ClassPicker/Arrows/ClassName
-@onready var desc_label: Label = $Panel/HBox/ClassPicker/Description
+@onready var subtitle_label: Label = $Panel/HBox/ClassPicker/Subtitle
+@onready var desc_label: RichTextLabel = $Panel/HBox/ClassPicker/Description
 @onready var host_btn: Button = $Panel/HBox/RightCol/Buttons/HostJoin/Host
 @onready var join_btn: Button = $Panel/HBox/RightCol/Buttons/HostJoin/Join
 @onready var leave_btn: Button = $Panel/HBox/RightCol/Buttons/LeaveStart/Leave
@@ -68,6 +73,7 @@ func _apply_class_selection() -> void:
 	var klass: String = GameState.VALID_CLASSES[_class_idx]
 	var info: Dictionary = CLASS_INFO.get(klass, {})
 	class_name_label.text = info.get("name", klass)
+	subtitle_label.text = info.get("subtitle", "")
 	desc_label.text = info.get("desc", "")
 	var path: String = info.get("sprite", "")
 	if path != "" and ResourceLoader.exists(path):
