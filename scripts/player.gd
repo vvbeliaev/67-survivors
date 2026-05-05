@@ -60,10 +60,10 @@ var _util_cd: float = 0.0
 var _bard_heal_pulses_left: int = 0
 var _bard_heal_next: float = 0.0
 
-# Local-only FX timestamps. Triggered by host RPC, each peer ticks its own
-# fade clock. Values are local Time.get_ticks_msec() seconds.
+# Local-only FX cache. Each entry is a Dictionary with at least a "t" (local
+# spawn time) key, plus skill-specific data. Triggered by host RPC; each peer
+# ticks its own fade clock against its own _now().
 var _fx_local: Dictionary = {}
-var _fx_dash_start: Vector2 = Vector2.ZERO
 
 # Last input mirror (host stores input received from owner peer).
 var _in_move: Vector2 = Vector2.ZERO
@@ -235,7 +235,7 @@ func _tick_berserker(_delta: float) -> void:
 		_auto_cd = 0.4 / atk_speed_mult
 		var r: float = 80.0 * range_mult
 		_aoe_damage_enemies(global_position, r, 12.0 * dmg_mult)
-		_emit_fx("auto", Vector2.ZERO, r)
+		_emit_fx("auto", {"r": r})
 	# LMB: dash strike (line damage, scales with missing hp).
 	if _in_primary_pressed and _cast1_cd <= 0:
 		_cast1_cd = 1.2 * cooldown_mult
@@ -245,7 +245,7 @@ func _tick_berserker(_delta: float) -> void:
 		global_position += aim_dir * dist
 		_aoe_damage_enemies(global_position, 50.0 * range_mult, 25.0 * dmg_mult * rage)
 		_aoe_damage_enemies((start + global_position) * 0.5, dist * 0.5, 15.0 * dmg_mult * rage)
-		_emit_fx("dash", start, 50.0 * range_mult)
+		_emit_fx("dash", {"start": start, "r": 50.0 * range_mult})
 	# RMB: roar — force agro within radius.
 	if _in_secondary_pressed and _cast2_cd <= 0:
 		_cast2_cd = 8.0 * cooldown_mult
@@ -254,7 +254,7 @@ func _tick_berserker(_delta: float) -> void:
 			if global_position.distance_to(e.global_position) <= r2:
 				if e.has_method("force_target"):
 					e.force_target(peer_id, 4.0)
-		_emit_fx("roar", Vector2.ZERO, r2)
+		_emit_fx("roar", {"r": r2})
 	# Space: quake — AoE stun + small damage.
 	if _in_utility_pressed and _util_cd <= 0:
 		_util_cd = 12.0 * cooldown_mult
@@ -265,7 +265,7 @@ func _tick_berserker(_delta: float) -> void:
 					e.stun(1.5)
 				if e.has_method("apply_damage"):
 					e.apply_damage(8.0 * dmg_mult, "player")
-		_emit_fx("quake", Vector2.ZERO, rq)
+		_emit_fx("quake", {"r": rq})
 
 func _tick_mage(_delta: float) -> void:
 	# Auto: homing-ish snap to nearest enemy in range.
@@ -275,22 +275,21 @@ func _tick_mage(_delta: float) -> void:
 			_auto_cd = 1.0 / atk_speed_mult
 			var dir: Vector2 = (target.global_position - global_position).normalized()
 			_spawn_proj(global_position + dir * (radius + 4), dir * 360.0, 8.0 * dmg_mult, Color(0.6, 0.7, 1.0), 2.5, 5.0, 0)
+			_emit_fx("auto", {})
 	# LMB: fireball at cursor (AoE on impact, costs mana).
 	if _in_primary_pressed and _cast1_cd <= 0 and mp >= 30:
 		_cast1_cd = 0.8 * cooldown_mult
 		mp -= 30
 		var dir: Vector2 = aim_dir
-		# Spawn special: explode on first hit; we approximate by pierce=0, but
-		# add an AoE on impact via spawning damage at position. Simpler: high
-		# damage single hit + small AoE handled here as ring.
 		_spawn_proj(global_position + dir * (radius + 4), dir * 480.0, 0.0, Color(1.0, 0.5, 0.2), 1.5, 7.0, 0)
-		# Apply AoE at cursor immediately as approximation (host).
 		_aoe_damage_enemies(_in_aim, 80.0 * range_mult, 8.0 * dmg_mult)
+		_emit_fx("fireball", {"pos": _in_aim, "r": 80.0 * range_mult})
 	# RMB: chain lightning — 3 nearest enemies.
 	if _in_secondary_pressed and _cast2_cd <= 0 and mp >= 50:
 		_cast2_cd = 4.0 * cooldown_mult
 		mp -= 50
 		var picked: Array = []
+		var pts: Array = [global_position]
 		var src: Vector2 = global_position
 		for _i in 3:
 			var e := _nearest_enemy_excluding(src, 600.0 * range_mult, picked)
@@ -299,13 +298,17 @@ func _tick_mage(_delta: float) -> void:
 			picked.append(e)
 			if e.has_method("apply_damage"):
 				e.apply_damage(18.0 * dmg_mult, "player")
+			pts.append(e.global_position)
 			src = e.global_position
+		_emit_fx("chain", {"points": pts})
 	# Space: blink toward cursor.
 	if _in_utility_pressed and _util_cd <= 0:
 		_util_cd = 5.0 * cooldown_mult
 		var off: Vector2 = (_in_aim - global_position)
 		var dist: float = min(off.length(), 220.0)
+		var from := global_position
 		global_position += off.normalized() * dist
+		_emit_fx("blink", {"from": from, "to": global_position})
 
 func _tick_bard(_delta: float) -> void:
 	# Auto: weak snap projectile.
@@ -315,11 +318,13 @@ func _tick_bard(_delta: float) -> void:
 			_auto_cd = 0.8 / atk_speed_mult
 			var dir: Vector2 = (target.global_position - global_position).normalized()
 			_spawn_proj(global_position + dir * (radius + 4), dir * 320.0, 4.0 * dmg_mult, Color(0.7, 1.0, 0.7), 2.0, 5.0, 0)
+			_emit_fx("auto", {})
 	# LMB: heal aura (3 pulses).
 	if _in_primary_pressed and _cast1_cd <= 0:
 		_cast1_cd = 6.0 * cooldown_mult
 		_bard_heal_pulses_left = 3
 		_bard_heal_next = 0.0
+		_emit_fx("heal", {"r": 180.0 * range_mult})
 	if _bard_heal_pulses_left > 0:
 		_bard_heal_next -= _delta
 		if _bard_heal_next <= 0:
@@ -340,12 +345,15 @@ func _tick_bard(_delta: float) -> void:
 				continue
 			if p.global_position.distance_to(global_position) <= r2:
 				p.apply_temp_buff(0.2, 0.2, 5.0)
+		_emit_fx("buff", {"r": r2})
 	# Space: dodge dash.
 	if _in_utility_pressed and _util_cd <= 0:
 		_util_cd = 4.0 * cooldown_mult
 		var dir: Vector2 = _in_move if _in_move.length_squared() > 0.01 else aim_dir
+		var from := global_position
 		global_position += dir.normalized() * 180.0
 		iframes_until = _now() + 0.3
+		_emit_fx("dash", {"from": from})
 
 func _tick_crossbow(_delta: float) -> void:
 	# Holding LMB charges.
@@ -355,22 +363,26 @@ func _tick_crossbow(_delta: float) -> void:
 	if _in_primary_released and _cast1_cd <= 0 and charge_started_at >= 0:
 		var charge_t: float = clampf(_now() - charge_started_at, 0.0, 1.5)
 		charge_started_at = -1.0
-		_cast1_cd = 0.25 * cooldown_mult  # short post-shot cooldown
+		_cast1_cd = 0.25 * cooldown_mult
 		var damage_min := 12.0
 		var damage_max := 45.0
 		var t: float = clampf((charge_t - 0.4) / 1.1, 0.0, 1.0)
 		var damage: float = damage_min + (damage_max - damage_min) * t
 		_spawn_proj(global_position + aim_dir * (radius + 4), aim_dir * (520.0 + 200.0 * t), damage * dmg_mult, Color(1.0, 0.95, 0.5), 2.5, 5.0, 0)
+		_emit_fx("shot", {})
 	# RMB: armor-piercing bolt (pierces).
 	if _in_secondary_pressed and _cast2_cd <= 0:
 		_cast2_cd = 6.0 * cooldown_mult
 		_spawn_proj(global_position + aim_dir * (radius + 4), aim_dir * 700.0, 60.0 * dmg_mult, Color(1.0, 0.6, 0.2), 2.5, 6.0, 6)
+		_emit_fx("ap", {})
 	# Space: roll with iframes.
 	if _in_utility_pressed and _util_cd <= 0:
 		_util_cd = 5.0 * cooldown_mult
 		var dir: Vector2 = _in_move if _in_move.length_squared() > 0.01 else aim_dir
+		var from := global_position
 		global_position += dir.normalized() * 160.0
 		iframes_until = _now() + 0.5
+		_emit_fx("roll", {"from": from})
 
 # ---- Helpers ------------------------------------------------------------
 
@@ -526,66 +538,163 @@ func _draw_berserker_fx() -> void:
 	var ta := _fx_age("auto")
 	if ta >= 0.0 and ta < 0.25:
 		var k: float = 1.0 - ta / 0.25
-		var r: float = max(_fx_radius("auto"), 1.0)
+		var r: float = float(_fx("auto", "r", 1.0))
 		var spin: float = ta * 18.0
 		draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
 		draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
-	# Dash trail: thick translucent line from start to current position.
+	# Dash trail.
 	var td := _fx_age("dash")
 	if td >= 0.0 and td < 0.4:
 		var k2: float = 1.0 - td / 0.4
-		var local_start: Vector2 = _fx_dash_start - global_position
+		var start_pos: Vector2 = _fx("dash", "start", global_position)
+		var local_start: Vector2 = start_pos - global_position
 		draw_line(Vector2.ZERO, local_start, Color(1, 0.25, 0.25, 0.55 * k2), 10.0)
-		# Hit-burst at end (current pos).
-		var burst_r: float = max(_fx_radius("dash"), 1.0)
+		var burst_r: float = float(_fx("dash", "r", 1.0))
 		draw_arc(Vector2.ZERO, burst_r * (0.6 + 0.4 * (1.0 - k2)), 0, TAU, 32, Color(1, 0.5, 0.3, 0.5 * k2), 3.0)
 	# Roar: red expanding ring out to roar radius, ~0.6s.
 	var tr := _fx_age("roar")
 	if tr >= 0.0 and tr < 0.6:
 		var k3: float = 1.0 - tr / 0.6
-		var rmax := _fx_radius("roar")
+		var rmax: float = float(_fx("roar", "r", 1.0))
 		var rcur := rmax * clampf(tr / 0.55, 0.0, 1.0)
 		draw_arc(Vector2.ZERO, rcur, 0, TAU, 64, Color(1, 0.35, 0.35, 0.55 * k3), 4.0)
 	# Quake: brown shockwave + cracks, ~0.55s.
 	var tq := _fx_age("quake")
 	if tq >= 0.0 and tq < 0.55:
 		var k4: float = 1.0 - tq / 0.55
-		var qmax := _fx_radius("quake")
+		var qmax: float = float(_fx("quake", "r", 1.0))
 		var qr := qmax * clampf(tq / 0.5, 0.0, 1.0)
 		draw_arc(Vector2.ZERO, qr, 0, TAU, 56, Color(0.85, 0.55, 0.25, 0.6 * k4), 6.0)
-		# Cracks: 6 short radial lines from center to half radius.
 		for i in 6:
 			var ang: float = i * (TAU / 6.0)
 			var dir := Vector2(cos(ang), sin(ang))
 			draw_line(dir * (qr * 0.2), dir * (qr * 0.7), Color(0.7, 0.4, 0.2, 0.5 * k4), 3.0)
 
+func _draw_mage_fx() -> void:
+	# Auto cast: small cyan flash at hand (offset along aim_dir).
+	var ta := _fx_age("auto")
+	if ta >= 0.0 and ta < 0.18:
+		var k: float = 1.0 - ta / 0.18
+		var hand: Vector2 = aim_dir * (radius + 4)
+		draw_circle(hand, 6.0 + 4.0 * (1.0 - k), Color(0.6, 0.8, 1.0, 0.6 * k))
+	# Fireball impact: orange burst at cursor pos.
+	var tf := _fx_age("fireball")
+	if tf >= 0.0 and tf < 0.45:
+		var k2: float = 1.0 - tf / 0.45
+		var pos: Vector2 = _fx("fireball", "pos", global_position)
+		var r: float = float(_fx("fireball", "r", 80.0))
+		var local: Vector2 = pos - global_position
+		var grow: float = 0.4 + 0.6 * (1.0 - k2)
+		draw_circle(local, r * grow * 0.5, Color(1, 0.55, 0.2, 0.45 * k2))
+		draw_arc(local, r * grow, 0, TAU, 48, Color(1, 0.75, 0.3, 0.6 * k2), 4.0)
+	# Chain lightning: zigzag lines through caster + stored target points.
+	var tc := _fx_age("chain")
+	if tc >= 0.0 and tc < 0.35:
+		var k3: float = 1.0 - tc / 0.35
+		var pts: Array = _fx("chain", "points", [])
+		var prev: Vector2 = Vector2.ZERO
+		for i in pts.size():
+			var p: Vector2 = pts[i] - global_position
+			# Zigzag: add small perpendicular jitter.
+			var dir: Vector2 = (p - prev).normalized()
+			var perp := Vector2(-dir.y, dir.x)
+			var mid: Vector2 = (prev + p) * 0.5 + perp * 14.0 * sin(tc * 30.0 + i)
+			draw_line(prev, mid, Color(0.8, 0.9, 1.0, 0.7 * k3), 3.0)
+			draw_line(mid, p, Color(0.8, 0.9, 1.0, 0.7 * k3), 3.0)
+			draw_circle(p, 6.0, Color(0.7, 0.85, 1.0, 0.5 * k3))
+			prev = p
+	# Blink: smoke at start + arrival.
+	var tb := _fx_age("blink")
+	if tb >= 0.0 and tb < 0.4:
+		var k4: float = 1.0 - tb / 0.4
+		var from_pos: Vector2 = _fx("blink", "from", global_position)
+		var to_pos: Vector2 = _fx("blink", "to", global_position)
+		var lf: Vector2 = from_pos - global_position
+		var lt: Vector2 = to_pos - global_position
+		draw_circle(lf, 14.0 + 6.0 * (1.0 - k4), Color(0.7, 0.7, 0.95, 0.45 * k4))
+		draw_circle(lt, 14.0 * k4 + 6.0, Color(0.85, 0.85, 1.0, 0.55 * k4))
+
+func _draw_bard_fx() -> void:
+	# Auto note: small green spark at hand.
+	var ta := _fx_age("auto")
+	if ta >= 0.0 and ta < 0.2:
+		var k: float = 1.0 - ta / 0.2
+		var hand: Vector2 = aim_dir * (radius + 3)
+		draw_circle(hand, 5.0 * (1.0 + (1.0 - k)), Color(0.6, 1.0, 0.7, 0.55 * k))
+	# Heal pulses: green ring out to heal radius, redrawn for each pulse.
+	var th := _fx_age("heal")
+	if th >= 0.0 and th < 1.6:
+		var r: float = float(_fx("heal", "r", 180.0))
+		# Three pulses spaced ~0.5s apart.
+		for i in 3:
+			var t_in: float = th - i * 0.5
+			if t_in >= 0.0 and t_in < 0.45:
+				var pk: float = 1.0 - t_in / 0.45
+				var pr: float = r * clampf(t_in / 0.4, 0.0, 1.0)
+				draw_arc(Vector2.ZERO, pr, 0, TAU, 48, Color(0.4, 1.0, 0.5, 0.55 * pk), 4.0)
+	# Buff aura: gold ring + slow pulse.
+	var tu := _fx_age("buff")
+	if tu >= 0.0 and tu < 0.6:
+		var k2: float = 1.0 - tu / 0.6
+		var r2: float = float(_fx("buff", "r", 180.0))
+		var rr: float = r2 * clampf(tu / 0.5, 0.0, 1.0)
+		draw_arc(Vector2.ZERO, rr, 0, TAU, 48, Color(1.0, 0.85, 0.4, 0.55 * k2), 5.0)
+		draw_arc(Vector2.ZERO, rr * 0.85, 0, TAU, 48, Color(1.0, 0.95, 0.6, 0.4 * k2), 3.0)
+	# Dash trail: green streak.
+	var td := _fx_age("dash")
+	if td >= 0.0 and td < 0.35:
+		var k3: float = 1.0 - td / 0.35
+		var s: Vector2 = _fx("dash", "from", global_position) - global_position
+		draw_line(Vector2.ZERO, s, Color(0.6, 1.0, 0.7, 0.5 * k3), 6.0)
+
+func _draw_crossbow_fx() -> void:
+	# Shot muzzle flash on auto release: yellow short cone along aim_dir.
+	var tm := _fx_age("shot")
+	if tm >= 0.0 and tm < 0.18:
+		var k: float = 1.0 - tm / 0.18
+		var origin: Vector2 = aim_dir * (radius + 6)
+		draw_circle(origin, 8.0 + 6.0 * (1.0 - k), Color(1.0, 0.9, 0.4, 0.6 * k))
+		var perp := Vector2(-aim_dir.y, aim_dir.x)
+		draw_line(origin - perp * 10, origin + perp * 10, Color(1.0, 0.85, 0.3, 0.7 * k), 3.0)
+	# AP bolt flash: bigger orange flash.
+	var tap := _fx_age("ap")
+	if tap >= 0.0 and tap < 0.25:
+		var k2: float = 1.0 - tap / 0.25
+		var origin2: Vector2 = aim_dir * (radius + 6)
+		draw_circle(origin2, 14.0 + 6.0 * (1.0 - k2), Color(1.0, 0.6, 0.2, 0.65 * k2))
+	# Roll trail: dust streak.
+	var tr := _fx_age("roll")
+	if tr >= 0.0 and tr < 0.4:
+		var k3: float = 1.0 - tr / 0.4
+		var from: Vector2 = _fx("roll", "from", global_position) - global_position
+		draw_line(Vector2.ZERO, from, Color(0.9, 0.85, 0.6, 0.45 * k3), 8.0)
+		draw_circle(from, 10.0 * k3, Color(0.9, 0.85, 0.6, 0.4 * k3))
+
 # ---- Visual FX (host announces, each peer fades locally) -----------------
 
-func _emit_fx(kind: String, world_pos: Vector2, radius_hint: float) -> void:
+func _emit_fx(kind: String, data: Dictionary = {}) -> void:
 	if not GameState.is_authority():
 		return
 	if multiplayer.multiplayer_peer != null:
-		_rpc_play_fx.rpc(kind, world_pos, radius_hint)
+		_rpc_play_fx.rpc(kind, data)
 	else:
-		_rpc_play_fx(kind, world_pos, radius_hint)
+		_rpc_play_fx(kind, data)
 
 @rpc("authority", "reliable", "call_local")
-func _rpc_play_fx(kind: String, world_pos: Vector2, radius_hint: float) -> void:
-	_fx_local[kind] = {"t": _now(), "r": radius_hint}
-	if kind == "dash":
-		_fx_dash_start = world_pos
+func _rpc_play_fx(kind: String, data: Dictionary) -> void:
+	var entry: Dictionary = data.duplicate()
+	entry["t"] = _now()
+	_fx_local[kind] = entry
 
 func _fx_age(kind: String) -> float:
-	var d: Variant = _fx_local.get(kind)
-	if d == null:
+	if not _fx_local.has(kind):
 		return -1.0
-	return _now() - float(d.t)
+	return _now() - float(_fx_local[kind].get("t", _now()))
 
-func _fx_radius(kind: String) -> float:
-	var d: Variant = _fx_local.get(kind)
-	if d == null:
-		return 0.0
-	return float(d.r)
+func _fx(kind: String, key: String, default_value: Variant = null) -> Variant:
+	if not _fx_local.has(kind):
+		return default_value
+	return _fx_local[kind].get(key, default_value)
 
 func _draw() -> void:
 	# Body.
@@ -603,8 +712,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, radius, col)
 		# Aim pip only when no sprite.
 		draw_line(Vector2.ZERO, aim_dir * (radius + 6), Color(1, 1, 1, 0.7), 2.0)
-	if klass == "berserker":
-		_draw_berserker_fx()
+	match klass:
+		"berserker":
+			_draw_berserker_fx()
+		"mage":
+			_draw_mage_fx()
+		"bard":
+			_draw_bard_fx()
+		"crossbow":
+			_draw_crossbow_fx()
 	# HP bar.
 	var w := 40.0
 	var h := 4.0

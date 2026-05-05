@@ -3,6 +3,7 @@ extends Node2D
 const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://scenes/projectile.tscn")
+const DAMAGE_NUMBER_SCRIPT := preload("res://scripts/damage_number.gd")
 
 @onready var players_container: Node = $PlayersContainer
 @onready var enemies_container: Node = $EnemiesContainer
@@ -156,6 +157,15 @@ func spawn_projectile(data: Dictionary) -> void:
 	if not GameState.is_authority():
 		return
 	projectiles_spawner.spawn(data)
+
+func spawn_damage_number(amount: float, world_pos: Vector2) -> void:
+	# Local-only visual; called on every peer in response to damage RPC.
+	var n := Node2D.new()
+	n.set_script(DAMAGE_NUMBER_SCRIPT)
+	n.amount = int(round(amount))
+	n.crit = amount >= 30.0
+	n.position = world_pos + Vector2(0, -20)
+	add_child(n)
 
 # ---- Host roster spawn --------------------------------------------------
 
