@@ -6,6 +6,11 @@ extends CharacterBody2D
 
 const TEAM := "player"
 
+const CLASS_SPRITES := {
+	"mage": preload("res://images/wizard_top.png"),
+}
+const SPRITE_SIZE_MULT := 4.5  # sprite drawn ~ radius * mult px wide
+
 # Identity (set at spawn).
 @export var peer_id: int = 1
 @export var nick: String = "P"
@@ -505,9 +510,17 @@ func _draw() -> void:
 	var col: Color = color_hint
 	if not alive:
 		col = Color(col.r * 0.4, col.g * 0.4, col.b * 0.4, 0.6)
-	draw_circle(Vector2.ZERO, radius, col)
-	# Aim pip.
-	draw_line(Vector2.ZERO, aim_dir * (radius + 6), Color(1, 1, 1, 0.7), 2.0)
+	var tex: Texture2D = CLASS_SPRITES.get(klass)
+	if tex != null:
+		var tint := Color(1, 1, 1, 0.55) if not alive else Color(1, 1, 1, 1)
+		var s: float = radius * SPRITE_SIZE_MULT
+		draw_set_transform(Vector2.ZERO, aim_dir.angle(), Vector2.ONE)
+		draw_texture_rect(tex, Rect2(-Vector2(s, s) * 0.5, Vector2(s, s)), false, tint)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_circle(Vector2.ZERO, radius, col)
+		# Aim pip only when no sprite.
+		draw_line(Vector2.ZERO, aim_dir * (radius + 6), Color(1, 1, 1, 0.7), 2.0)
 	# HP bar.
 	var w := 40.0
 	var h := 4.0
