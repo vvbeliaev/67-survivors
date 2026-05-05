@@ -87,6 +87,7 @@ func _spawn_projectile(data: Variant) -> Node:
 
 func _apply_enemy_archetype(e: Node, t: String) -> void:
 	e.enemy_type = t
+	var prev_radius: float = e.radius
 	match t:
 		"rusher":
 			e.max_hp = 25.0
@@ -138,6 +139,13 @@ func _apply_enemy_archetype(e: Node, t: String) -> void:
 			e.boss_aoe_windup = 1.2
 		_:
 			pass
+	if e.radius != prev_radius:
+		var col := e.get_node_or_null("CollisionShape2D")
+		if col != null and col.shape is CircleShape2D:
+			# Duplicate so per-instance changes don't mutate the shared resource.
+			var s: CircleShape2D = col.shape.duplicate()
+			s.radius = e.radius
+			col.shape = s
 
 func spawn_enemy(data: Dictionary) -> void:
 	if not GameState.is_authority():

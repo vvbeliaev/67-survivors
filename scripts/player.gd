@@ -454,9 +454,18 @@ func apply_temp_buff(spd_bonus: float, dmg_bonus: float, duration: float) -> voi
 		return
 	move_speed_bonus += spd_bonus
 	dmg_mult += dmg_bonus
-	get_tree().create_timer(duration).timeout.connect(func ():
+	# Use a child Timer so it's freed with the player on scene change / despawn.
+	var t := Timer.new()
+	t.one_shot = true
+	t.wait_time = duration
+	t.autostart = true
+	add_child(t)
+	t.timeout.connect(func ():
+		if not is_instance_valid(self):
+			return
 		move_speed_bonus -= spd_bonus
 		dmg_mult -= dmg_bonus
+		t.queue_free()
 	)
 
 # Apply an upgrade by id (host-side, replicated via synced fields).
