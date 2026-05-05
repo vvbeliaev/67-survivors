@@ -168,6 +168,8 @@ theme_override_constants/separation = 4
 [node name="HostWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 ratio = 4.344
 size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 110)
 stretch_mode = 2
 
 [node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostWrap"]
@@ -187,6 +189,8 @@ theme_override_font_sizes/font_size = 20
 [node name="JoinWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 ratio = 4.344
 size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 110)
 stretch_mode = 2
 
 [node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/JoinWrap"]
@@ -206,6 +210,8 @@ theme_override_font_sizes/font_size = 20
 [node name="LeaveWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 ratio = 4.344
 size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 110)
 stretch_mode = 2
 
 [node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveWrap"]
@@ -225,6 +231,8 @@ theme_override_font_sizes/font_size = 20
 [node name="StartWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 ratio = 4.344
 size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 110)
 stretch_mode = 2
 
 [node name="Start" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/StartWrap"]
