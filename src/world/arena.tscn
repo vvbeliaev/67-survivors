@@ -12,8 +12,13 @@
 [node name="Arena" type="Node2D"]
 script = ExtResource("1_arena")
 
+[node name="CanvasModulate" type="CanvasModulate" parent="."]
+color = Color(0.22, 0.2, 0.3, 1)
+
 [node name="BackgroundGrid" type="Node2D" parent="."]
 script = ExtResource("2_bg")
+
+[node name="TorchesContainer" type="Node2D" parent="."]
 
 [node name="PlayersContainer" type="Node2D" parent="."]
 

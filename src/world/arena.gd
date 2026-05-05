@@ -8,6 +8,11 @@ const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const ENEMY_SCENE := preload("res://src/enemy/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
 const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
+const TORCH_SCENE := preload("res://src/world/torch.tscn")
+const TORCH_SEED := 0xCAFE
+const TORCH_COUNT := 28
+const TORCH_FIELD_RADIUS := 1600.0
+const TORCH_MIN_DIST := 200.0
 
 @onready var players_container: Node = $PlayersContainer
 @onready var enemies_container: Node = $EnemiesContainer
@@ -25,8 +30,36 @@ func _ready() -> void:
 	enemies_spawner.spawn_function = _spawn_enemy
 	projectiles_spawner.spawn_function = _spawn_projectile
 
+	_spawn_torches()
+
 	if GameState.is_authority():
 		_host_spawn_roster()
+
+func _spawn_torches() -> void:
+	# Deterministic on every peer (same seed) so positions match without sync.
+	var container := get_node_or_null("TorchesContainer")
+	if container == null:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = TORCH_SEED
+	var placed: Array[Vector2] = []
+	var attempts := 0
+	while placed.size() < TORCH_COUNT and attempts < TORCH_COUNT * 30:
+		attempts += 1
+		var ang: float = rng.randf() * TAU
+		var rad: float = sqrt(rng.randf()) * TORCH_FIELD_RADIUS
+		var pos := Vector2(cos(ang), sin(ang)) * rad
+		var ok := true
+		for p in placed:
+			if pos.distance_to(p) < TORCH_MIN_DIST:
+				ok = false
+				break
+		if not ok:
+			continue
+		placed.append(pos)
+		var torch: Node2D = TORCH_SCENE.instantiate()
+		torch.position = pos
+		container.add_child(torch)
 
 # ---- Spawn factories (called by spawner callbacks) ---------------------
 

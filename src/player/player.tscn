@@ -1,8 +1,19 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0player67surv"]
+[gd_scene load_steps=8 format=3 uid="uid://b0player67surv"]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://src/player/input_controller.gd" id="2_input"]
 [ext_resource type="Script" path="res://src/player/player_view.gd" id="3_view"]
+
+[sub_resource type="Gradient" id="Gradient_player_light"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_player_light"]
+gradient = SubResource("Gradient_player_light")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+width = 256
+height = 256
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 16.0
@@ -70,3 +81,10 @@ script = ExtResource("2_input")
 
 [node name="View" type="Node2D" parent="."]
 script = ExtResource("3_view")
+
+[node name="PersonalLight" type="PointLight2D" parent="."]
+texture = SubResource("GradientTexture2D_player_light")
+color = Color(0.85, 0.9, 1, 1)
+energy = 0.55
+texture_scale = 1.6
+shadow_enabled = false
