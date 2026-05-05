@@ -134,12 +134,12 @@ theme_override_constants/separation = 8
 theme_override_constants/separation = 8
 
 [node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
-text = "Host"
+text = "Создать игру"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
 [node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
-text = "Join"
+text = "Подключиться"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
@@ -147,12 +147,12 @@ custom_minimum_size = Vector2(0, 40)
 theme_override_constants/separation = 8
 
 [node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
-text = "Leave"
+text = "Выйти"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
 [node name="Start" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
-text = "Старт раунда"
+text = "Начать раунд"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
