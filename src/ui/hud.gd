@@ -79,9 +79,11 @@ func show_upgrade_picks(options: Array) -> void:
 		b.custom_minimum_size = Vector2(180, 60)
 		var id: String = opt.get("id", "")
 		b.pressed.connect(func ():
+			AudioBus.play_ui(&"ui_click")
 			upgrade_panel.visible = false
 			_local_pick_upgrade(id)
 		)
+		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover"))
 		upgrade_buttons.add_child(b)
 	upgrade_panel.visible = true
 

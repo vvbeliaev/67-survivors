@@ -21,6 +21,8 @@ func on_pressed() -> void:
 	var dir: Vector2 = owner_player.aim_dir
 	var rm: float = owner_player.range_mult()
 	trigger_visual_fx("fireball", {"pos": owner_player.aim_world(), "r": aoe_radius * rm})
+	AudioBus.play_at(&"mage_cast", owner_player.global_position)
+	AudioBus.play_at(&"mage_projectile_hit", owner_player.aim_world())
 	_spawn_projectile(
 		owner_player.global_position + dir * (owner_player.radius + 4),
 		dir * projectile_speed,

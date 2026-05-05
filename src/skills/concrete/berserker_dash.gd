@@ -25,3 +25,4 @@ func on_pressed() -> void:
 	_aoe_damage(owner_player.global_position, endpoint_radius * range_mult, endpoint_damage * dmg * rage)
 	_aoe_damage((start + owner_player.global_position) * 0.5, dist * 0.5, path_pulse_damage * dmg * rage)
 	trigger_visual_fx("dash", {"start": start, "r": 50.0 * range_mult})
+	AudioBus.play_at(&"berserker_swing", owner_player.global_position)

@@ -18,6 +18,7 @@ func _init() -> void:
 func on_held(_delta: float) -> void:
 	if owner_player.charge_started_at < 0.0:
 		owner_player.charge_started_at = _now()
+		AudioBus.play_at(&"crossbow_charge", owner_player.global_position)
 
 func on_released() -> void:
 	if owner_player.charge_started_at < 0.0:
@@ -32,6 +33,7 @@ func on_released() -> void:
 	var dmg: float = damage_min + (damage_max - damage_min) * t
 	var speed: float = speed_base + speed_bonus * t
 	trigger_visual_fx("shot", {})
+	AudioBus.play_at(&"crossbow_shoot", owner_player.global_position)
 	_spawn_projectile(
 		owner_player.global_position + owner_player.aim_dir * (owner_player.radius + 4),
 		owner_player.aim_dir * speed,

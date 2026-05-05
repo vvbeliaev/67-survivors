@@ -19,6 +19,7 @@ func on_pressed() -> void:
 	consume_cost()
 	start_cooldown()
 	trigger_visual_fx("heal", {"r": radius * owner_player.range_mult()})
+	AudioBus.play_at(&"bard_buff", owner_player.global_position)
 	_pulses_left = pulse_count
 	_next_pulse_in = 0.0
 	owner_player.emit_fx("heal", {"r": radius * owner_player.range_mult()})

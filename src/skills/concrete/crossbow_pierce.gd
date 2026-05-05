@@ -15,6 +15,7 @@ func on_pressed() -> void:
 	consume_cost()
 	start_cooldown()
 	trigger_visual_fx("ap", {})
+	AudioBus.play_at(&"crossbow_shoot", owner_player.global_position)
 	_spawn_projectile(
 		owner_player.global_position + owner_player.aim_dir * (owner_player.radius + 4),
 		owner_player.aim_dir * speed,

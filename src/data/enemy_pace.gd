@@ -1,7 +1,7 @@
 class_name EnemyPace extends RefCounted
 
 # Single knob for the whole run (waves, player upgrades, etc. stay unchanged).
-static var global_move_mult: float = 1.0
+static var global_move_mult: float = 0.5
 
 # px/s for types listed here — keeps *relative* pacing in one place. Anything
 # not listed (e.g. boss) uses EnemyDef.move_speed as authored.
