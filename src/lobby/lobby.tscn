@@ -1,0 +1,90 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0lobby67surv"]
+
+[ext_resource type="Script" path="res://src/lobby/lobby.gd" id="1_lobby"]
+
+[node name="Lobby" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_lobby")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -200.0
+offset_right = 240.0
+offset_bottom = 200.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+custom_minimum_size = Vector2(460, 380)
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+text = "67-survivors lobby"
+
+[node name="NickRow" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="NickLabel" type="Label" parent="Panel/VBox/NickRow"]
+text = "Nick: "
+custom_minimum_size = Vector2(80, 0)
+
+[node name="Nick" type="LineEdit" parent="Panel/VBox/NickRow"]
+size_flags_horizontal = 3
+text = "P"
+
+[node name="AddrRow" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="AddrLabel" type="Label" parent="Panel/VBox/AddrRow"]
+text = "Addr: "
+custom_minimum_size = Vector2(80, 0)
+
+[node name="Addr" type="LineEdit" parent="Panel/VBox/AddrRow"]
+size_flags_horizontal = 3
+text = "127.0.0.1"
+
+[node name="Port" type="LineEdit" parent="Panel/VBox/AddrRow"]
+custom_minimum_size = Vector2(80, 0)
+text = "7777"
+
+[node name="ClassRow" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="ClassLabel" type="Label" parent="Panel/VBox/ClassRow"]
+text = "Class: "
+custom_minimum_size = Vector2(80, 0)
+
+[node name="ClassOption" type="OptionButton" parent="Panel/VBox/ClassRow"]
+size_flags_horizontal = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="Host" type="Button" parent="Panel/VBox/Buttons"]
+text = "Host"
+
+[node name="Join" type="Button" parent="Panel/VBox/Buttons"]
+text = "Join"
+
+[node name="Leave" type="Button" parent="Panel/VBox/Buttons"]
+text = "Leave"
+
+[node name="Start" type="Button" parent="Panel/VBox/Buttons"]
+text = "Start round (host)"
+
+[node name="Roster" type="Label" parent="Panel/VBox"]
+text = "Roster:\n(empty)"
+custom_minimum_size = Vector2(0, 140)
+
+[node name="Status" type="Label" parent="Panel/VBox"]
+text = "Offline"
+
+[node name="Hint" type="Label" parent="Panel/VBox"]
+text = "WASD move, LMB cast1, RMB cast2, Space utility."
+modulate = Color(0.7, 0.7, 0.7, 1)

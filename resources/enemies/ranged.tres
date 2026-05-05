@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/data/enemy_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://src/enemy/ai/ranged_ai.gd" id="2_ai"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"ranged"
+max_hp = 18.0
+move_speed = 110.0
+contact_damage = 0.0
+contact_cd = 0.0
+xp_value = 2
+color_hint = Color(0.95, 0.65, 0.4, 1)
+radius = 11.0
+ranged = true
+ranged_dist = 250.0
+projectile_speed = 240.0
+projectile_damage = 6.0
+ranged_cd = 1.5
+boss = false
+boss_aoe_radius = 0.0
+boss_aoe_damage = 0.0
+boss_aoe_cd = 0.0
+boss_aoe_windup = 0.0
+ai_script = ExtResource("2_ai")

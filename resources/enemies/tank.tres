@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/data/enemy_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://src/enemy/ai/tank_ai.gd" id="2_ai"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"tank"
+max_hp = 120.0
+move_speed = 90.0
+contact_damage = 18.0
+contact_cd = 1.0
+xp_value = 5
+color_hint = Color(0.6, 0.4, 0.7, 1)
+radius = 18.0
+ranged = false
+ranged_dist = 0.0
+projectile_speed = 0.0
+projectile_damage = 0.0
+ranged_cd = 0.0
+boss = false
+boss_aoe_radius = 0.0
+boss_aoe_damage = 0.0
+boss_aoe_cd = 0.0
+boss_aoe_windup = 0.0
+ai_script = ExtResource("2_ai")

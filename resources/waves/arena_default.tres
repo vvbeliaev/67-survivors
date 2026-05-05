@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="WaveSet" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/data/wave_set.gd" id="1_set"]
+[ext_resource type="Script" path="res://src/data/wave_phase.gd" id="2_phase"]
+
+[sub_resource type="Resource" id="Phase0"]
+script = ExtResource("2_phase")
+from_time = 0.0
+spawn_interval = 2.5
+batch_size = 2
+enemy_types = Array[StringName]([&"rusher"])
+burst_enabled = false
+burst_interval = 60.0
+burst_size = 10
+
+[sub_resource type="Resource" id="Phase1"]
+script = ExtResource("2_phase")
+from_time = 120.0
+spawn_interval = 2.0
+batch_size = 3
+enemy_types = Array[StringName]([&"rusher", &"ranged"])
+burst_enabled = true
+burst_interval = 60.0
+burst_size = 10
+
+[sub_resource type="Resource" id="Phase2"]
+script = ExtResource("2_phase")
+from_time = 300.0
+spawn_interval = 1.8
+batch_size = 3
+enemy_types = Array[StringName]([&"rusher", &"ranged", &"tank"])
+burst_enabled = true
+burst_interval = 60.0
+burst_size = 10
+
+[sub_resource type="Resource" id="Phase3"]
+script = ExtResource("2_phase")
+from_time = 480.0
+spawn_interval = 1.4
+batch_size = 5
+enemy_types = Array[StringName]([&"rusher", &"ranged", &"tank"])
+burst_enabled = true
+burst_interval = 60.0
+burst_size = 10
+
+[resource]
+script = ExtResource("1_set")
+phases = Array[WavePhase]([SubResource("Phase0"), SubResource("Phase1"), SubResource("Phase2"), SubResource("Phase3")])
+run_duration = 600.0
+boss_id = &"boss"
+spawn_radius_min = 700.0
+spawn_radius_max = 900.0

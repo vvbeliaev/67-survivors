@@ -1,0 +1,45 @@
+[gd_scene load_steps=8 format=3 uid="uid://b0arena67surv"]
+
+[ext_resource type="Script" path="res://src/world/arena.gd" id="1_arena"]
+[ext_resource type="Script" path="res://src/world/background_grid.gd" id="2_bg"]
+[ext_resource type="Script" path="res://src/world/centroid_camera.gd" id="3_cam"]
+[ext_resource type="Script" path="res://src/waves/wave_director.gd" id="4_waves"]
+[ext_resource type="Script" path="res://src/progression/run_director.gd" id="5_run"]
+[ext_resource type="Script" path="res://src/progression/xp_system.gd" id="6_xp"]
+[ext_resource type="Script" path="res://src/progression/upgrade_offer.gd" id="7_upg"]
+[ext_resource type="PackedScene" path="res://src/ui/hud.tscn" id="8_hud"]
+
+[node name="Arena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="BackgroundGrid" type="Node2D" parent="."]
+script = ExtResource("2_bg")
+
+[node name="PlayersContainer" type="Node2D" parent="."]
+
+[node name="EnemiesContainer" type="Node2D" parent="."]
+
+[node name="ProjectilesContainer" type="Node2D" parent="."]
+
+[node name="PlayersSpawner" type="MultiplayerSpawner" parent="."]
+
+[node name="EnemiesSpawner" type="MultiplayerSpawner" parent="."]
+
+[node name="ProjectilesSpawner" type="MultiplayerSpawner" parent="."]
+
+[node name="WaveDirector" type="Node" parent="."]
+script = ExtResource("4_waves")
+
+[node name="RunDirector" type="Node" parent="."]
+script = ExtResource("5_run")
+
+[node name="XpSystem" type="Node" parent="."]
+script = ExtResource("6_xp")
+
+[node name="UpgradeOffer" type="Node" parent="."]
+script = ExtResource("7_upg")
+
+[node name="CentroidCamera" type="Camera2D" parent="."]
+script = ExtResource("3_cam")
+
+[node name="HUD" parent="." instance=ExtResource("8_hud")]

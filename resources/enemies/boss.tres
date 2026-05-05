@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/data/enemy_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://src/enemy/ai/boss_ai.gd" id="2_ai"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"boss"
+max_hp = 4000.0
+move_speed = 100.0
+contact_damage = 30.0
+contact_cd = 1.0
+xp_value = 50
+color_hint = Color(0.85, 0.2, 0.85, 1)
+radius = 36.0
+ranged = false
+ranged_dist = 0.0
+projectile_speed = 0.0
+projectile_damage = 0.0
+ranged_cd = 0.0
+boss = true
+boss_aoe_radius = 180.0
+boss_aoe_damage = 30.0
+boss_aoe_cd = 6.0
+boss_aoe_windup = 1.2
+ai_script = ExtResource("2_ai")

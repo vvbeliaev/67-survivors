@@ -11,15 +11,16 @@ config_version=5
 [application]
 
 config/name="67 Survivors"
-run/main_scene="res://scenes/lobby.tscn"
+run/main_scene="res://src/lobby/lobby.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/icon="res://images/icon.png"
+config/icon="res://assets/images/icon.png"
 
 [autoload]
 
-Network="*res://scripts/network.gd"
-GameState="*res://scripts/game_state.gd"
-Upgrades="*res://scripts/upgrades.gd"
+GameState="*res://src/core/game_state.gd"
+EventBus="*res://src/core/event_bus.gd"
+Defs="*res://src/core/defs.gd"
+Network="*res://src/net/network.gd"
 
 [display]
 

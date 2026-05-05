@@ -13,7 +13,7 @@ import:
 	$(GODOT) --headless --import --path $(PROJECT_DIR)
 
 smoke:
-	$(GODOT) --path $(PROJECT_DIR) --headless res://scenes/smoke_test.tscn
+	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/smoke_test/smoke_test.tscn
 
 # Two-window manual multiplayer test: run twice, host with one, join with the other.
 peer:

@@ -1,0 +1,56 @@
+[gd_scene load_steps=5 format=3 uid="uid://b0enemy67surv"]
+
+[ext_resource type="Script" path="res://src/enemy/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://src/enemy/enemy_view.gd" id="2_view"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
+radius = 12.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_enemy"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:hp")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:max_hp")
+properties/2/spawn = true
+properties/2/replication_mode = 0
+properties/3/path = NodePath(".:enemy_type")
+properties/3/spawn = true
+properties/3/replication_mode = 0
+properties/4/path = NodePath(".:color_hint")
+properties/4/spawn = true
+properties/4/replication_mode = 0
+properties/5/path = NodePath(".:radius")
+properties/5/spawn = true
+properties/5/replication_mode = 0
+properties/6/path = NodePath(".:alive")
+properties/6/spawn = true
+properties/6/replication_mode = 2
+properties/7/path = NodePath(".:boss_aoe")
+properties/7/spawn = true
+properties/7/replication_mode = 0
+properties/8/path = NodePath(".:boss_aoe_state")
+properties/8/spawn = true
+properties/8/replication_mode = 2
+properties/9/path = NodePath(".:boss_aoe_pos")
+properties/9/spawn = true
+properties/9/replication_mode = 1
+properties/10/path = NodePath(".:boss_aoe_radius")
+properties/10/spawn = true
+properties/10/replication_mode = 0
+
+[node name="Enemy" type="CharacterBody2D"]
+script = ExtResource("1_enemy")
+collision_layer = 4
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_enemy")
+
+[node name="Synchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_enemy")
+
+[node name="View" type="Node2D" parent="."]
+script = ExtResource("2_view")
