@@ -21,6 +21,7 @@ GameState="*res://src/core/game_state.gd"
 EventBus="*res://src/core/event_bus.gd"
 Defs="*res://src/core/defs.gd"
 Network="*res://src/net/network.gd"
+AudioBus="*res://src/core/audio_bus.gd"
 
 [display]
 

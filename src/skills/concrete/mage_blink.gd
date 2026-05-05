@@ -19,3 +19,4 @@ func on_pressed() -> void:
 	var from_pos: Vector2 = owner_player.global_position
 	owner_player.teleport(owner_player.global_position + off.normalized() * d)
 	trigger_visual_fx("blink", {"from": from_pos, "to": owner_player.global_position})
+	AudioBus.play_at(&"mage_cast", from_pos)

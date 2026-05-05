@@ -22,3 +22,4 @@ func on_pressed() -> void:
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
 	trigger_visual_fx("quake", {"r": r})
+	AudioBus.play_at(&"berserker_quake", owner_player.global_position)

@@ -55,6 +55,9 @@ func _ready() -> void:
 	join_btn.pressed.connect(_on_join)
 	leave_btn.pressed.connect(_on_leave)
 	start_btn.pressed.connect(_on_start)
+	for b in [prev_btn, next_btn, host_btn, join_btn, leave_btn, start_btn]:
+		b.pressed.connect(func(): AudioBus.play_ui(&"ui_click"))
+		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover"))
 	nick_edit.text_changed.connect(func(t): GameState.local_nick = t)
 	Network.lobby_updated.connect(_refresh)
 	GameState.roster_changed.connect(_refresh)

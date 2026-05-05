@@ -18,3 +18,4 @@ func on_pressed() -> void:
 		if e.has_method("force_target"):
 			e.force_target(owner_player.peer_id, hold_duration)
 	trigger_visual_fx("roar", {"r": r})
+	AudioBus.play_at(&"berserker_roar", owner_player.global_position)

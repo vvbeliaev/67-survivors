@@ -26,3 +26,4 @@ func on_pressed() -> void:
 		p.apply_temp_pct_buff(StatBlock.STAT_SPEED, spd_id, speed_pct, duration)
 		p.apply_temp_pct_buff(StatBlock.STAT_DMG, dmg_id, damage_pct, duration)
 	trigger_visual_fx("buff", {"r": r})
+	AudioBus.play_at(&"bard_buff", owner_player.global_position)
