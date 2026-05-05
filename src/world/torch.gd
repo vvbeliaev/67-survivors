@@ -1,12 +1,11 @@
 extends Node2D
 
-# Static map prop. Casts a flickering warm light + draws a small flame visual.
-# Pure presentation: no replication, no host/client distinction. Each peer
-# spawns the same torches at the same positions (deterministic seed in
-# Arena._spawn_torches), so positions agree without per-tick sync.
+# Static map prop. Casts a flickering warm light + draws the torch sprite.
+# Pure presentation: no replication. Each peer spawns the same torches at
+# the same positions (deterministic seed in Arena._spawn_torches).
 
-const FLAME_CORE := Color(1.0, 0.95, 0.55, 0.95)
-const FLAME_GLOW := Color(1.0, 0.55, 0.2, 0.45)
+const TORCH_TEX: Texture2D = preload("res://assets/images/torch.png")
+const TORCH_DRAW_SIZE := 72.0
 const LIGHT_COLOR := Color(1.0, 0.7, 0.35)
 const FLICKER_FAST := 9.0
 const FLICKER_SLOW := 2.3
@@ -34,13 +33,12 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	var t: float = Time.get_ticks_msec() / 1000.0
-	var pulse: float = 1.0 + 0.15 * sin(t * FLICKER_FAST + _phase)
-	# Wood post (small dark rectangle).
-	draw_rect(Rect2(Vector2(-2.5, -2), Vector2(5, 14)), Color(0.25, 0.18, 0.12))
-	# Flame glow + core, jittered slightly.
-	var jitter := Vector2(sin(t * 11.0 + _phase) * 1.0, -2.0 - cos(t * 7.0 + _phase) * 0.6)
-	draw_circle(jitter, 9.0 * pulse, FLAME_GLOW)
-	draw_circle(jitter, 4.5 * pulse, FLAME_CORE)
+	var pulse: float = 1.0 + 0.04 * sin(t * FLICKER_FAST + _phase)
+	var s: float = TORCH_DRAW_SIZE * pulse
+	# Sprite has the flame in the upper half, so we offset upward a little so
+	# the flame visually sits above the position the light emits from.
+	var top_left := Vector2(-s * 0.5, -s * 0.65)
+	draw_texture_rect(TORCH_TEX, Rect2(top_left, Vector2(s, s)), false)
 
 static func _make_radial_texture() -> GradientTexture2D:
 	var grad := Gradient.new()
