@@ -9,6 +9,10 @@ const ARENA_SCENE_PATH := "res://src/world/arena.tscn"
 
 signal lobby_updated
 signal start_round_requested
+signal ready_state_changed
+
+# peer_id → bool (mirrors of who has clicked "Ready").
+var _ready_set: Array[int] = []
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -46,6 +50,7 @@ func leave() -> void:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
 	GameState.roster.clear()
+	_ready_set.clear()
 	GameState.roster_changed.emit()
 
 func _register_self() -> void:
@@ -61,6 +66,7 @@ func _on_peer_connected(id: int) -> void:
 
 func _on_peer_disconnected(id: int) -> void:
 	GameState.roster.erase(id)
+	_ready_set.erase(id)
 	GameState.roster_changed.emit()
 	lobby_updated.emit()
 	if multiplayer.is_server():
@@ -134,3 +140,48 @@ func _rpc_start_round() -> void:
 
 func _entry(nick: String, klass: StringName) -> Dictionary:
 	return {"nick": nick, "klass": klass}
+
+# ---- Ready system ----------------------------------------------------------
+
+func is_peer_ready(peer_id: int) -> bool:
+	return _ready_set.has(peer_id)
+
+# Called by the lobby Ready button. Offline → start immediately.
+func set_local_ready(is_ready: bool) -> void:
+	if multiplayer.multiplayer_peer == null:
+		if is_ready:
+			request_start_round()
+		return
+	if multiplayer.is_server():
+		_rpc_sync_ready.rpc(multiplayer.get_unique_id(), is_ready)
+		_check_all_ready()
+	else:
+		_rpc_client_set_ready.rpc_id(1, is_ready)
+
+@rpc("any_peer", "reliable")
+func _rpc_client_set_ready(is_ready: bool) -> void:
+	if not multiplayer.is_server():
+		return
+	var sender := multiplayer.get_remote_sender_id()
+	_rpc_sync_ready.rpc(sender, is_ready)
+	_check_all_ready()
+
+# Broadcasts ready-state change to every peer (including server via call_local).
+@rpc("authority", "reliable", "call_local")
+func _rpc_sync_ready(peer_id: int, is_ready: bool) -> void:
+	if is_ready:
+		if not _ready_set.has(peer_id):
+			_ready_set.append(peer_id)
+	else:
+		_ready_set.erase(peer_id)
+	ready_state_changed.emit()
+
+func _check_all_ready() -> void:
+	if not GameState.is_authority():
+		return
+	if GameState.roster.is_empty():
+		return
+	for pid in GameState.roster.keys():
+		if not _ready_set.has(pid):
+			return
+	request_start_round()

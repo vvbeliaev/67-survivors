@@ -39,11 +39,12 @@ const CLASS_INFO := {
 @onready var host_btn: Button = $Center/Panel/HBox/RightCol/Buttons/HostWrap/Host
 @onready var join_btn: Button = $Center/Panel/HBox/RightCol/Buttons/JoinWrap/Join
 @onready var leave_btn: Button = $Center/Panel/HBox/RightCol/Buttons/LeaveWrap/Leave
-@onready var start_btn: Button = $Center/Panel/HBox/RightCol/Buttons/StartWrap/Start
+@onready var ready_btn: Button = $Center/Panel/HBox/RightCol/Buttons/ReadyWrap/Ready
 @onready var roster_label: Label = $Center/Panel/HBox/RightCol/Roster
 @onready var status_label: Label = $Center/Panel/HBox/RightCol/Status
 
 var _class_idx: int = 0
+var _is_ready: bool = false
 
 func _ready() -> void:
 	nick_edit.text = GameState.local_nick
@@ -54,9 +55,10 @@ func _ready() -> void:
 	host_btn.pressed.connect(_on_host)
 	join_btn.pressed.connect(_on_join)
 	leave_btn.pressed.connect(_on_leave)
-	start_btn.pressed.connect(_on_start)
+	ready_btn.pressed.connect(_on_ready_toggle)
 	nick_edit.text_changed.connect(func(t): GameState.local_nick = t)
 	Network.lobby_updated.connect(_refresh)
+	Network.ready_state_changed.connect(_refresh)
 	GameState.roster_changed.connect(_refresh)
 	_apply_class_selection()
 	_refresh()
@@ -82,22 +84,30 @@ func _apply_class_selection() -> void:
 		sprite_rect.texture = null
 	Network.set_local_class(StringName(klass))
 
+func _on_ready_toggle() -> void:
+	_is_ready = not _is_ready
+	Network.set_local_ready(_is_ready)
+	_refresh()
+
 func _refresh() -> void:
 	var connected := multiplayer.multiplayer_peer != null
 	host_btn.disabled = connected
 	join_btn.disabled = connected
 	leave_btn.disabled = not connected
-	start_btn.visible = connected and multiplayer.is_server()
-	start_btn.disabled = GameState.roster.is_empty()
+	ready_btn.visible = connected
+	ready_btn.text = "Не готов" if _is_ready else "Готов!"
+
 	var lines: Array[String] = []
 	for pid in GameState.roster.keys():
 		var entry: Dictionary = GameState.roster[pid]
-		var marker := " (you)" if pid == multiplayer.get_unique_id() else ""
-		var role := " [host]" if pid == 1 else ""
+		var marker := " (вы)" if pid == multiplayer.get_unique_id() else ""
+		var role := " [хост]" if pid == 1 else ""
 		var rk: String = String(entry.get("klass", "?"))
 		var rname: String = CLASS_INFO.get(rk, {}).get("name", rk)
-		lines.append("- %s — %s%s%s" % [entry.get("nick", "?"), rname, role, marker])
+		var rdy: String = " ✓" if Network.is_peer_ready(pid) else " ⏳"
+		lines.append("- %s — %s%s%s%s" % [entry.get("nick", "?"), rname, rdy, role, marker])
 	roster_label.text = "Пати:\n" + ("\n".join(lines) if lines.size() > 0 else "(пусто)")
+
 	if connected:
 		status_label.text = "Подключено. id=%d host=%s" % [multiplayer.get_unique_id(), str(multiplayer.is_server())]
 	else:
@@ -127,8 +137,6 @@ func _on_join() -> void:
 	_refresh()
 
 func _on_leave() -> void:
+	_is_ready = false
 	Network.leave()
 	_refresh()
-
-func _on_start() -> void:
-	Network.request_start_round()
