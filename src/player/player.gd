@@ -191,12 +191,9 @@ func _dispatch_skills(delta: float) -> void:
 
 # ---- Visual FX bus -----------------------------------------------------
 #
-# Skills call `emit_fx(kind, data)` on the host. We broadcast via RPC to all
-# peers (including ourselves via call_local). Each peer stamps its own local
-# clock into the entry; PlayerView reads `_fx_local` to fade visuals. No
-# wall-clock sync between peers required.
-
-var _fx_local: Dictionary = {}
+# Skills call trigger_visual_fx (via Skill base) → play_visual_fx here.
+# emit_fx is a legacy alias kept for callers predating the rename.
+# Both RPCs write into the same _fx_local dict; PlayerView reads it.
 
 func emit_fx(kind: String, data: Dictionary = {}) -> void:
 	if not GameState.is_authority():

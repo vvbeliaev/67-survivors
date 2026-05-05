@@ -1,9 +1,9 @@
 GODOT ?= godot
 PROJECT_DIR := $(CURDIR)
 
-.PHONY: run editor import smoke peer host join clean help
+.PHONY: run editor import smoke check peer host join clean help
 
-run:
+run: check
 	$(GODOT) --path $(PROJECT_DIR)
 
 editor:
@@ -20,11 +20,28 @@ peer:
 	$(GODOT) --path $(PROJECT_DIR) &
 	$(GODOT) --path $(PROJECT_DIR)
 
+# Parse-check all GDScript without opening a window.
+# Runs the project headless for 90 frames — enough to load main scene and
+# trigger _ready() on every autoload. Fails (exit 1) on any SCRIPT ERROR or
+# Parse Error, so CI and `make run` catch broken scripts before launch.
+check:
+	@echo "Checking GDScript..."
+	@$(GODOT) --headless --path $(PROJECT_DIR) --quit-after 90 2>&1 | tee /tmp/godot_check.log; \
+	if grep -qE "SCRIPT ERROR|Parse Error" /tmp/godot_check.log; then \
+		echo ""; \
+		echo "GDScript errors detected:"; \
+		grep -E "SCRIPT ERROR|Parse Error" /tmp/godot_check.log; \
+		exit 1; \
+	else \
+		echo "OK"; \
+	fi
+
 clean:
 	rm -rf $(PROJECT_DIR)/.godot
 
 help:
-	@echo "make run     - launch game (lobby scene)"
+	@echo "make run     - check scripts then launch game"
+	@echo "make check   - parse-check all GDScript (headless, 90 frames)"
 	@echo "make editor  - open Godot editor"
 	@echo "make import  - reimport assets headless"
 	@echo "make smoke   - run headless smoke test (asserts core systems tick)"
