@@ -23,3 +23,4 @@ func on_pressed() -> void:
 		6.0,
 		pierce,
 	)
+	owner_player.emit_fx("ap", {})

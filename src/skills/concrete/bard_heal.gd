@@ -20,6 +20,7 @@ func on_pressed() -> void:
 	start_cooldown()
 	_pulses_left = pulse_count
 	_next_pulse_in = 0.0
+	owner_player.emit_fx("heal", {"r": radius * owner_player.range_mult()})
 
 func on_tick(delta: float) -> void:
 	if _pulses_left <= 0:

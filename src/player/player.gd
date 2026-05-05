@@ -187,6 +187,29 @@ func _dispatch_skills(delta: float) -> void:
 
 # ---- Stat accessors used by skills -------------------------------------
 
+# ---- Visual FX bus -----------------------------------------------------
+#
+# Skills call `emit_fx(kind, data)` on the host. We broadcast via RPC to all
+# peers (including ourselves via call_local). Each peer stamps its own local
+# clock into the entry; PlayerView reads `_fx_local` to fade visuals. No
+# wall-clock sync between peers required.
+
+var _fx_local: Dictionary = {}
+
+func emit_fx(kind: String, data: Dictionary = {}) -> void:
+	if not GameState.is_authority():
+		return
+	if multiplayer.multiplayer_peer != null:
+		_rpc_play_fx.rpc(kind, data)
+	else:
+		_rpc_play_fx(kind, data)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_play_fx(kind: String, data: Dictionary) -> void:
+	var entry: Dictionary = data.duplicate()
+	entry["t"] = Time.get_ticks_msec() / 1000.0
+	_fx_local[kind] = entry
+
 func dmg_mult() -> float:    return stats.value(StatBlock.STAT_DMG)
 func atk_speed_mult() -> float: return stats.value(StatBlock.STAT_ATK_SPEED)
 func range_mult() -> float:  return stats.value(StatBlock.STAT_RANGE)

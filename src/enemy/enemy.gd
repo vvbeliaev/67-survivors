@@ -93,10 +93,23 @@ func apply_damage(amount: float, _src_team: String) -> void:
 	if not alive:
 		return
 	hp -= amount
+	_broadcast_damage_number(amount, global_position)
 	if hp <= 0.0:
 		alive = false
 		EventBus.enemy_killed.emit(self, 1)
 		queue_free()
+
+func _broadcast_damage_number(amount: float, pos: Vector2) -> void:
+	if multiplayer.multiplayer_peer != null:
+		_rpc_show_damage.rpc(amount, pos)
+	else:
+		_rpc_show_damage(amount, pos)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_show_damage(amount: float, pos: Vector2) -> void:
+	var arena := get_tree().get_first_node_in_group("arena")
+	if arena != null and arena.has_method("spawn_damage_number"):
+		arena.spawn_damage_number(amount, pos)
 
 func force_target(peer_id: int, duration: float) -> void:
 	if not GameState.is_authority():

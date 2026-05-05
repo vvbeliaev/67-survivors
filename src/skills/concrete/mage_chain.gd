@@ -17,14 +17,17 @@ func on_pressed() -> void:
 	consume_cost()
 	start_cooldown()
 	var picked: Array = []
+	var pts: Array = [owner_player.global_position]
 	var src: Vector2 = owner_player.global_position
 	var dmg: float = damage_per_hit * owner_player.dmg_mult()
 	var jr: float = jump_range * owner_player.range_mult()
 	for _i in hops:
 		var e := Targeting.nearest_enemy_excluding(get_tree(), src, jr, picked)
 		if e == null:
-			return
+			break
 		picked.append(e)
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
+		pts.append(e.global_position)
 		src = e.global_position
+	owner_player.emit_fx("chain", {"points": pts})

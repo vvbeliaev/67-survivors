@@ -40,3 +40,4 @@ func on_released() -> void:
 		5.0,
 		0,
 	)
+	owner_player.emit_fx("shot", {})

@@ -28,4 +28,6 @@ func on_pressed() -> void:
 		projectile_radius,
 		0,
 	)
-	_aoe_damage(owner_player.aim_world(), aoe_radius * owner_player.range_mult(), aoe_damage * owner_player.dmg_mult())
+	var r: float = aoe_radius * owner_player.range_mult()
+	_aoe_damage(owner_player.aim_world(), r, aoe_damage * owner_player.dmg_mult())
+	owner_player.emit_fx("fireball", {"pos": owner_player.aim_world(), "r": r})
