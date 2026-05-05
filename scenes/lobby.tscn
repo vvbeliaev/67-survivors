@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0lobby67surv"]
+[gd_scene load_steps=7 format=3 uid="uid://b0lobby67surv"]
 
 [ext_resource type="Script" path="res://scripts/lobby.gd" id="1_lobby"]
 [ext_resource type="Texture2D" path="res://images/button.png" id="2_btn_tex"]
+[ext_resource type="Texture2D" path="res://images/menu.png" id="3_menu_bg"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("2_btn_tex")
@@ -40,11 +41,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_lobby")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.07, 0.07, 0.09, 1)
+texture = ExtResource("3_menu_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Center" type="MarginContainer" parent="."]
 anchors_preset = 15
