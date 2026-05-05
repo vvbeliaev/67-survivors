@@ -7,10 +7,10 @@
 script = ExtResource("1_def")
 id = &"ranged"
 max_hp = 18.0
-move_speed = 110.0
+move_speed = 82.0
 contact_damage = 0.0
 contact_cd = 0.0
-xp_value = 2
+xp_value = 4
 color_hint = Color(0.95, 0.65, 0.4, 1)
 radius = 11.0
 ranged = true

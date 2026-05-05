@@ -32,7 +32,7 @@ func reset_run() -> void:
 	party_xp = 0
 
 func xp_threshold(level: int) -> int:
-	return 100 + 50 * level
+	return 20 + 15 * level
 
 func is_networked() -> bool:
 	return multiplayer.multiplayer_peer != null
