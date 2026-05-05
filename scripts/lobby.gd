@@ -23,20 +23,20 @@ const CLASS_INFO := {
 	},
 }
 
-@onready var nick_edit: LineEdit = $Panel/VBox/Conn/Nick
-@onready var addr_edit: LineEdit = $Panel/VBox/Conn/Addr
-@onready var port_edit: LineEdit = $Panel/VBox/Conn/Port
-@onready var sprite_rect: TextureRect = $Panel/VBox/ClassPicker/Sprite
-@onready var prev_btn: Button = $Panel/VBox/ClassPicker/Arrows/Prev
-@onready var next_btn: Button = $Panel/VBox/ClassPicker/Arrows/Next
-@onready var class_name_label: Label = $Panel/VBox/ClassPicker/Arrows/ClassName
-@onready var desc_label: Label = $Panel/VBox/ClassPicker/Description
-@onready var host_btn: Button = $Panel/VBox/Buttons/Host
-@onready var join_btn: Button = $Panel/VBox/Buttons/Join
-@onready var leave_btn: Button = $Panel/VBox/Buttons/Leave
-@onready var start_btn: Button = $Panel/VBox/Buttons/Start
-@onready var roster_label: Label = $Panel/VBox/Roster
-@onready var status_label: Label = $Panel/VBox/Status
+@onready var nick_edit: LineEdit = $Panel/HBox/RightCol/Conn/NickRow/Nick
+@onready var addr_edit: LineEdit = $Panel/HBox/RightCol/Conn/AddrRow/Addr
+@onready var port_edit: LineEdit = $Panel/HBox/RightCol/Conn/PortRow/Port
+@onready var sprite_rect: TextureRect = $Panel/HBox/ClassPicker/Sprite
+@onready var prev_btn: Button = $Panel/HBox/ClassPicker/Arrows/Prev
+@onready var next_btn: Button = $Panel/HBox/ClassPicker/Arrows/Next
+@onready var class_name_label: Label = $Panel/HBox/ClassPicker/Arrows/ClassName
+@onready var desc_label: Label = $Panel/HBox/ClassPicker/Description
+@onready var host_btn: Button = $Panel/HBox/RightCol/Buttons/HostJoin/Host
+@onready var join_btn: Button = $Panel/HBox/RightCol/Buttons/HostJoin/Join
+@onready var leave_btn: Button = $Panel/HBox/RightCol/Buttons/LeaveStart/Leave
+@onready var start_btn: Button = $Panel/HBox/RightCol/Buttons/LeaveStart/Start
+@onready var roster_label: Label = $Panel/HBox/RightCol/Roster
+@onready var status_label: Label = $Panel/HBox/RightCol/Status
 
 var _class_idx: int = 0
 
