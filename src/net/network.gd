@@ -25,6 +25,15 @@ func host(port: int = DEFAULT_PORT) -> Error:
 		_register_self()
 	return err
 
+# Dedicated-server variant: binds the port but does NOT add the server
+# process itself to the roster. Only connecting players appear as peers.
+func host_dedicated(port: int = DEFAULT_PORT) -> Error:
+	var peer := ENetMultiplayerPeer.new()
+	var err := peer.create_server(port, MAX_PEERS)
+	if err == OK:
+		multiplayer.multiplayer_peer = peer
+	return err
+
 func join(address: String, port: int = DEFAULT_PORT) -> Error:
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
