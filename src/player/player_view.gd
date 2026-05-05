@@ -5,16 +5,27 @@ extends Node2D
 
 const SPRITE_SIZE_MULT := 4.5
 
-const CLASS_SPRITES := {
-	&"berserker": preload("res://assets/images/berserker_top.png"),
-	&"mage": preload("res://assets/images/wizard_top.png"),
-	&"bard": preload("res://assets/images/bard_top.png"),
-	&"crossbow": preload("res://assets/images/crossbowman_top.png"),
+const CLASS_SPRITE_PATHS: Dictionary = {
+	&"berserker": "res://assets/images/berserker_top.png",
+	&"mage": "res://assets/images/wizard_top.png",
+	&"bard": "res://assets/images/bard_top.png",
+	&"crossbow": "res://assets/images/crossbowman_top.png",
 }
 
 @export var owner_path: NodePath = NodePath("..")
 
 var _player: Node = null
+var _sprite_cache: Dictionary = {}  # StringName -> Texture2D or null sentinel not stored
+
+func _sprite_texture(klass: StringName) -> Texture2D:
+	if _sprite_cache.has(klass):
+		return _sprite_cache[klass]
+	var path_var: Variant = CLASS_SPRITE_PATHS.get(klass, "")
+	var tex: Texture2D = null
+	if path_var is String and not String(path_var).is_empty():
+		tex = ResourceLoader.load(String(path_var)) as Texture2D
+	_sprite_cache[klass] = tex
+	return tex
 
 func _ready() -> void:
 	_player = get_node(owner_path)
@@ -29,7 +40,7 @@ func _draw() -> void:
 	var col: Color = _player.color_hint
 	if not _player.alive:
 		col = Color(col.r * 0.4, col.g * 0.4, col.b * 0.4, 0.6)
-	var tex: Texture2D = CLASS_SPRITES.get(_player.klass)
+	var tex: Texture2D = _sprite_texture(_player.klass)
 	if tex != null:
 		var tint := Color(1, 1, 1, 0.55) if not _player.alive else Color(1, 1, 1, 1)
 		var s: float = _player.radius * SPRITE_SIZE_MULT
