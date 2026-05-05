@@ -29,14 +29,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var t: float = Time.get_ticks_msec() / 1000.0
 	light.energy = BASE_ENERGY + ENERGY_AMPL * (sin(t * FLICKER_FAST + _phase) * 0.6 + sin(t * FLICKER_SLOW + _phase * 0.5) * 0.4)
-	queue_redraw()
 
 func _draw() -> void:
-	var t: float = Time.get_ticks_msec() / 1000.0
-	var pulse: float = 1.0 + 0.04 * sin(t * FLICKER_FAST + _phase)
-	var s: float = TORCH_DRAW_SIZE * pulse
-	# Sprite has the flame in the upper half, so we offset upward a little so
-	# the flame visually sits above the position the light emits from.
+	# Static sprite — wobble lives in the light flicker, not the geometry.
+	var s: float = TORCH_DRAW_SIZE
 	var top_left := Vector2(-s * 0.5, -s * 0.65)
 	draw_texture_rect(TORCH_TEX, Rect2(top_left, Vector2(s, s)), false)
 
