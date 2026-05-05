@@ -6,10 +6,13 @@ PROJECT_DIR := $(CURDIR)
 PORT        ?= 7777
 MIN_PLAYERS ?= 2
 
-# Remote deploy settings — required for make deploy/logs/stop:
-#   make deploy IP=1.2.3.4 KEY=~/.ssh/id_ed25519_selectel
-IP  ?=
-KEY ?= ~/.ssh/id_ed25519_selectel
+# Remote deploy settings:
+#   make deploy IP=1.2.3.4
+#   make deploy IP=1.2.3.4 SSH_PORT=2222 USER=ubuntu KEY=~/.ssh/other_key
+IP       ?=
+KEY      ?= ~/.ssh/id_ed25519_selectel
+SSH_PORT ?= 22
+USER     ?= root
 
 .PHONY: run editor import smoke check server deploy logs stop peer host join clean help
 
@@ -55,18 +58,18 @@ check:
 
 # Install Godot + pull repo + open port + start server — all in one shot.
 deploy:
-	@[ -n "$(IP)" ] || (echo "Usage: make deploy IP=<ip> [KEY=~/.ssh/id_ed25519_selectel] [PORT=7777] [MIN_PLAYERS=2]"; exit 1)
-	@bash $(PROJECT_DIR)/scripts/deploy.sh "$(IP)" "$(KEY)" "$(PORT)" "$(MIN_PLAYERS)"
+	@[ -n "$(IP)" ] || (echo "Usage: make deploy IP=<ip> [SSH_PORT=22] [USER=root] [KEY=~/.ssh/id_ed25519_selectel] [PORT=7777]"; exit 1)
+	@bash $(PROJECT_DIR)/scripts/deploy.sh "$(IP)" "$(KEY)" "$(PORT)" "$(SSH_PORT)" "$(USER)"
 
 # Tail server logs in real time.
 logs:
-	@[ -n "$(IP)" ] || (echo "Usage: make logs IP=<ip> [KEY=~/.ssh/id_ed25519_selectel]"; exit 1)
-	ssh -i "$(KEY)" -o StrictHostKeyChecking=no root@$(IP) tail -f /var/log/67survivors.log
+	@[ -n "$(IP)" ] || (echo "Usage: make logs IP=<ip> [SSH_PORT=22] [USER=root]"; exit 1)
+	ssh -i "$(KEY)" -p "$(SSH_PORT)" -o StrictHostKeyChecking=no $(USER)@$(IP) tail -f /var/log/67survivors.log
 
 # Kill the running server process.
 stop:
-	@[ -n "$(IP)" ] || (echo "Usage: make stop IP=<ip> [KEY=~/.ssh/id_ed25519_selectel]"; exit 1)
-	ssh -i "$(KEY)" -o StrictHostKeyChecking=no root@$(IP) \
+	@[ -n "$(IP)" ] || (echo "Usage: make stop IP=<ip> [SSH_PORT=22] [USER=root]"; exit 1)
+	ssh -i "$(KEY)" -p "$(SSH_PORT)" -o StrictHostKeyChecking=no $(USER)@$(IP) \
 	    'kill $$(cat /var/run/67survivors.pid 2>/dev/null) 2>/dev/null && echo stopped || echo not running'
 
 clean:
@@ -74,9 +77,9 @@ clean:
 
 help:
 	@echo "make run                       - check scripts then launch game (lobby)"
-	@echo "make deploy IP=x [KEY=~/.ssh/id_ed25519_selectel]  - install + start server"
-	@echo "make logs   IP=x [KEY=...]                         - tail server logs"
-	@echo "make stop   IP=x [KEY=...]                         - kill server process"
+	@echo "make deploy IP=x [SSH_PORT=22] [USER=root]  - install + start server"
+	@echo "make logs   IP=x [SSH_PORT=22] [USER=root]  - tail server logs"
+	@echo "make stop   IP=x [SSH_PORT=22] [USER=root]  - kill server process"
 	@echo "make server [PORT=7777]        - headless server locally"
 	@echo "make check                     - parse-check all GDScript"
 	@echo "make editor                    - open Godot editor"

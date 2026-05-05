@@ -2,18 +2,19 @@
 # Deploy 67-survivors dedicated server to a remote Linux VPS over SSH.
 #
 # Usage:
-#   bash scripts/deploy.sh <ip> <key> [port] [min-players]
+#   bash scripts/deploy.sh <ip> [key] [game_port] [ssh_port] [user]
 #
-# Example:
-#   bash scripts/deploy.sh 1.2.3.4 ~/.ssh/id_ed25519_selectel 7777 2
-#   make deploy IP=1.2.3.4 KEY=~/.ssh/id_ed25519_selectel
+# Or via make:
+#   make deploy IP=1.2.3.4
+#   make deploy IP=1.2.3.4 SSH_PORT=2222 USER=ubuntu
 
 set -euo pipefail
 
-IP="${1:?Usage: deploy.sh <ip> <ssh-key-path> [port] [min-players]}"
-KEY="${2:?Usage: deploy.sh <ip> <ssh-key-path> [port] [min-players]}"
+IP="${1:?Usage: deploy.sh <ip> [key] [game_port] [ssh_port] [user]}"
+KEY="${2:-~/.ssh/id_ed25519_selectel}"
 GAME_PORT="${3:-7777}"
-MIN_PLAYERS="${4:-2}"
+SSH_PORT="${4:-22}"
+REMOTE_USER="${5:-root}"
 
 REPO_URL="https://github.com/vvbeliaev/67-survivors.git"
 GODOT_VER="4.6.2"
@@ -21,17 +22,27 @@ REMOTE_DIR="/srv/67-survivors"
 LOG_FILE="/var/log/67survivors.log"
 PID_FILE="/var/run/67survivors.pid"
 
-KEY="${KEY/#\~/$HOME}"   # expand ~ if passed literally
+KEY="${KEY/#\~/$HOME}"
 
 if [ ! -f "$KEY" ]; then
     echo "ERROR: key not found: $KEY"
     exit 1
 fi
 
-SSH_OPT="-i $KEY -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=40"
-SSH="ssh $SSH_OPT root@$IP"
+SSH_OPT="-i $KEY -p $SSH_PORT -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=40"
+SSH="ssh $SSH_OPT $REMOTE_USER@$IP"
 
-echo "==> Deploying to $IP (port=$GAME_PORT, min_players=$MIN_PLAYERS)"
+echo "==> Deploying to $REMOTE_USER@$IP:$SSH_PORT (game port=$GAME_PORT)"
+
+# ── диагностика перед деплоем ────────────────────────────────────────────────
+echo "    testing SSH connection..."
+if ! $SSH true 2>/dev/null; then
+    echo ""
+    echo "ERROR: cannot reach $REMOTE_USER@$IP port $SSH_PORT"
+    echo "  Check: make deploy IP=$IP SSH_PORT=<port> USER=<user>"
+    exit 1
+fi
+echo "    SSH OK"
 
 # ── remote script ────────────────────────────────────────────────────────────
 $SSH bash << REMOTE
@@ -74,7 +85,7 @@ if [ -f "${PID_FILE}" ] && kill -0 \$(cat "${PID_FILE}") 2>/dev/null; then
 fi
 
 nohup godot --headless --path "${REMOTE_DIR}" res://src/server/server.tscn \
-    -- --port ${GAME_PORT} --min-players ${MIN_PLAYERS} \
+    -- --port ${GAME_PORT} \
     > "${LOG_FILE}" 2>&1 &
 echo \$! > "${PID_FILE}"
 sleep 2
@@ -91,5 +102,5 @@ REMOTE
 echo ""
 echo "==> Ready!"
 echo "    Join:  make run  →  Join  →  $IP : $GAME_PORT"
-echo "    Logs:  make logs IP=$IP KEY=$KEY"
-echo "    Stop:  make stop IP=$IP KEY=$KEY"
+echo "    Logs:  make logs IP=$IP SSH_PORT=$SSH_PORT USER=$REMOTE_USER"
+echo "    Stop:  make stop IP=$IP SSH_PORT=$SSH_PORT USER=$REMOTE_USER"
