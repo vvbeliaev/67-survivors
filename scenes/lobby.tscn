@@ -160,15 +160,12 @@ size_flags_horizontal = 3
 text = "7777"
 
 [node name="Buttons" type="VBoxContainer" parent="Center/Panel/HBox/RightCol"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
-[node name="HostJoin" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-theme_override_constants/separation = 8
-
-[node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
+[node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons"]
 text = "Создать игру"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 96)
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
@@ -177,12 +174,12 @@ theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
 theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
 theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
-[node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
+[node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons"]
 text = "Подключиться"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 96)
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
@@ -191,15 +188,12 @@ theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
 theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
 theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
-[node name="LeaveStart" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-theme_override_constants/separation = 8
-
-[node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
+[node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons"]
 text = "Выйти"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 96)
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
@@ -208,12 +202,12 @@ theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
 theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
 theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
-[node name="Start" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
+[node name="Start" type="Button" parent="Center/Panel/HBox/RightCol/Buttons"]
 text = "Начать раунд"
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 96)
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
@@ -222,7 +216,7 @@ theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
 theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
 theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 
 [node name="Roster" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "Пати:\n(пусто)"
