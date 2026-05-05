@@ -43,13 +43,14 @@ func play_at(id: StringName, pos: Vector2) -> void:
 		_rpc_play_at(id, pos)
 
 # Pure-local UI sound (no networking). Safe to call from any peer.
-func play_ui(id: StringName) -> void:
+func play_ui(id: StringName, volume_db: float = 0.0) -> void:
 	var s := _load_stream(id)
 	if s == null:
 		return
 	var p := AudioStreamPlayer.new()
 	p.stream = s
 	p.bus = SFX_BUS
+	p.volume_db = volume_db
 	p.autoplay = true
 	get_tree().root.add_child.call_deferred(p)
 	p.finished.connect(p.queue_free)

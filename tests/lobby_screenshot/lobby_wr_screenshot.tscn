@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://lobwrshot01"]
+
+[ext_resource type="Script" path="res://tests/lobby_screenshot/lobby_wr_screenshot.gd" id="1_wrshot"]
+
+[node name="WRShot" type="Node"]
+script = ExtResource("1_wrshot")

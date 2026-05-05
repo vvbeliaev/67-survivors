@@ -1,259 +1,1101 @@
-[gd_scene load_steps=7 format=3 uid="uid://b0lobby67surv"]
+[gd_scene load_steps=49 format=3 uid="uid://b0lobby67surv"]
 
 [ext_resource type="Script" path="res://src/lobby/lobby.gd" id="1_lobby"]
-[ext_resource type="Texture2D" path="res://assets/images/button.png" id="2_btn_tex"]
-[ext_resource type="Texture2D" path="res://assets/images/menu.png" id="3_menu_bg"]
+[ext_resource type="Shader" path="res://src/lobby/lobby_atmo.gdshader" id="2_atmo"]
+[ext_resource type="Script" path="res://src/ui/menu/forged_panel.gd" id="3_forged"]
+[ext_resource type="Script" path="res://src/ui/menu/menu_button.gd" id="4_menu_btn"]
+[ext_resource type="Script" path="res://src/ui/menu/diamond.gd" id="5_diamond"]
+[ext_resource type="Script" path="res://src/ui/menu/section_header.gd" id="6_section"]
+[ext_resource type="Script" path="res://src/ui/menu/star_rating.gd" id="7_stars"]
+[ext_resource type="FontFile" path="res://assets/fonts/Cinzel.ttf" id="8_cinzel"]
+[ext_resource type="FontFile" path="res://assets/fonts/Inter.ttf" id="9_inter"]
+[ext_resource type="FontFile" path="res://assets/fonts/JetBrainsMono.ttf" id="10_mono"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
-texture = ExtResource("2_btn_tex")
-texture_margin_left = 0.0
-texture_margin_right = 0.0
-texture_margin_top = 0.0
-texture_margin_bottom = 0.0
+[sub_resource type="ShaderMaterial" id="SM_atmo"]
+shader = ExtResource("2_atmo")
+shader_parameter/deep_top = Color(0.078, 0.030, 0.040, 1)
+shader_parameter/deep_mid = Color(0.040, 0.016, 0.016, 1)
+shader_parameter/deep_btm = Color(0.012, 0.004, 0.004, 1)
+shader_parameter/warm_glow = Color(0.85, 0.32, 0.18, 1)
+shader_parameter/warm_glow_strength = 0.34
+shader_parameter/warm_glow_pos = Vector2(0.30, 0.25)
+shader_parameter/warm_glow_radius = 0.55
+shader_parameter/deep_blob = Color(0.157, 0.039, 0.031, 1)
+shader_parameter/deep_blob_strength = 0.70
+shader_parameter/deep_blob_pos = Vector2(0.78, 0.85)
+shader_parameter/deep_blob_radius = 0.55
+shader_parameter/fog_speed = 0.018
+shader_parameter/fog_strength = 0.10
+shader_parameter/fog_tint = Color(0.20, 0.13, 0.09, 1)
+shader_parameter/vignette_inner = 0.30
+shader_parameter/vignette_outer = 0.85
+shader_parameter/vignette_strength = 0.85
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
-texture = ExtResource("2_btn_tex")
-texture_margin_left = 0.0
-texture_margin_right = 0.0
-texture_margin_top = 0.0
-texture_margin_bottom = 0.0
-modulate_color = Color(1.15, 1.12, 1.0, 1)
+[sub_resource type="Gradient" id="EmberGradient"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 0.85, 0.45, 1, 1, 0.55, 0.18, 0.7, 1, 0.35, 0.08, 0)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
-texture = ExtResource("2_btn_tex")
-texture_margin_left = 0.0
-texture_margin_right = 0.0
-texture_margin_top = 0.0
-texture_margin_bottom = 0.0
-modulate_color = Color(0.78, 0.78, 0.78, 1)
+[sub_resource type="GradientTexture2D" id="EmberTex"]
+gradient = SubResource("EmberGradient")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_disabled"]
-texture = ExtResource("2_btn_tex")
-texture_margin_left = 0.0
-texture_margin_right = 0.0
-texture_margin_top = 0.0
-texture_margin_bottom = 0.0
-modulate_color = Color(0.5, 0.5, 0.5, 0.65)
+[sub_resource type="Curve" id="EmberAlphaCurve"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.12, 1), 0.0, 0.0, 0, 0, Vector2(0.75, 0.6), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="EmberAlphaTex"]
+curve = SubResource("EmberAlphaCurve")
+
+[sub_resource type="Curve" id="EmberScaleCurve"]
+_data = [Vector2(0, 0.4), 0.0, 0.0, 0, 0, Vector2(0.2, 1.0), 0.0, 0.0, 0, 0, Vector2(1, 0.5), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="EmberScaleTex"]
+curve = SubResource("EmberScaleCurve")
+
+[sub_resource type="FontVariation" id="FV_brand"]
+base_font = ExtResource("8_cinzel")
+spacing_glyph = 6
+
+[sub_resource type="FontVariation" id="FV_section"]
+base_font = ExtResource("8_cinzel")
+spacing_glyph = 5
+
+[sub_resource type="FontVariation" id="FV_btn"]
+base_font = ExtResource("8_cinzel")
+spacing_glyph = 5
+
+[sub_resource type="FontVariation" id="FV_field_label"]
+base_font = ExtResource("9_inter")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="SB_input_normal"]
+bg_color = Color(0.047, 0.035, 0.027, 1)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 6
+content_margin_bottom = 6
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_left = 0
+corner_radius_bottom_right = 0
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 0
+
+[sub_resource type="StyleBoxFlat" id="SB_input_focus"]
+bg_color = Color(0.07, 0.05, 0.035, 1)
+border_color = Color(0.54, 0.37, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 6
+content_margin_bottom = 6
+
+[sub_resource type="StyleBoxFlat" id="SB_panel_hero"]
+bg_color = Color(0.075, 0.055, 0.040, 0.85)
+border_color = Color(0.34, 0.25, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 22
+content_margin_right = 22
+content_margin_top = 18
+content_margin_bottom = 16
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 8
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="SB_panel_conn"]
+bg_color = Color(0.10, 0.075, 0.052, 0.92)
+border_color = Color(0.34, 0.25, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 22
+content_margin_right = 22
+content_margin_top = 14
+content_margin_bottom = 18
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_normal"]
+bg_color = Color(0.135, 0.10, 0.067, 0.95)
+border_color = Color(0.34, 0.25, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 48
+content_margin_right = 48
+content_margin_top = 10
+content_margin_bottom = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_hover"]
+bg_color = Color(0.20, 0.135, 0.072, 1)
+border_color = Color(0.54, 0.37, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 48
+content_margin_right = 48
+content_margin_top = 10
+content_margin_bottom = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_pressed"]
+bg_color = Color(0.07, 0.05, 0.035, 1)
+border_color = Color(0.42, 0.30, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 48
+content_margin_right = 48
+content_margin_top = 10
+content_margin_bottom = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_disabled"]
+bg_color = Color(0.075, 0.055, 0.040, 0.6)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 48
+content_margin_right = 48
+content_margin_top = 10
+content_margin_bottom = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_arrow_normal"]
+bg_color = Color(0.10, 0.075, 0.052, 0.95)
+border_color = Color(0.34, 0.25, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 0
+content_margin_right = 0
+content_margin_top = 0
+content_margin_bottom = 0
+
+[sub_resource type="StyleBoxFlat" id="SB_arrow_hover"]
+bg_color = Color(0.20, 0.135, 0.072, 1)
+border_color = Color(0.54, 0.37, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_role_pill"]
+bg_color = Color(0.40, 0.10, 0.07, 0.18)
+border_color = Color(0.84, 0.29, 0.23, 0.4)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 12
+content_margin_right = 12
+content_margin_top = 4
+content_margin_bottom = 4
+
+[sub_resource type="StyleBoxFlat" id="SB_top_btn_normal"]
+bg_color = Color(0.10, 0.075, 0.052, 0.85)
+border_color = Color(0.42, 0.30, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_top_btn_hover"]
+bg_color = Color(0.18, 0.12, 0.07, 1)
+border_color = Color(0.83, 0.63, 0.29, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_top_btn_disabled"]
+bg_color = Color(0.075, 0.055, 0.040, 0.55)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_top_btn_leave_normal"]
+bg_color = Color(0.18, 0.06, 0.04, 0.85)
+border_color = Color(0.62, 0.18, 0.14, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_top_btn_leave_hover"]
+bg_color = Color(0.30, 0.10, 0.07, 1)
+border_color = Color(0.84, 0.29, 0.23, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_slot_filled"]
+bg_color = Color(0.075, 0.055, 0.040, 0.7)
+border_color = Color(0.30, 0.50, 0.18, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 14
+content_margin_right = 14
+content_margin_top = 12
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxFlat" id="SB_slot_self"]
+bg_color = Color(0.10, 0.075, 0.052, 0.85)
+border_color = Color(0.84, 0.29, 0.23, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 14
+content_margin_right = 14
+content_margin_top = 12
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxFlat" id="SB_slot_empty"]
+bg_color = Color(0.045, 0.035, 0.027, 0.6)
+border_color = Color(0.22, 0.17, 0.13, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 14
+content_margin_right = 14
+content_margin_top = 12
+content_margin_bottom = 12
+
+[sub_resource type="StyleBoxFlat" id="SB_portrait_frame"]
+bg_color = Color(0.025, 0.020, 0.015, 1)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_chat_strip"]
+bg_color = Color(0.06, 0.045, 0.033, 0.85)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 8
+content_margin_bottom = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_start_btn_normal"]
+bg_color = Color(0.13, 0.075, 0.030, 1)
+border_color = Color(0.62, 0.40, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 56
+content_margin_right = 56
+content_margin_top = 18
+content_margin_bottom = 18
+
+[sub_resource type="StyleBoxFlat" id="SB_start_btn_hover"]
+bg_color = Color(0.22, 0.135, 0.052, 1)
+border_color = Color(0.95, 0.72, 0.34, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 56
+content_margin_right = 56
+content_margin_top = 18
+content_margin_bottom = 18
+
+[sub_resource type="StyleBoxFlat" id="SB_start_btn_disabled"]
+bg_color = Color(0.075, 0.055, 0.040, 0.7)
+border_color = Color(0.34, 0.25, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+content_margin_left = 56
+content_margin_right = 56
+content_margin_top = 18
+content_margin_bottom = 18
+
+[sub_resource type="StyleBoxFlat" id="SB_meta_strip"]
+bg_color = Color(0, 0, 0, 0.45)
+border_color = Color(0.22, 0.17, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+content_margin_left = 18
+content_margin_right = 18
+content_margin_top = 10
+content_margin_bottom = 10
 
 [node name="Lobby" type="Control"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 1
 script = ExtResource("1_lobby")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="BgAtmo" type="ColorRect" parent="."]
+material = SubResource("SM_atmo")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = ExtResource("3_menu_bg")
-expand_mode = 1
-stretch_mode = 6
-flip_h = true
+mouse_filter = 2
+color = Color(0.04, 0.025, 0.015, 1)
 
-[node name="Center" type="MarginContainer" parent="."]
+[node name="Embers" type="CPUParticles2D" parent="."]
+position = Vector2(640, 740)
+amount = 36
+lifetime = 6.5
+preprocess = 4.0
+explosiveness = 0.0
+randomness = 1.0
+fixed_fps = 0
+local_coords = false
+texture = SubResource("EmberTex")
+emission_shape = 3
+emission_rect_extents = Vector2(720, 30)
+direction = Vector2(0, -1)
+spread = 8.0
+gravity = Vector2(0, -8)
+initial_velocity_min = 28.0
+initial_velocity_max = 60.0
+angular_velocity_min = -20.0
+angular_velocity_max = 20.0
+linear_accel_min = -4.0
+linear_accel_max = 4.0
+tangential_accel_min = -6.0
+tangential_accel_max = 6.0
+damping_min = 0.0
+damping_max = 0.5
+scale_amount_min = 0.6
+scale_amount_max = 1.6
+scale_amount_curve = SubResource("EmberScaleTex")
+color = Color(1, 0.8, 0.4, 1)
+alpha_curve = SubResource("EmberAlphaTex")
+
+[node name="Layout" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_bottom = 14
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Root" type="VBoxContainer" parent="Layout"]
+theme_override_constants/separation = 14
 
-[node name="HBox" type="HBoxContainer" parent="Center/Panel"]
-theme_override_constants/separation = 32
+[node name="TopStrip" type="HBoxContainer" parent="Layout/Root"]
+theme_override_constants/separation = 16
 
-[node name="ClassPicker" type="VBoxContainer" parent="Center/Panel/HBox"]
+[node name="Brand" type="HBoxContainer" parent="Layout/Root/TopStrip"]
+theme_override_constants/separation = 16
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.1
-theme_override_constants/separation = 8
-clip_contents = true
 
-[node name="Sprite" type="TextureRect" parent="Center/Panel/HBox/ClassPicker"]
+[node name="BrandDiamond" type="Control" parent="Layout/Root/TopStrip/Brand"]
+custom_minimum_size = Vector2(14, 14)
+size_flags_vertical = 4
+script = ExtResource("5_diamond")
+
+[node name="BrandLabel" type="Label" parent="Layout/Root/TopStrip/Brand"]
+size_flags_vertical = 4
+text = "CRYPT  OF  THE  SURVIVORS"
+theme_override_fonts/font = SubResource("FV_brand")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_constants/shadow_outline_size = 0
+
+[node name="Souls" type="HBoxContainer" parent="Layout/Root/TopStrip"]
+theme_override_constants/separation = 14
+alignment = 2
+
+[node name="SoulsLabel" type="Label" parent="Layout/Root/TopStrip/Souls"]
+text = "ЖИВЫХ ДУШ"
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="SoulsCount" type="Label" parent="Layout/Root/TopStrip/Souls"]
+unique_name_in_owner = true
+text = "067"
+theme_override_fonts/font = SubResource("FV_brand")
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.83, 0.63, 0.29, 1)
+
+[node name="MainGrid" type="HBoxContainer" parent="Layout/Root"]
 size_flags_vertical = 3
+theme_override_constants/separation = 36
+
+[node name="HeroPanel" type="PanelContainer" parent="Layout/Root/MainGrid"]
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 360)
+size_flags_stretch_ratio = 1.6
+theme_override_styles/panel = SubResource("SB_panel_hero")
+script = ExtResource("3_forged")
+
+[node name="HeroLayout" type="VBoxContainer" parent="Layout/Root/MainGrid/HeroPanel"]
+theme_override_constants/separation = 10
+
+[node name="Stage" type="Control" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout"]
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 170)
+
+[node name="HeroSprite" type="TextureRect" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/Stage"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Arrows" type="HBoxContainer" parent="Center/Panel/HBox/ClassPicker"]
-alignment = 1
-theme_override_constants/separation = 18
+[node name="PrevBtn" type="Button" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/Stage"]
+unique_name_in_owner = true
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -22.0
+offset_right = 48.0
+offset_bottom = 22.0
+grow_vertical = 2
+text = "‹"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+theme_override_colors/font_hover_color = Color(0.83, 0.63, 0.29, 1)
+theme_override_styles/normal = SubResource("SB_arrow_normal")
+theme_override_styles/hover = SubResource("SB_arrow_hover")
+theme_override_styles/pressed = SubResource("SB_arrow_normal")
+theme_override_styles/focus = SubResource("SB_arrow_hover")
 
-[node name="Prev" type="Button" parent="Center/Panel/HBox/ClassPicker/Arrows"]
-text = "◀"
-custom_minimum_size = Vector2(56, 56)
-theme_override_font_sizes/font_size = 24
+[node name="NextBtn" type="Button" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/Stage"]
+unique_name_in_owner = true
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -48.0
+offset_top = -22.0
+offset_right = -4.0
+offset_bottom = 22.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "›"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+theme_override_colors/font_hover_color = Color(0.83, 0.63, 0.29, 1)
+theme_override_styles/normal = SubResource("SB_arrow_normal")
+theme_override_styles/hover = SubResource("SB_arrow_hover")
+theme_override_styles/pressed = SubResource("SB_arrow_normal")
+theme_override_styles/focus = SubResource("SB_arrow_hover")
 
-[node name="ClassName" type="Label" parent="Center/Panel/HBox/ClassPicker/Arrows"]
-text = "—"
-custom_minimum_size = Vector2(320, 56)
+[node name="InfoBlock" type="VBoxContainer" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout"]
+theme_override_constants/separation = 4
+
+[node name="ClassName" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/InfoBlock"]
+unique_name_in_owner = true
+text = "БЕРСЕРК"
 horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 32
-theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
+theme_override_fonts/font = SubResource("FV_brand")
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.83, 0.63, 0.29, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 2
 
-[node name="Next" type="Button" parent="Center/Panel/HBox/ClassPicker/Arrows"]
-text = "▶"
-custom_minimum_size = Vector2(56, 56)
-theme_override_font_sizes/font_size = 24
-
-[node name="Subtitle" type="Label" parent="Center/Panel/HBox/ClassPicker"]
-text = "—"
+[node name="Subtitle" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/InfoBlock"]
+unique_name_in_owner = true
+text = "Безумец крови"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.75, 0.75, 0.85, 1)
+theme_override_fonts/font = ExtResource("8_cinzel")
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.78, 0.70, 0.55, 1)
 
-[node name="Description" type="RichTextLabel" parent="Center/Panel/HBox/ClassPicker"]
-custom_minimum_size = Vector2(0, 240)
-size_flags_horizontal = 3
-bbcode_enabled = true
-scroll_active = false
-clip_contents = true
-theme_override_font_sizes/normal_font_size = 15
+[node name="Quote" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/InfoBlock"]
+unique_name_in_owner = true
+text = "«Каждая рана — глоток силы.»"
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("8_cinzel")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.55, 0.48, 0.36, 1)
 
-[node name="RightCol" type="VBoxContainer" parent="Center/Panel/HBox"]
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
+[node name="MetaStrip" type="PanelContainer" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout"]
+theme_override_styles/panel = SubResource("SB_meta_strip")
+
+[node name="MetaRow" type="HBoxContainer" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip"]
 theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Center/Panel/HBox/RightCol"]
-text = "67 SURVIVORS"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 32
+[node name="RoleCaption" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow"]
+text = "РОЛЬ"
+size_flags_vertical = 4
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.55, 0.48, 0.36, 1)
 
-[node name="Conn" type="VBoxContainer" parent="Center/Panel/HBox/RightCol"]
-theme_override_constants/separation = 6
+[node name="RolePill" type="PanelContainer" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow"]
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_role_pill")
 
-[node name="NickRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
-theme_override_constants/separation = 8
+[node name="RoleLabel" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow/RolePill"]
+unique_name_in_owner = true
+text = "ТАНК"
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.84, 0.29, 0.23, 1)
 
-[node name="NickLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/NickRow"]
-text = "Ник:"
-custom_minimum_size = Vector2(60, 0)
+[node name="RoleNote" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow"]
+unique_name_in_owner = true
+text = "· Контроль агро"
+size_flags_vertical = 4
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("9_inter")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.78, 0.70, 0.55, 1)
+
+[node name="DiffCaption" type="Label" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow"]
+text = "СЛОЖНОСТЬ"
+size_flags_vertical = 4
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.55, 0.48, 0.36, 1)
+
+[node name="Stars" type="Control" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout/MetaStrip/MetaRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(86, 14)
+size_flags_vertical = 4
+script = ExtResource("7_stars")
+value = 2
+
+[node name="SkillsRow" type="GridContainer" parent="Layout/Root/MainGrid/HeroPanel/HeroLayout"]
+unique_name_in_owner = true
+columns = 2
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 8
+
+[node name="RightCol" type="VBoxContainer" parent="Layout/Root/MainGrid"]
+custom_minimum_size = Vector2(560, 0)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 22
+
+[node name="ConnPanel" type="PanelContainer" parent="Layout/Root/MainGrid/RightCol"]
+theme_override_styles/panel = SubResource("SB_panel_conn")
+script = ExtResource("3_forged")
+
+[node name="Conn" type="VBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel"]
+theme_override_constants/separation = 14
+
+[node name="ConnHeader" type="VBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn"]
+script = ExtResource("6_section")
+title = "Соединение"
+font = ExtResource("8_cinzel")
+label_size = 18
+
+[node name="Fields" type="VBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn"]
+theme_override_constants/separation = 10
+
+[node name="NickRow" type="HBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields"]
+theme_override_constants/separation = 14
+
+[node name="NickLabel" type="Label" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/NickRow"]
+text = "НИК"
+custom_minimum_size = Vector2(78, 0)
 vertical_alignment = 1
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
 
-[node name="Nick" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/NickRow"]
+[node name="Nick" type="LineEdit" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/NickRow"]
+unique_name_in_owner = true
 size_flags_horizontal = 3
 text = "P"
 placeholder_text = "Имя"
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_styles/normal = SubResource("SB_input_normal")
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input_normal")
 
-[node name="AddrRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
-theme_override_constants/separation = 8
+[node name="AddrRow" type="HBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields"]
+theme_override_constants/separation = 14
 
-[node name="AddrLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/AddrRow"]
-text = "IP:"
-custom_minimum_size = Vector2(60, 0)
+[node name="AddrLabel" type="Label" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/AddrRow"]
+text = "IP"
+custom_minimum_size = Vector2(78, 0)
 vertical_alignment = 1
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
 
-[node name="Addr" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/AddrRow"]
+[node name="Addr" type="LineEdit" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/AddrRow"]
+unique_name_in_owner = true
 size_flags_horizontal = 3
 text = "127.0.0.1"
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_styles/normal = SubResource("SB_input_normal")
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input_normal")
 
-[node name="PortRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
-theme_override_constants/separation = 8
+[node name="PortRow" type="HBoxContainer" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields"]
+theme_override_constants/separation = 14
 
-[node name="PortLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/PortRow"]
-text = "Порт:"
-custom_minimum_size = Vector2(60, 0)
+[node name="PortLabel" type="Label" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/PortRow"]
+text = "ПОРТ"
+custom_minimum_size = Vector2(78, 0)
 vertical_alignment = 1
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
 
-[node name="Port" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/PortRow"]
+[node name="Port" type="LineEdit" parent="Layout/Root/MainGrid/RightCol/ConnPanel/Conn/Fields/PortRow"]
+unique_name_in_owner = true
 size_flags_horizontal = 3
 text = "7777"
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_styles/normal = SubResource("SB_input_normal")
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input_normal")
 
-[node name="Buttons" type="VBoxContainer" parent="Center/Panel/HBox/RightCol"]
-theme_override_constants/separation = 4
+[node name="Buttons" type="VBoxContainer" parent="Layout/Root/MainGrid/RightCol"]
+theme_override_constants/separation = 10
 
-[node name="HostWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-ratio = 4.344
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 110)
-stretch_mode = 2
-
-[node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostWrap"]
+[node name="HostBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
 text = "Создать игру"
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_btn_disabled")
-theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
-theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
-theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/disabled = SubResource("SB_btn_disabled")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
 
-[node name="JoinWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-ratio = 4.344
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 110)
-stretch_mode = 2
-
-[node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/JoinWrap"]
+[node name="JoinBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
 text = "Подключиться"
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_btn_disabled")
-theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
-theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
-theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/disabled = SubResource("SB_btn_disabled")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
 
-[node name="LeaveWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-ratio = 4.344
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 110)
-stretch_mode = 2
+[node name="SettingsBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+disabled = true
+text = "Настройки"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/disabled = SubResource("SB_btn_disabled")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
 
-[node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveWrap"]
+[node name="LeaveBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
 text = "Выйти"
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_btn_disabled")
-theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
-theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
-theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/disabled = SubResource("SB_btn_disabled")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
 
-[node name="ReadyWrap" type="AspectRatioContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
-ratio = 4.344
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 110)
-stretch_mode = 2
-
-[node name="Ready" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/ReadyWrap"]
+[node name="ReadyBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+visible = false
 text = "Готов!"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
+
+[node name="Roster" type="Label" parent="Layout/Root/MainGrid/RightCol"]
+unique_name_in_owner = true
+visible = false
+text = ""
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("9_inter")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.78, 0.70, 0.55, 1)
+
+[node name="Footer" type="HBoxContainer" parent="Layout/Root"]
+
+[node name="VersionLabel" type="Label" parent="Layout/Root/Footer"]
+unique_name_in_owner = true
+text = "v 0.7.3 · alpha"
 size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_btn_disabled")
-theme_override_styles/focus = SubResource("StyleBoxTexture_btn_hover")
-theme_override_colors/font_color = Color(0.97, 0.88, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.75, 1)
-theme_override_colors/font_pressed_color = Color(0.85, 0.78, 0.55, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.42, 0.35, 0.27, 1)
 
-[node name="Roster" type="Label" parent="Center/Panel/HBox/RightCol"]
-text = "Пати:\n(пусто)"
-size_flags_vertical = 3
+[node name="StatusLabel" type="Label" parent="Layout/Root/Footer"]
+unique_name_in_owner = true
+text = "● Сервер найден"
+horizontal_alignment = 2
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.83, 0.63, 0.29, 1)
 
-[node name="Status" type="Label" parent="Center/Panel/HBox/RightCol"]
-text = "Оффлайн"
-modulate = Color(0.7, 0.7, 0.75, 1)
+[node name="WaitingRoomView" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="WRLayout" type="MarginContainer" parent="WaitingRoomView"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="WRRoot" type="VBoxContainer" parent="WaitingRoomView/WRLayout"]
+theme_override_constants/separation = 12
+
+[node name="WRTopBar" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot"]
+theme_override_constants/separation = 12
+
+[node name="WRTitleBlock" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="WRSubtitle" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar/WRTitleBlock"]
+unique_name_in_owner = true
+text = "ЛОББИ · 127.0.0.1:7777"
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="WRTitle" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar/WRTitleBlock"]
+text = "ЗАЛ ОЖИДАНИЯ"
+theme_override_fonts/font = SubResource("FV_brand")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+
+[node name="WRTopActions" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar"]
+size_flags_vertical = 8
+theme_override_constants/separation = 12
+
+[node name="WRSettingsBtn" type="Button" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar/WRTopActions"]
+unique_name_in_owner = true
+disabled = true
+text = "◇ НАСТРОЙКИ"
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.83, 0.63, 0.29, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.72, 0.34, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_top_btn_normal")
+theme_override_styles/hover = SubResource("SB_top_btn_hover")
+theme_override_styles/pressed = SubResource("SB_top_btn_normal")
+theme_override_styles/focus = SubResource("SB_top_btn_hover")
+theme_override_styles/disabled = SubResource("SB_top_btn_disabled")
+
+[node name="WRLeaveBtn" type="Button" parent="WaitingRoomView/WRLayout/WRRoot/WRTopBar/WRTopActions"]
+unique_name_in_owner = true
+text = "← ПОКИНУТЬ"
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.84, 0.45, 0.40, 1)
+theme_override_colors/font_hover_color = Color(0.97, 0.55, 0.50, 1)
+theme_override_styles/normal = SubResource("SB_top_btn_leave_normal")
+theme_override_styles/hover = SubResource("SB_top_btn_leave_hover")
+theme_override_styles/pressed = SubResource("SB_top_btn_leave_normal")
+theme_override_styles/focus = SubResource("SB_top_btn_leave_hover")
+
+[node name="WRMainGrid" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot"]
+size_flags_vertical = 3
+theme_override_constants/separation = 28
+
+[node name="SquadPanel" type="PanelContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid"]
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.7
+theme_override_styles/panel = SubResource("SB_panel_hero")
+script = ExtResource("3_forged")
+
+[node name="SquadLayout" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/SquadPanel"]
+theme_override_constants/separation = 12
+
+[node name="SquadHeader" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/SquadPanel/SquadLayout"]
+theme_override_constants/separation = 8
+
+[node name="SquadTitle" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/SquadPanel/SquadLayout/SquadHeader"]
+text = "ОТРЯД"
+theme_override_fonts/font = SubResource("FV_section")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.84, 0.29, 0.23, 1)
+
+[node name="SquadCount" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/SquadPanel/SquadLayout/SquadHeader"]
+unique_name_in_owner = true
+text = "· 1 / 4"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_section")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="SquadGrid" type="GridContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/SquadPanel/SquadLayout"]
+unique_name_in_owner = true
+size_flags_vertical = 3
+columns = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+
+[node name="WRRightCol" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid"]
+custom_minimum_size = Vector2(360, 0)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 18
+
+[node name="RaidPanel" type="PanelContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol"]
+theme_override_styles/panel = SubResource("SB_panel_conn")
+script = ExtResource("3_forged")
+
+[node name="RaidLayout" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel"]
+theme_override_constants/separation = 8
+
+[node name="RaidHeader" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout"]
+script = ExtResource("6_section")
+title = "Поход"
+font = ExtResource("8_cinzel")
+label_size = 16
+
+[node name="RaidRows" type="VBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout"]
+theme_override_constants/separation = 6
+
+[node name="DungeonRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows"]
+theme_override_constants/separation = 14
+
+[node name="DungeonLabel" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DungeonRow"]
+text = "ПОДЗЕМЕЛЬЕ"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="DungeonValue" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DungeonRow"]
+text = "Логово Костей"
+theme_override_fonts/font = ExtResource("8_cinzel")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+
+[node name="DiffRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows"]
+theme_override_constants/separation = 14
+
+[node name="DiffLabel" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DiffRow"]
+text = "СЛОЖНОСТЬ"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="DiffStars" type="Control" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DiffRow"]
+custom_minimum_size = Vector2(86, 14)
+size_flags_vertical = 4
+script = ExtResource("7_stars")
+value = 3
+
+[node name="DurRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows"]
+theme_override_constants/separation = 14
+
+[node name="DurLabel" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DurRow"]
+text = "ДЛИТЕЛЬНОСТЬ"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="DurValue" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DurRow"]
+text = "10 мин"
+theme_override_fonts/font = SubResource("FV_section")
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+
+[node name="PvpRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows"]
+theme_override_constants/separation = 14
+
+[node name="PvpLabel" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/PvpRow"]
+text = "PVP"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="PvpValue" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/PvpRow"]
+text = "ВЫКЛ"
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="HardcoreRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows"]
+theme_override_constants/separation = 14
+
+[node name="HardcoreLabel" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/HardcoreRow"]
+text = "ХАРДКОР"
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="HardcoreValue" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/HardcoreRow"]
+text = "ВКЛ"
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.84, 0.29, 0.23, 1)
+
+[node name="StartBtn" type="Button" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 78)
+text = "Начать поход"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.97, 0.93, 0.78, 1)
+theme_override_colors/font_hover_color = Color(1, 0.97, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_start_btn_normal")
+theme_override_styles/hover = SubResource("SB_start_btn_hover")
+theme_override_styles/pressed = SubResource("SB_start_btn_normal")
+theme_override_styles/disabled = SubResource("SB_start_btn_disabled")
+theme_override_styles/focus = SubResource("SB_start_btn_hover")
+script = ExtResource("4_menu_btn")
+
+[node name="StartStatus" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol"]
+unique_name_in_owner = true
+text = "● ожидаем готовности"
+horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("10_mono")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="ChatStrip" type="PanelContainer" parent="WaitingRoomView/WRLayout/WRRoot"]
+theme_override_styles/panel = SubResource("SB_chat_strip")
+
+[node name="ChatRow" type="HBoxContainer" parent="WaitingRoomView/WRLayout/WRRoot/ChatStrip"]
+theme_override_constants/separation = 14
+
+[node name="ChatTitle" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/ChatStrip/ChatRow"]
+text = "ЧАТ"
+size_flags_vertical = 4
+theme_override_fonts/font = SubResource("FV_field_label")
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
+
+[node name="ChatLog" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/ChatStrip/ChatRow"]
+unique_name_in_owner = true
+text = ""
+size_flags_horizontal = 3
+size_flags_vertical = 4
+clip_text = true
+text_overrun_behavior = 3
+theme_override_fonts/font = ExtResource("9_inter")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.78, 0.70, 0.55, 1)
+
+[node name="ChatInput" type="LineEdit" parent="WaitingRoomView/WRLayout/WRRoot/ChatStrip/ChatRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 0)
+placeholder_text = "Press Enter to chat..."
+theme_override_fonts/font = ExtResource("9_inter")
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_styles/normal = SubResource("SB_input_normal")
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input_normal")

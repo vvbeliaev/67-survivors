@@ -83,7 +83,7 @@ func show_upgrade_picks(options: Array) -> void:
 			upgrade_panel.visible = false
 			_local_pick_upgrade(id)
 		)
-		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover"))
+		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover", -10.5))
 		upgrade_buttons.add_child(b)
 	upgrade_panel.visible = true
 

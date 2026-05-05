@@ -4,44 +4,103 @@ const CLASS_INFO := {
 	"berserker": {
 		"name": "БЕРСЕРК",
 		"subtitle": "Безумец крови",
+		"quote": "«Каждая рана — глоток силы.»",
 		"sprite": "res://assets/images/berserker.png",
-		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг",
+		"role": "ТАНК",
+		"role_note": "Контроль агро",
+		"difficulty": 2,
+		"skills": [
+			{"key": "Авто", "name": "Кружащий клинок", "desc": "AoE вокруг себя", "hot": false},
+			{"key": "ЛКМ",  "name": "Кровавый рывок", "desc": "бьёт сильнее при низком HP", "hot": true},
+			{"key": "ПКМ",  "name": "Боевой рёв", "desc": "стянуть агро в радиусе", "hot": false},
+			{"key": "Space","name": "Землетрясение", "desc": "стан врагов вокруг", "hot": false},
+		],
 	},
 	"mage": {
 		"name": "ВОЛШЕБНИК",
 		"subtitle": "Архимаг разрушения",
+		"quote": "«Достаточно одной искры — и ничего не останется.»",
 		"sprite": "res://assets/images/wizard.png",
-		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору",
+		"role": "AOE",
+		"role_note": "Контроль волн",
+		"difficulty": 3,
+		"skills": [
+			{"key": "Авто", "name": "Магический снаряд", "desc": "автоприцел по ближайшему", "hot": false},
+			{"key": "ЛКМ",  "name": "Файрбол", "desc": "AoE по курсору · 30 маны", "hot": false},
+			{"key": "ПКМ",  "name": "Цепная молния", "desc": "по 3 целям · 50 маны", "hot": true},
+			{"key": "Space","name": "Блинк", "desc": "телепорт по курсору", "hot": false},
+		],
 	},
 	"bard": {
 		"name": "БАРД",
 		"subtitle": "Голос пати",
+		"quote": "«Без меня вы — мёртвое мясо.»",
 		"sprite": "res://assets/images/bard.png",
-		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]",
+		"role": "ХИЛ",
+		"role_note": "Поддержка",
+		"difficulty": 4,
+		"skills": [
+			{"key": "Авто", "name": "Колкий бренчащий", "desc": "слабый снаряд для самозащиты", "hot": false},
+			{"key": "ЛКМ",  "name": "Хил-аура", "desc": "3 пульса лечения союзникам", "hot": false},
+			{"key": "ПКМ",  "name": "Боевая песнь", "desc": "баф скорости и урона рядом", "hot": false},
+			{"key": "Space","name": "Дэш-уворот", "desc": "i-frames на короткую дистанцию", "hot": true},
+		],
 	},
 	"crossbow": {
 		"name": "АРБАЛЕТЧИК",
 		"subtitle": "Тихий охотник",
+		"quote": "«Один выстрел. Одна цель. Тишина.»",
 		"sprite": "res://assets/images/crossbowman.png",
-		"desc": "[center][i][color=#c8c8d0]«Один выстрел. Одна цель. Тишина.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ffd060]Single-target[/color] · Убийца боссов\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — заряжаемый болт ([color=#ffd060]12→45 урона[/color] при удержании ЛКМ)\n[b][color=#ff7878]Зарядка[/color][/b] замедляет — ловите момент\n[b][color=#ffd060]ПКМ[/color][/b] — бронебойный пробивной болт\n[b][color=#ffd060]Space[/color][/b] — перекат с [color=#78f078]i-frames[/color]",
+		"role": "ДД",
+		"role_note": "Single-target · Боссы",
+		"difficulty": 3,
+		"skills": [
+			{"key": "Авто", "name": "Заряжаемый болт", "desc": "12→45 урона при удержании ЛКМ", "hot": false},
+			{"key": "Зарж", "name": "Зарядка", "desc": "замедляет — ловите момент", "hot": true},
+			{"key": "ПКМ",  "name": "Бронебойный болт", "desc": "пробивает группы врагов", "hot": false},
+			{"key": "Space","name": "Перекат", "desc": "i-frames на короткую дистанцию", "hot": false},
+		],
 	},
 }
 
-@onready var nick_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/NickRow/Nick
-@onready var addr_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/AddrRow/Addr
-@onready var port_edit: LineEdit = $Center/Panel/HBox/RightCol/Conn/PortRow/Port
-@onready var sprite_rect: TextureRect = $Center/Panel/HBox/ClassPicker/Sprite
-@onready var prev_btn: Button = $Center/Panel/HBox/ClassPicker/Arrows/Prev
-@onready var next_btn: Button = $Center/Panel/HBox/ClassPicker/Arrows/Next
-@onready var class_name_label: Label = $Center/Panel/HBox/ClassPicker/Arrows/ClassName
-@onready var subtitle_label: Label = $Center/Panel/HBox/ClassPicker/Subtitle
-@onready var desc_label: RichTextLabel = $Center/Panel/HBox/ClassPicker/Description
-@onready var host_btn: Button = $Center/Panel/HBox/RightCol/Buttons/HostWrap/Host
-@onready var join_btn: Button = $Center/Panel/HBox/RightCol/Buttons/JoinWrap/Join
-@onready var leave_btn: Button = $Center/Panel/HBox/RightCol/Buttons/LeaveWrap/Leave
-@onready var ready_btn: Button = $Center/Panel/HBox/RightCol/Buttons/ReadyWrap/Ready
-@onready var roster_label: Label = $Center/Panel/HBox/RightCol/Roster
-@onready var status_label: Label = $Center/Panel/HBox/RightCol/Status
+const MAX_SQUAD: int = 4
+
+# Main menu nodes
+@onready var main_menu_view: MarginContainer = $Layout
+@onready var nick_edit: LineEdit = %Nick
+@onready var addr_edit: LineEdit = %Addr
+@onready var port_edit: LineEdit = %Port
+@onready var sprite_rect: TextureRect = %HeroSprite
+@onready var prev_btn: Button = %PrevBtn
+@onready var next_btn: Button = %NextBtn
+@onready var class_name_label: Label = %ClassName
+@onready var subtitle_label: Label = %Subtitle
+@onready var quote_label: Label = %Quote
+@onready var role_label: Label = %RoleLabel
+@onready var role_note_label: Label = %RoleNote
+@onready var stars: Control = %Stars
+@onready var skills_row: GridContainer = %SkillsRow
+@onready var host_btn: Button = %HostBtn
+@onready var join_btn: Button = %JoinBtn
+@onready var settings_btn: Button = %SettingsBtn
+@onready var leave_btn: Button = %LeaveBtn
+@onready var ready_btn: Button = %ReadyBtn
+@onready var roster_label: Label = %Roster
+@onready var status_label: Label = %StatusLabel
+@onready var version_label: Label = %VersionLabel
+@onready var souls_count_label: Label = %SoulsCount
+
+# Waiting room nodes
+@onready var waiting_room_view: Control = %WaitingRoomView
+@onready var wr_subtitle: Label = %WRSubtitle
+@onready var wr_settings_btn: Button = %WRSettingsBtn
+@onready var wr_leave_btn: Button = %WRLeaveBtn
+@onready var squad_count_label: Label = %SquadCount
+@onready var squad_grid: GridContainer = %SquadGrid
+@onready var start_btn: Button = %StartBtn
+@onready var start_status: Label = %StartStatus
+@onready var chat_log: Label = %ChatLog
+@onready var chat_input: LineEdit = %ChatInput
 
 var _class_idx: int = 0
 var _is_ready: bool = false
@@ -54,15 +113,21 @@ func _ready() -> void:
 	next_btn.pressed.connect(_on_next_class)
 	host_btn.pressed.connect(_on_host)
 	join_btn.pressed.connect(_on_join)
-	leave_btn.pressed.connect(_on_leave)
+	leave_btn.pressed.connect(_on_quit_app)
 	ready_btn.pressed.connect(_on_ready_toggle)
-	for b in [prev_btn, next_btn, host_btn, join_btn, leave_btn, ready_btn]:
+	wr_leave_btn.pressed.connect(_on_leave)
+	start_btn.pressed.connect(_on_start_btn)
+	for b in [prev_btn, next_btn, host_btn, join_btn, leave_btn, ready_btn,
+			settings_btn, wr_settings_btn, wr_leave_btn, start_btn]:
 		b.pressed.connect(func(): AudioBus.play_ui(&"ui_click"))
-		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover"))
+		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover", -10.5))
 	nick_edit.text_changed.connect(func(t): GameState.local_nick = t)
+	chat_input.text_submitted.connect(_on_chat_submit)
 	Network.lobby_updated.connect(_refresh)
 	Network.ready_state_changed.connect(_refresh)
 	GameState.roster_changed.connect(_refresh)
+	souls_count_label.text = "067"
+	version_label.text = "v 0.7.3 · alpha"
 	_apply_class_selection()
 	_refresh()
 
@@ -79,13 +144,73 @@ func _apply_class_selection() -> void:
 	var info: Dictionary = CLASS_INFO.get(klass, {})
 	class_name_label.text = info.get("name", klass)
 	subtitle_label.text = info.get("subtitle", "")
-	desc_label.text = info.get("desc", "")
+	quote_label.text = info.get("quote", "")
+	role_label.text = info.get("role", "—")
+	role_note_label.text = "· " + String(info.get("role_note", ""))
+	if stars and stars.has_method("set_value"):
+		stars.set_value(int(info.get("difficulty", 2)))
 	var path: String = info.get("sprite", "")
 	if path != "" and ResourceLoader.exists(path):
 		sprite_rect.texture = load(path)
 	else:
 		sprite_rect.texture = null
+	_populate_skills(info.get("skills", []))
 	Network.set_local_class(StringName(klass))
+
+func _populate_skills(skills: Array) -> void:
+	for c in skills_row.get_children():
+		c.queue_free()
+	for s in skills:
+		var slot := _build_skill_slot(s)
+		skills_row.add_child(slot)
+
+func _build_skill_slot(s: Dictionary) -> Control:
+	var hot: bool = bool(s.get("hot", false))
+	var icon_color := Color(0.83, 0.63, 0.29, 1.0) if not hot else Color(0.84, 0.29, 0.23, 1.0)
+	var ink_dim := Color(0.61, 0.53, 0.41, 1.0)
+	var ink := Color(0.92, 0.85, 0.72, 1.0)
+	var name_color := icon_color if hot else ink
+
+	var root := HBoxContainer.new()
+	root.add_theme_constant_override(&"separation", 10)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var icon_panel := PanelContainer.new()
+	icon_panel.custom_minimum_size = Vector2(48, 48)
+	var icon_style := StyleBoxFlat.new()
+	icon_style.bg_color = Color(0.13, 0.09, 0.06, 0.85)
+	icon_style.border_color = Color(0.22, 0.17, 0.13, 1.0)
+	icon_style.set_border_width_all(1)
+	icon_panel.add_theme_stylebox_override(&"panel", icon_style)
+	var key_lbl := Label.new()
+	key_lbl.text = String(s.get("key", "")).to_upper()
+	key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	key_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	key_lbl.add_theme_color_override(&"font_color", icon_color)
+	key_lbl.add_theme_font_size_override(&"font_size", 11)
+	icon_panel.add_child(key_lbl)
+	root.add_child(icon_panel)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override(&"separation", 2)
+	text_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	var name_lbl := Label.new()
+	name_lbl.text = String(s.get("name", "")).to_upper()
+	name_lbl.add_theme_color_override(&"font_color", name_color)
+	name_lbl.add_theme_font_size_override(&"font_size", 13)
+	name_lbl.clip_text = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	text_col.add_child(name_lbl)
+	var desc_lbl := Label.new()
+	desc_lbl.text = String(s.get("desc", ""))
+	desc_lbl.add_theme_color_override(&"font_color", ink_dim)
+	desc_lbl.add_theme_font_size_override(&"font_size", 11)
+	desc_lbl.clip_text = true
+	desc_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	text_col.add_child(desc_lbl)
+	root.add_child(text_col)
+	return root
 
 func _exit_tree() -> void:
 	Network.lobby_updated.disconnect(_refresh)
@@ -97,31 +222,282 @@ func _on_ready_toggle() -> void:
 	Network.set_local_ready(_is_ready)
 	_refresh()
 
+func _on_start_btn() -> void:
+	if multiplayer.is_server():
+		if Network.has_method("request_start_round"):
+			Network.request_start_round()
+	else:
+		_on_ready_toggle()
+
+func _on_chat_submit(text: String) -> void:
+	if text.strip_edges().is_empty():
+		chat_input.text = ""
+		return
+	var nick: String = GameState.local_nick if not GameState.local_nick.is_empty() else "?"
+	var line := "[%s] %s" % [nick, text]
+	if chat_log.text.is_empty():
+		chat_log.text = line
+	else:
+		chat_log.text = "%s    %s" % [chat_log.text, line]
+	chat_input.text = ""
+
+func _is_online() -> bool:
+	var peer := multiplayer.multiplayer_peer
+	return peer != null and peer is ENetMultiplayerPeer
+
 func _refresh() -> void:
 	if not is_inside_tree():
 		return
-	var connected := multiplayer.multiplayer_peer != null
+	var connected := _is_online()
+	main_menu_view.visible = not connected
+	waiting_room_view.visible = connected
+
+	# Main menu state
 	host_btn.disabled = connected
 	join_btn.disabled = connected
-	leave_btn.disabled = not connected
-	ready_btn.visible = connected
-	ready_btn.text = "Не готов" if _is_ready else "Готов!"
-
-	var lines: Array[String] = []
-	for pid in GameState.roster.keys():
-		var entry: Dictionary = GameState.roster[pid]
-		var marker := " (вы)" if pid == multiplayer.get_unique_id() else ""
-		var role := " [хост]" if pid == 1 else ""
-		var rk: String = String(entry.get("klass", "?"))
-		var rname: String = CLASS_INFO.get(rk, {}).get("name", rk)
-		var rdy: String = " ✓" if Network.is_peer_ready(pid) else " ⏳"
-		lines.append("- %s — %s%s%s%s" % [entry.get("nick", "?"), rname, rdy, role, marker])
-	roster_label.text = "Пати:\n" + ("\n".join(lines) if lines.size() > 0 else "(пусто)")
+	leave_btn.disabled = false
+	ready_btn.visible = false  # in waiting room now
+	roster_label.visible = false
 
 	if connected:
-		status_label.text = "Подключено. id=%d host=%s" % [multiplayer.get_unique_id(), str(multiplayer.is_server())]
+		var addr := addr_edit.text.strip_edges()
+		if addr.is_empty():
+			addr = "127.0.0.1"
+		var port := int(port_edit.text)
+		var info_addr := "хост" if multiplayer.is_server() else addr
+		wr_subtitle.text = "ЛОББИ · %s:%d · id %d" % [info_addr, port, multiplayer.get_unique_id()]
+		_rebuild_squad()
+		_update_start_status()
+		status_label.text = "● Подключено · id=%d" % multiplayer.get_unique_id()
+		status_label.modulate = Color(0.76, 0.88, 0.62, 1)
 	else:
-		status_label.text = "Оффлайн"
+		status_label.text = "● Сервер найден"
+		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
+
+func _rebuild_squad() -> void:
+	for c in squad_grid.get_children():
+		c.queue_free()
+	var entries: Array = []
+	for pid in GameState.roster.keys():
+		var entry: Dictionary = GameState.roster[pid]
+		entries.append({
+			"pid": pid,
+			"nick": String(entry.get("nick", "?")),
+			"klass": String(entry.get("klass", "?")),
+			"is_host": pid == 1,
+			"is_self": pid == multiplayer.get_unique_id(),
+			"is_ready": Network.is_peer_ready(pid),
+		})
+	for e in entries:
+		squad_grid.add_child(_build_player_slot(e))
+	for i in range(MAX_SQUAD - entries.size()):
+		squad_grid.add_child(_build_empty_slot())
+	squad_count_label.text = "· %d / %d" % [entries.size(), MAX_SQUAD]
+
+func _build_player_slot(e: Dictionary) -> Control:
+	var slot := PanelContainer.new()
+	slot.custom_minimum_size = Vector2(0, 130)
+	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.075, 0.055, 0.040, 0.7)
+	if e.get("is_self", false):
+		style.bg_color = Color(0.10, 0.075, 0.052, 0.85)
+		style.border_color = Color(0.84, 0.29, 0.23, 0.95)
+		style.set_border_width_all(2)
+	else:
+		style.border_color = Color(0.30, 0.50, 0.18, 0.85)
+		style.set_border_width_all(1)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	slot.add_theme_stylebox_override(&"panel", style)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 14)
+	slot.add_child(row)
+
+	# Portrait frame
+	var pframe := PanelContainer.new()
+	pframe.custom_minimum_size = Vector2(86, 104)
+	var pframe_style := StyleBoxFlat.new()
+	pframe_style.bg_color = Color(0.025, 0.020, 0.015, 1)
+	pframe_style.border_color = Color(0.22, 0.17, 0.13, 1)
+	pframe_style.set_border_width_all(1)
+	pframe.add_theme_stylebox_override(&"panel", pframe_style)
+	var portrait := TextureRect.new()
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	portrait.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var info: Dictionary = CLASS_INFO.get(String(e.get("klass", "")), {})
+	var sprite_path: String = info.get("sprite", "")
+	if sprite_path != "" and ResourceLoader.exists(sprite_path):
+		portrait.texture = load(sprite_path)
+	pframe.add_child(portrait)
+	row.add_child(pframe)
+
+	# Info VBox
+	var info_col := VBoxContainer.new()
+	info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	info_col.add_theme_constant_override(&"separation", 4)
+	row.add_child(info_col)
+
+	# Nick + host tag
+	var nick_row := HBoxContainer.new()
+	nick_row.add_theme_constant_override(&"separation", 8)
+	info_col.add_child(nick_row)
+
+	var nick_lbl := Label.new()
+	nick_lbl.text = String(e.get("nick", "?"))
+	nick_lbl.add_theme_color_override(&"font_color", Color(0.92, 0.85, 0.72, 1))
+	nick_lbl.add_theme_font_size_override(&"font_size", 18)
+	nick_row.add_child(nick_lbl)
+
+	if e.get("is_host", false):
+		var host_pill := PanelContainer.new()
+		var host_style := StyleBoxFlat.new()
+		host_style.bg_color = Color(0, 0, 0, 0.4)
+		host_style.border_color = Color(0.42, 0.35, 0.27, 1)
+		host_style.set_border_width_all(1)
+		host_style.content_margin_left = 6
+		host_style.content_margin_right = 6
+		host_style.content_margin_top = 1
+		host_style.content_margin_bottom = 1
+		host_pill.add_theme_stylebox_override(&"panel", host_style)
+		host_pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var hl := Label.new()
+		hl.text = "ХОСТ"
+		hl.add_theme_color_override(&"font_color", Color(0.61, 0.53, 0.41, 1))
+		hl.add_theme_font_size_override(&"font_size", 10)
+		host_pill.add_child(hl)
+		nick_row.add_child(host_pill)
+
+	# Class name
+	var class_lbl := Label.new()
+	var class_id := String(e.get("klass", ""))
+	class_lbl.text = String(info.get("name", class_id)).to_upper()
+	class_lbl.add_theme_color_override(&"font_color", Color(0.84, 0.45, 0.40, 1))
+	class_lbl.add_theme_font_size_override(&"font_size", 12)
+	info_col.add_child(class_lbl)
+
+	# Role · role_note (e.g. "ДД · Single-target · Боссы")
+	var role: String = String(info.get("role", ""))
+	var role_note: String = String(info.get("role_note", ""))
+	if role != "" or role_note != "":
+		var role_lbl := Label.new()
+		var sep: String = " · " if role != "" and role_note != "" else ""
+		role_lbl.text = role + sep + role_note
+		role_lbl.add_theme_color_override(&"font_color", Color(0.61, 0.53, 0.41, 1))
+		role_lbl.add_theme_font_size_override(&"font_size", 10)
+		role_lbl.clip_text = true
+		role_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		info_col.add_child(role_lbl)
+
+	# Spacer
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	info_col.add_child(spacer)
+
+	# Ready row
+	var ready_row := HBoxContainer.new()
+	ready_row.add_theme_constant_override(&"separation", 6)
+	info_col.add_child(ready_row)
+	var dot := _make_status_dot(bool(e.get("is_ready", false)))
+	ready_row.add_child(dot)
+	var ready_lbl := Label.new()
+	ready_lbl.text = "ГОТОВ" if bool(e.get("is_ready", false)) else "НЕ ГОТОВ"
+	ready_lbl.add_theme_color_override(&"font_color",
+		Color(0.55, 0.78, 0.42, 1) if bool(e.get("is_ready", false))
+		else Color(0.85, 0.50, 0.30, 1))
+	ready_lbl.add_theme_font_size_override(&"font_size", 11)
+	ready_row.add_child(ready_lbl)
+
+	if e.get("is_self", false):
+		slot.gui_input.connect(_on_self_slot_input)
+		slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		var hint := Label.new()
+		hint.text = "клик — переключить"
+		hint.add_theme_color_override(&"font_color", Color(0.42, 0.35, 0.27, 1))
+		hint.add_theme_font_size_override(&"font_size", 10)
+		info_col.add_child(hint)
+
+	return slot
+
+func _build_empty_slot() -> Control:
+	var slot := PanelContainer.new()
+	slot.custom_minimum_size = Vector2(0, 130)
+	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.045, 0.035, 0.027, 0.6)
+	style.border_color = Color(0.22, 0.17, 0.13, 0.55)
+	style.set_border_width_all(1)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	slot.add_theme_stylebox_override(&"panel", style)
+	var lbl := Label.new()
+	lbl.text = "+ СВОБОДНО"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_color_override(&"font_color", Color(0.42, 0.35, 0.27, 1))
+	lbl.add_theme_font_size_override(&"font_size", 13)
+	slot.add_child(lbl)
+	return slot
+
+func _make_status_dot(is_ok: bool) -> Control:
+	var dot := Control.new()
+	dot.custom_minimum_size = Vector2(10, 10)
+	var col: Color = Color(0.45, 0.85, 0.40, 1) if is_ok else Color(0.95, 0.60, 0.32, 1)
+	dot.draw.connect(func():
+		dot.draw_circle(dot.size * 0.5, dot.size.x * 0.5, col)
+		dot.draw_circle(dot.size * 0.5, dot.size.x * 0.32, Color(col.r * 1.4, col.g * 1.3, col.b * 1.2, 1))
+	)
+	return dot
+
+func _on_self_slot_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		_on_ready_toggle()
+		AudioBus.play_ui(&"ui_click")
+
+func _update_start_status() -> void:
+	var total: int = GameState.roster.size()
+	var ready_count: int = 0
+	for pid in GameState.roster.keys():
+		if Network.is_peer_ready(pid):
+			ready_count += 1
+	var not_ready := total - ready_count
+	var is_host := multiplayer.is_server()
+	if is_host:
+		start_btn.text = "Начать поход"
+		start_btn.disabled = total == 0 or not_ready > 0
+		if total == 0:
+			start_status.text = "● ожидаем игроков"
+			start_status.modulate = Color(0.61, 0.53, 0.41, 1)
+		elif not_ready > 0:
+			start_status.text = "● %d игрок%s не готов" % [not_ready, _plural_suffix(not_ready)]
+			start_status.modulate = Color(0.85, 0.50, 0.30, 1)
+		else:
+			start_status.text = "● все готовы"
+			start_status.modulate = Color(0.55, 0.78, 0.42, 1)
+	else:
+		start_btn.text = "Не готов" if _is_ready else "Готов!"
+		start_btn.disabled = false
+		start_status.text = "● ожидаем хоста"
+		start_status.modulate = Color(0.61, 0.53, 0.41, 1)
+
+func _plural_suffix(n: int) -> String:
+	var mod10 := n % 10
+	var mod100 := n % 100
+	if mod10 == 1 and mod100 != 11:
+		return ""
+	if mod10 in [2, 3, 4] and not (mod100 in [12, 13, 14]):
+		return "а"
+	return "ов"
 
 func _on_host() -> void:
 	GameState.local_nick = nick_edit.text.strip_edges()
@@ -130,7 +506,8 @@ func _on_host() -> void:
 	var port := int(port_edit.text)
 	var err := Network.host(port)
 	if err != OK:
-		status_label.text = "Host failed: %s" % str(err)
+		status_label.text = "● Host failed: %s" % str(err)
+		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
 	_refresh()
 
 func _on_join() -> void:
@@ -143,10 +520,14 @@ func _on_join() -> void:
 		addr = "127.0.0.1"
 	var err := Network.join(addr, port)
 	if err != OK:
-		status_label.text = "Join failed: %s" % str(err)
+		status_label.text = "● Join failed: %s" % str(err)
+		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
 	_refresh()
 
 func _on_leave() -> void:
 	_is_ready = false
 	Network.leave()
 	_refresh()
+
+func _on_quit_app() -> void:
+	get_tree().quit()
