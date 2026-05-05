@@ -14,39 +14,40 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.07, 0.07, 0.09, 1)
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 24.0
-offset_right = -32.0
-offset_bottom = -24.0
 
-[node name="HBox" type="HBoxContainer" parent="Panel"]
-theme_override_constants/separation = 28
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(1180, 740)
 
-[node name="ClassPicker" type="VBoxContainer" parent="Panel/HBox"]
+[node name="HBox" type="HBoxContainer" parent="Center/Panel"]
+theme_override_constants/separation = 32
+
+[node name="ClassPicker" type="VBoxContainer" parent="Center/Panel/HBox"]
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.2
+size_flags_stretch_ratio = 1.1
 theme_override_constants/separation = 8
+clip_contents = true
 
-[node name="Sprite" type="TextureRect" parent="Panel/HBox/ClassPicker"]
+[node name="Sprite" type="TextureRect" parent="Center/Panel/HBox/ClassPicker"]
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 320)
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 360)
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Arrows" type="HBoxContainer" parent="Panel/HBox/ClassPicker"]
+[node name="Arrows" type="HBoxContainer" parent="Center/Panel/HBox/ClassPicker"]
 alignment = 1
 theme_override_constants/separation = 18
 
-[node name="Prev" type="Button" parent="Panel/HBox/ClassPicker/Arrows"]
+[node name="Prev" type="Button" parent="Center/Panel/HBox/ClassPicker/Arrows"]
 text = "◀"
 custom_minimum_size = Vector2(56, 56)
 theme_override_font_sizes/font_size = 24
 
-[node name="ClassName" type="Label" parent="Panel/HBox/ClassPicker/Arrows"]
+[node name="ClassName" type="Label" parent="Center/Panel/HBox/ClassPicker/Arrows"]
 text = "—"
 custom_minimum_size = Vector2(320, 56)
 horizontal_alignment = 1
@@ -54,113 +55,113 @@ vertical_alignment = 1
 theme_override_font_sizes/font_size = 32
 theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
 
-[node name="Next" type="Button" parent="Panel/HBox/ClassPicker/Arrows"]
+[node name="Next" type="Button" parent="Center/Panel/HBox/ClassPicker/Arrows"]
 text = "▶"
 custom_minimum_size = Vector2(56, 56)
 theme_override_font_sizes/font_size = 24
 
-[node name="Subtitle" type="Label" parent="Panel/HBox/ClassPicker"]
+[node name="Subtitle" type="Label" parent="Center/Panel/HBox/ClassPicker"]
 text = "—"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.75, 0.75, 0.85, 1)
 
-[node name="Description" type="RichTextLabel" parent="Panel/HBox/ClassPicker"]
+[node name="Description" type="RichTextLabel" parent="Center/Panel/HBox/ClassPicker"]
 custom_minimum_size = Vector2(0, 240)
-size_flags_vertical = 3
+size_flags_horizontal = 3
 bbcode_enabled = true
-fit_content = true
 scroll_active = false
+clip_contents = true
 theme_override_font_sizes/normal_font_size = 15
 
-[node name="RightCol" type="VBoxContainer" parent="Panel/HBox"]
+[node name="RightCol" type="VBoxContainer" parent="Center/Panel/HBox"]
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Panel/HBox/RightCol"]
+[node name="Title" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "67 SURVIVORS"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 32
 
-[node name="Conn" type="VBoxContainer" parent="Panel/HBox/RightCol"]
+[node name="Conn" type="VBoxContainer" parent="Center/Panel/HBox/RightCol"]
 theme_override_constants/separation = 6
 
-[node name="NickRow" type="HBoxContainer" parent="Panel/HBox/RightCol/Conn"]
+[node name="NickRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
 theme_override_constants/separation = 8
 
-[node name="NickLabel" type="Label" parent="Panel/HBox/RightCol/Conn/NickRow"]
+[node name="NickLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/NickRow"]
 text = "Ник:"
 custom_minimum_size = Vector2(60, 0)
 vertical_alignment = 1
 
-[node name="Nick" type="LineEdit" parent="Panel/HBox/RightCol/Conn/NickRow"]
+[node name="Nick" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/NickRow"]
 size_flags_horizontal = 3
 text = "P"
 placeholder_text = "Имя"
 
-[node name="AddrRow" type="HBoxContainer" parent="Panel/HBox/RightCol/Conn"]
+[node name="AddrRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
 theme_override_constants/separation = 8
 
-[node name="AddrLabel" type="Label" parent="Panel/HBox/RightCol/Conn/AddrRow"]
+[node name="AddrLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/AddrRow"]
 text = "IP:"
 custom_minimum_size = Vector2(60, 0)
 vertical_alignment = 1
 
-[node name="Addr" type="LineEdit" parent="Panel/HBox/RightCol/Conn/AddrRow"]
+[node name="Addr" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/AddrRow"]
 size_flags_horizontal = 3
 text = "127.0.0.1"
 
-[node name="PortRow" type="HBoxContainer" parent="Panel/HBox/RightCol/Conn"]
+[node name="PortRow" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Conn"]
 theme_override_constants/separation = 8
 
-[node name="PortLabel" type="Label" parent="Panel/HBox/RightCol/Conn/PortRow"]
+[node name="PortLabel" type="Label" parent="Center/Panel/HBox/RightCol/Conn/PortRow"]
 text = "Порт:"
 custom_minimum_size = Vector2(60, 0)
 vertical_alignment = 1
 
-[node name="Port" type="LineEdit" parent="Panel/HBox/RightCol/Conn/PortRow"]
+[node name="Port" type="LineEdit" parent="Center/Panel/HBox/RightCol/Conn/PortRow"]
 size_flags_horizontal = 3
 text = "7777"
 
-[node name="Buttons" type="VBoxContainer" parent="Panel/HBox/RightCol"]
+[node name="Buttons" type="VBoxContainer" parent="Center/Panel/HBox/RightCol"]
 theme_override_constants/separation = 8
 
-[node name="HostJoin" type="HBoxContainer" parent="Panel/HBox/RightCol/Buttons"]
+[node name="HostJoin" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 theme_override_constants/separation = 8
 
-[node name="Host" type="Button" parent="Panel/HBox/RightCol/Buttons/HostJoin"]
+[node name="Host" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
 text = "Host"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
-[node name="Join" type="Button" parent="Panel/HBox/RightCol/Buttons/HostJoin"]
+[node name="Join" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/HostJoin"]
 text = "Join"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
-[node name="LeaveStart" type="HBoxContainer" parent="Panel/HBox/RightCol/Buttons"]
+[node name="LeaveStart" type="HBoxContainer" parent="Center/Panel/HBox/RightCol/Buttons"]
 theme_override_constants/separation = 8
 
-[node name="Leave" type="Button" parent="Panel/HBox/RightCol/Buttons/LeaveStart"]
+[node name="Leave" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
 text = "Leave"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
-[node name="Start" type="Button" parent="Panel/HBox/RightCol/Buttons/LeaveStart"]
+[node name="Start" type="Button" parent="Center/Panel/HBox/RightCol/Buttons/LeaveStart"]
 text = "Старт раунда"
 size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 40)
 
-[node name="Roster" type="Label" parent="Panel/HBox/RightCol"]
+[node name="Roster" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "Пати:\n(пусто)"
 size_flags_vertical = 3
 
-[node name="Status" type="Label" parent="Panel/HBox/RightCol"]
+[node name="Status" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "Оффлайн"
 modulate = Color(0.7, 0.7, 0.75, 1)
 
-[node name="Hint" type="Label" parent="Panel/HBox/RightCol"]
+[node name="Hint" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "WASD — движение, ЛКМ/ПКМ — скиллы, Space — утилка."
 modulate = Color(0.6, 0.6, 0.6, 1)
 autowrap_mode = 2
