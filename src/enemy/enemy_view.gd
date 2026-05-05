@@ -81,10 +81,7 @@ func _draw_slime_trail() -> void:
 		var alpha: float = frac * 0.45
 		var r: float = _enemy.radius * (0.55 + (1.0 - frac) * 0.35)
 		var local_pos: Vector2 = to_local(entry["pos"])
-		# Flatten into a puddle shape (wider than tall).
-		draw_set_transform(local_pos, 0.0, Vector2(1.5, 0.65))
-		draw_circle(Vector2.ZERO, r, Color(SLIME_TRAIL_COLOR, alpha))
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		draw_circle(local_pos, r, Color(SLIME_TRAIL_COLOR, alpha))
 
 func _frames_for(t: StringName) -> Array[Texture2D]:
 	match t:
