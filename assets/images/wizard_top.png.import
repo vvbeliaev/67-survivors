@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c5s7mrinkbfqp"
-path="res://.godot/imported/wizard_top.png-c2cf0262f5833e42d46eaf38d536be61.ctex"
+uid="uid://tndx2xo7d4tj"
+path="res://.godot/imported/wizard_top.png-fd4d6025cf96ee19f06d717c6f1556c9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/wizard_top.png"
-dest_files=["res://.godot/imported/wizard_top.png-c2cf0262f5833e42d46eaf38d536be61.ctex"]
+source_file="res://images/wizard_top.png"
+dest_files=["res://.godot/imported/wizard_top.png-fd4d6025cf96ee19f06d717c6f1556c9.ctex"]
 
 [params]
 

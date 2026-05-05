@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c4rqk5b33qknf"
-path="res://.godot/imported/crossbowman.png-c048e2d8bc66fe48d6ae0eb12035084d.ctex"
+uid="uid://vjw7mlnp6d6b"
+path="res://.godot/imported/crossbowman.png-208f224342000373c27c5ba8e5a7fcba.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/crossbowman.png"
-dest_files=["res://.godot/imported/crossbowman.png-c048e2d8bc66fe48d6ae0eb12035084d.ctex"]
+source_file="res://images/crossbowman.png"
+dest_files=["res://.godot/imported/crossbowman.png-208f224342000373c27c5ba8e5a7fcba.ctex"]
 
 [params]
 

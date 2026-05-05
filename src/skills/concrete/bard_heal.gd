@@ -18,6 +18,7 @@ func on_pressed() -> void:
 		return
 	consume_cost()
 	start_cooldown()
+	trigger_visual_fx("heal", {"r": radius * owner_player.range_mult()})
 	_pulses_left = pulse_count
 	_next_pulse_in = 0.0
 	owner_player.emit_fx("heal", {"r": radius * owner_player.range_mult()})

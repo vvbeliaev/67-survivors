@@ -257,8 +257,3 @@ size_flags_vertical = 3
 [node name="Status" type="Label" parent="Center/Panel/HBox/RightCol"]
 text = "Оффлайн"
 modulate = Color(0.7, 0.7, 0.75, 1)
-
-[node name="Hint" type="Label" parent="Center/Panel/HBox/RightCol"]
-text = "WASD — движение, ЛКМ/ПКМ — скиллы, Space — утилка."
-modulate = Color(0.6, 0.6, 0.6, 1)
-autowrap_mode = 2

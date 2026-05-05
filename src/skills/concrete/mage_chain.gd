@@ -28,6 +28,6 @@ func on_pressed() -> void:
 		picked.append(e)
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
-		pts.append(e.global_position)
 		src = e.global_position
-	owner_player.emit_fx("chain", {"points": pts})
+		pts.append(e.global_position)
+	trigger_visual_fx("chain", {"points": pts})

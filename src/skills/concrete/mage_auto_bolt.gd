@@ -28,4 +28,4 @@ func on_tick(_delta: float) -> void:
 		projectile_radius,
 		0,
 	)
-	owner_player.emit_fx("auto", {})
+	trigger_visual_fx("auto", {})

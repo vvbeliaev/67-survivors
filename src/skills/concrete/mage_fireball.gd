@@ -19,6 +19,8 @@ func on_pressed() -> void:
 	consume_cost()
 	start_cooldown()
 	var dir: Vector2 = owner_player.aim_dir
+	var rm: float = owner_player.range_mult()
+	trigger_visual_fx("fireball", {"pos": owner_player.aim_world(), "r": aoe_radius * rm})
 	_spawn_projectile(
 		owner_player.global_position + dir * (owner_player.radius + 4),
 		dir * projectile_speed,
@@ -28,6 +30,4 @@ func on_pressed() -> void:
 		projectile_radius,
 		0,
 	)
-	var r: float = aoe_radius * owner_player.range_mult()
-	_aoe_damage(owner_player.aim_world(), r, aoe_damage * owner_player.dmg_mult())
-	owner_player.emit_fx("fireball", {"pos": owner_player.aim_world(), "r": r})
+	_aoe_damage(owner_player.aim_world(), aoe_radius * rm, aoe_damage * owner_player.dmg_mult())

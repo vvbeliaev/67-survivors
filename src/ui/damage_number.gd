@@ -1,7 +1,6 @@
 extends Node2D
 
-# Floating damage number. Local-only (spawned by the arena on every peer in
-# response to the host's damage RPC). Floats up, drifts a bit, fades, frees.
+# Floating damage number. Local-only — spawned via RPC fan-out from arena helpers.
 
 const LIFETIME := 0.75
 const RISE := 44.0

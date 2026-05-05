@@ -14,4 +14,4 @@ func on_tick(_delta: float) -> void:
 	cooldown_left = base_cooldown / max(owner_player.atk_speed_mult(), 0.01)
 	var r: float = radius * owner_player.range_mult()
 	_aoe_damage(owner_player.global_position, r, damage * owner_player.dmg_mult())
-	owner_player.emit_fx("auto", {"r": r})
+	trigger_visual_fx("auto", {"r": r})

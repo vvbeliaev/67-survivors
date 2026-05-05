@@ -80,8 +80,6 @@ func setup(def: EnemyDef) -> void:
 		ai = def.ai_script.new()
 		add_child(ai)
 		ai.setup(self)
-	# Resize the collision shape so the body footprint matches the per-archetype
-	# visual radius (boss/tank shouldn't share the rusher's tiny default).
 	var col := get_node_or_null("CollisionShape2D")
 	if col != null and col.shape is CircleShape2D:
 		var s: CircleShape2D = col.shape.duplicate()
@@ -113,16 +111,17 @@ func apply_damage(amount: float, _src_team: String) -> void:
 		queue_free()
 
 func _broadcast_damage_number(amount: float, pos: Vector2) -> void:
+	var crit := amount >= 30.0
 	if multiplayer.multiplayer_peer != null:
-		_rpc_show_damage.rpc(amount, pos)
+		_rpc_show_damage_number.rpc(amount, pos, crit)
 	else:
-		_rpc_show_damage(amount, pos)
+		_rpc_show_damage_number(amount, pos, crit)
 
 @rpc("authority", "reliable", "call_local")
-func _rpc_show_damage(amount: float, pos: Vector2) -> void:
+func _rpc_show_damage_number(amount: float, pos: Vector2, crit: bool) -> void:
 	var arena := get_tree().get_first_node_in_group("arena")
 	if arena != null and arena.has_method("spawn_damage_number"):
-		arena.spawn_damage_number(amount, pos)
+		arena.spawn_damage_number(amount, pos, crit)
 
 func force_target(peer_id: int, duration: float) -> void:
 	if not GameState.is_authority():

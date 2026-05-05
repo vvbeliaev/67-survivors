@@ -1,25 +1,25 @@
 extends Control
 
 const CLASS_INFO := {
-	&"berserker": {
+	"berserker": {
 		"name": "БЕРСЕРК",
 		"subtitle": "Безумец крови",
 		"sprite": "res://assets/images/berserker.png",
 		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг",
 	},
-	&"mage": {
+	"mage": {
 		"name": "ВОЛШЕБНИК",
 		"subtitle": "Архимаг разрушения",
 		"sprite": "res://assets/images/wizard.png",
 		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору",
 	},
-	&"bard": {
+	"bard": {
 		"name": "БАРД",
 		"subtitle": "Голос пати",
 		"sprite": "res://assets/images/bard.png",
 		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]",
 	},
-	&"crossbow": {
+	"crossbow": {
 		"name": "АРБАЛЕТЧИК",
 		"subtitle": "Тихий охотник",
 		"sprite": "res://assets/images/crossbowman.png",
@@ -70,9 +70,9 @@ func _on_next_class() -> void:
 	_apply_class_selection()
 
 func _apply_class_selection() -> void:
-	var klass: StringName = GameState.VALID_CLASSES[_class_idx]
+	var klass: String = String(GameState.VALID_CLASSES[_class_idx])
 	var info: Dictionary = CLASS_INFO.get(klass, {})
-	class_name_label.text = info.get("name", String(klass))
+	class_name_label.text = info.get("name", klass)
 	subtitle_label.text = info.get("subtitle", "")
 	desc_label.text = info.get("desc", "")
 	var path: String = info.get("sprite", "")
@@ -80,7 +80,7 @@ func _apply_class_selection() -> void:
 		sprite_rect.texture = load(path)
 	else:
 		sprite_rect.texture = null
-	Network.set_local_class(klass)
+	Network.set_local_class(StringName(klass))
 
 func _refresh() -> void:
 	var connected := multiplayer.multiplayer_peer != null
@@ -94,8 +94,8 @@ func _refresh() -> void:
 		var entry: Dictionary = GameState.roster[pid]
 		var marker := " (you)" if pid == multiplayer.get_unique_id() else ""
 		var role := " [host]" if pid == 1 else ""
-		var rk: StringName = entry.get("klass", &"?")
-		var rname: String = CLASS_INFO.get(rk, {}).get("name", String(rk))
+		var rk: String = String(entry.get("klass", "?"))
+		var rname: String = CLASS_INFO.get(rk, {}).get("name", rk)
 		lines.append("- %s — %s%s%s" % [entry.get("nick", "?"), rname, role, marker])
 	roster_label.text = "Пати:\n" + ("\n".join(lines) if lines.size() > 0 else "(пусто)")
 	if connected:

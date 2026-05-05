@@ -117,14 +117,14 @@ func spawn_projectile(data: Dictionary) -> void:
 		return
 	projectiles_spawner.spawn(data)
 
-func spawn_damage_number(amount: float, world_pos: Vector2) -> void:
-	# Local-only visual; called on every peer in response to enemy.apply_damage RPC.
+func spawn_damage_number(amount: float, world_pos: Vector2, crit: bool = false) -> void:
 	var n := Node2D.new()
 	n.set_script(DAMAGE_NUMBER_SCRIPT)
 	n.amount = int(round(amount))
-	n.crit = amount >= 30.0
+	n.crit = crit
 	n.position = world_pos + Vector2(0, -20)
 	add_child(n)
+	EventBus.damage_number_spawned.emit(world_pos, n.amount, crit)
 
 # ---- Roster --------------------------------------------------------------
 

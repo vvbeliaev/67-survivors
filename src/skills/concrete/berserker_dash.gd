@@ -24,4 +24,4 @@ func on_pressed() -> void:
 	var dmg: float = owner_player.dmg_mult()
 	_aoe_damage(owner_player.global_position, endpoint_radius * range_mult, endpoint_damage * dmg * rage)
 	_aoe_damage((start + owner_player.global_position) * 0.5, dist * 0.5, path_pulse_damage * dmg * rage)
-	owner_player.emit_fx("dash", {"start": start, "r": endpoint_radius * range_mult})
+	trigger_visual_fx("dash", {"start": start, "r": 50.0 * range_mult})

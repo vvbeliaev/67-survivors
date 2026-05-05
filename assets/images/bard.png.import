@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://sf5leblm7npx"
-path="res://.godot/imported/bard.png-bee4a1a2b7dd0a062eeed5095c0d1877.ctex"
+uid="uid://ch33vmx2pm325"
+path="res://.godot/imported/bard.png-dfc0ff720762cab2cbfc6b515da1f39b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/images/bard.png"
-dest_files=["res://.godot/imported/bard.png-bee4a1a2b7dd0a062eeed5095c0d1877.ctex"]
+source_file="res://images/bard.png"
+dest_files=["res://.godot/imported/bard.png-dfc0ff720762cab2cbfc6b515da1f39b.ctex"]
 
 [params]
 

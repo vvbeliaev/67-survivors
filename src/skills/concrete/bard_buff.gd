@@ -25,4 +25,4 @@ func on_pressed() -> void:
 	for p in Targeting.players_in_radius(get_tree(), owner_player.global_position, r):
 		p.apply_temp_pct_buff(StatBlock.STAT_SPEED, spd_id, speed_pct, duration)
 		p.apply_temp_pct_buff(StatBlock.STAT_DMG, dmg_id, damage_pct, duration)
-	owner_player.emit_fx("buff", {"r": r})
+	trigger_visual_fx("buff", {"r": r})
