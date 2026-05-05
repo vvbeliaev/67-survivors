@@ -5,25 +5,25 @@ const CLASS_INFO := {
 		"name": "БЕРСЕРК",
 		"subtitle": "Безумец крови",
 		"sprite": "res://images/berserker.png",
-		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг\n\n[i][color=#909098]Держи фронт. Без тебя — рассыпется.[/color][/i]",
+		"desc": "[center][i][color=#c8c8d0]«Каждая рана — глоток силы.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ff7878]Танк[/color] · Контроль агро\n[b]Сложность:[/b] [color=#ffc060]★★[/color]☆☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — кружащий клинок, AoE вокруг себя\n[b][color=#ffd060]ЛКМ[/color][/b] — кровавый рывок, [color=#ff7878]бьёт сильнее при низком HP[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — боевой рёв, стянуть агро в радиусе\n[b][color=#ffd060]Space[/color][/b] — землетрясение, стан врагов вокруг",
 	},
 	"mage": {
 		"name": "ВОЛШЕБНИК",
 		"subtitle": "Архимаг разрушения",
 		"sprite": "res://images/wizard.png",
-		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору\n\n[i][color=#909098]Хрупкий. Но никто не чистит толпу быстрее.[/color][/i]",
+		"desc": "[center][i][color=#c8c8d0]«Достаточно одной искры — и ничего не останется.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#7890ff]AoE[/color] · Контроль волн\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — магический снаряд по ближайшему\n[b][color=#ffd060]ЛКМ[/color][/b] — файрбол, AoE по курсору ([color=#7890ff]30 маны[/color])\n[b][color=#ffd060]ПКМ[/color][/b] — цепная молния по 3 целям ([color=#7890ff]50 маны[/color])\n[b][color=#ffd060]Space[/color][/b] — блинк по курсору",
 	},
 	"bard": {
 		"name": "БАРД",
 		"subtitle": "Голос пати",
 		"sprite": "res://images/bard.png",
-		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]\n\n[i][color=#909098]Единственный хилер. Умри — умрут все.[/color][/i]",
+		"desc": "[center][i][color=#c8c8d0]«Без меня вы — мёртвое мясо. Запомните это.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#78f078]Хил[/color] · Поддержка\n[b]Сложность:[/b] [color=#ffc060]★★★★[/color]☆\n\n[b][color=#ffd060]Авто[/color][/b] — слабый снаряд для самозащиты\n[b][color=#ffd060]ЛКМ[/color][/b] — хил-аура, [color=#78f078]3 пульса лечения союзникам[/color]\n[b][color=#ffd060]ПКМ[/color][/b] — баф скорости и урона рядом стоящим\n[b][color=#ffd060]Space[/color][/b] — дэш-уворот с [color=#78f078]i-frames[/color]",
 	},
 	"crossbow": {
 		"name": "АРБАЛЕТЧИК",
 		"subtitle": "Тихий охотник",
 		"sprite": "res://images/crossbowman.png",
-		"desc": "[center][i][color=#c8c8d0]«Один выстрел. Одна цель. Тишина.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ffd060]Single-target[/color] · Убийца боссов\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — заряжаемый болт ([color=#ffd060]12→45 урона[/color] при удержании ЛКМ)\n[b][color=#ff7878]Зарядка[/color][/b] замедляет — ловите момент\n[b][color=#ffd060]ПКМ[/color][/b] — бронебойный пробивной болт\n[b][color=#ffd060]Space[/color][/b] — перекат с [color=#78f078]i-frames[/color]\n\n[i][color=#909098]Элитки и боссы умирают первыми. Если ты успеешь.[/color][/i]",
+		"desc": "[center][i][color=#c8c8d0]«Один выстрел. Одна цель. Тишина.»[/color][/i][/center]\n\n[b]Роль:[/b] [color=#ffd060]Single-target[/color] · Убийца боссов\n[b]Сложность:[/b] [color=#ffc060]★★★[/color]☆☆\n\n[b][color=#ffd060]Авто[/color][/b] — заряжаемый болт ([color=#ffd060]12→45 урона[/color] при удержании ЛКМ)\n[b][color=#ff7878]Зарядка[/color][/b] замедляет — ловите момент\n[b][color=#ffd060]ПКМ[/color][/b] — бронебойный пробивной болт\n[b][color=#ffd060]Space[/color][/b] — перекат с [color=#78f078]i-frames[/color]",
 	},
 }
 
