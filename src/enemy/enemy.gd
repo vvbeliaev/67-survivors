@@ -80,6 +80,13 @@ func setup(def: EnemyDef) -> void:
 		ai = def.ai_script.new()
 		add_child(ai)
 		ai.setup(self)
+	# Resize the collision shape so the body footprint matches the per-archetype
+	# visual radius (boss/tank shouldn't share the rusher's tiny default).
+	var col := get_node_or_null("CollisionShape2D")
+	if col != null and col.shape is CircleShape2D:
+		var s: CircleShape2D = col.shape.duplicate()
+		s.radius = radius
+		col.shape = s
 
 func _physics_process(delta: float) -> void:
 	if not GameState.is_authority():

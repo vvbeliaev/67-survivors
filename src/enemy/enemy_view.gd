@@ -9,7 +9,10 @@ const RUSHER_FRAMES: Array[Texture2D] = [
 	preload("res://assets/images/spider_3.png"),
 ]
 const RUSHER_FRAME_DURATION := 0.18  # seconds per frame
-const SPRITE_SIZE_MULT := 4.0
+# Spider art has ~70% padding, so a 2.6x multiplier keeps the visible body
+# only slightly bigger than the collision diameter — clusters no longer
+# visually merge into one blob when they pile up on a player.
+const SPRITE_SIZE_MULT := 2.6
 
 @export var owner_path: NodePath = NodePath("..")
 
