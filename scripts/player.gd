@@ -60,6 +60,11 @@ var _util_cd: float = 0.0
 var _bard_heal_pulses_left: int = 0
 var _bard_heal_next: float = 0.0
 
+# Local-only FX timestamps. Triggered by host RPC, each peer ticks its own
+# fade clock. Values are local Time.get_ticks_msec() seconds.
+var _fx_local: Dictionary = {}
+var _fx_dash_start: Vector2 = Vector2.ZERO
+
 # Last input mirror (host stores input received from owner peer).
 var _in_move: Vector2 = Vector2.ZERO
 var _in_aim: Vector2 = Vector2.ZERO
@@ -230,6 +235,7 @@ func _tick_berserker(_delta: float) -> void:
 		_auto_cd = 0.4 / atk_speed_mult
 		var r: float = 80.0 * range_mult
 		_aoe_damage_enemies(global_position, r, 12.0 * dmg_mult)
+		_emit_fx("auto", Vector2.ZERO, r)
 	# LMB: dash strike (line damage, scales with missing hp).
 	if _in_primary_pressed and _cast1_cd <= 0:
 		_cast1_cd = 1.2 * cooldown_mult
@@ -238,8 +244,8 @@ func _tick_berserker(_delta: float) -> void:
 		var start := global_position
 		global_position += aim_dir * dist
 		_aoe_damage_enemies(global_position, 50.0 * range_mult, 25.0 * dmg_mult * rage)
-		# Damage along the path to mimic strike line.
 		_aoe_damage_enemies((start + global_position) * 0.5, dist * 0.5, 15.0 * dmg_mult * rage)
+		_emit_fx("dash", start, 50.0 * range_mult)
 	# RMB: roar — force agro within radius.
 	if _in_secondary_pressed and _cast2_cd <= 0:
 		_cast2_cd = 8.0 * cooldown_mult
@@ -248,6 +254,7 @@ func _tick_berserker(_delta: float) -> void:
 			if global_position.distance_to(e.global_position) <= r2:
 				if e.has_method("force_target"):
 					e.force_target(peer_id, 4.0)
+		_emit_fx("roar", Vector2.ZERO, r2)
 	# Space: quake — AoE stun + small damage.
 	if _in_utility_pressed and _util_cd <= 0:
 		_util_cd = 12.0 * cooldown_mult
@@ -258,6 +265,7 @@ func _tick_berserker(_delta: float) -> void:
 					e.stun(1.5)
 				if e.has_method("apply_damage"):
 					e.apply_damage(8.0 * dmg_mult, "player")
+		_emit_fx("quake", Vector2.ZERO, rq)
 
 func _tick_mage(_delta: float) -> void:
 	# Auto: homing-ish snap to nearest enemy in range.
@@ -511,6 +519,74 @@ func apply_upgrade(id: String) -> void:
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
+# ---- Berserker visual FX -----------------------------------------------
+
+func _draw_berserker_fx() -> void:
+	# Auto-swirl: two arcs spinning around self, fade ~0.25s.
+	var ta := _fx_age("auto")
+	if ta >= 0.0 and ta < 0.25:
+		var k: float = 1.0 - ta / 0.25
+		var r: float = max(_fx_radius("auto"), 1.0)
+		var spin: float = ta * 18.0
+		draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
+		draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
+	# Dash trail: thick translucent line from start to current position.
+	var td := _fx_age("dash")
+	if td >= 0.0 and td < 0.4:
+		var k2: float = 1.0 - td / 0.4
+		var local_start: Vector2 = _fx_dash_start - global_position
+		draw_line(Vector2.ZERO, local_start, Color(1, 0.25, 0.25, 0.55 * k2), 10.0)
+		# Hit-burst at end (current pos).
+		var burst_r: float = max(_fx_radius("dash"), 1.0)
+		draw_arc(Vector2.ZERO, burst_r * (0.6 + 0.4 * (1.0 - k2)), 0, TAU, 32, Color(1, 0.5, 0.3, 0.5 * k2), 3.0)
+	# Roar: red expanding ring out to roar radius, ~0.6s.
+	var tr := _fx_age("roar")
+	if tr >= 0.0 and tr < 0.6:
+		var k3: float = 1.0 - tr / 0.6
+		var rmax := _fx_radius("roar")
+		var rcur := rmax * clampf(tr / 0.55, 0.0, 1.0)
+		draw_arc(Vector2.ZERO, rcur, 0, TAU, 64, Color(1, 0.35, 0.35, 0.55 * k3), 4.0)
+	# Quake: brown shockwave + cracks, ~0.55s.
+	var tq := _fx_age("quake")
+	if tq >= 0.0 and tq < 0.55:
+		var k4: float = 1.0 - tq / 0.55
+		var qmax := _fx_radius("quake")
+		var qr := qmax * clampf(tq / 0.5, 0.0, 1.0)
+		draw_arc(Vector2.ZERO, qr, 0, TAU, 56, Color(0.85, 0.55, 0.25, 0.6 * k4), 6.0)
+		# Cracks: 6 short radial lines from center to half radius.
+		for i in 6:
+			var ang: float = i * (TAU / 6.0)
+			var dir := Vector2(cos(ang), sin(ang))
+			draw_line(dir * (qr * 0.2), dir * (qr * 0.7), Color(0.7, 0.4, 0.2, 0.5 * k4), 3.0)
+
+# ---- Visual FX (host announces, each peer fades locally) -----------------
+
+func _emit_fx(kind: String, world_pos: Vector2, radius_hint: float) -> void:
+	if not GameState.is_authority():
+		return
+	if multiplayer.multiplayer_peer != null:
+		_rpc_play_fx.rpc(kind, world_pos, radius_hint)
+	else:
+		_rpc_play_fx(kind, world_pos, radius_hint)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_play_fx(kind: String, world_pos: Vector2, radius_hint: float) -> void:
+	_fx_local[kind] = {"t": _now(), "r": radius_hint}
+	if kind == "dash":
+		_fx_dash_start = world_pos
+
+func _fx_age(kind: String) -> float:
+	var d: Variant = _fx_local.get(kind)
+	if d == null:
+		return -1.0
+	return _now() - float(d.t)
+
+func _fx_radius(kind: String) -> float:
+	var d: Variant = _fx_local.get(kind)
+	if d == null:
+		return 0.0
+	return float(d.r)
+
 func _draw() -> void:
 	# Body.
 	var col: Color = color_hint
@@ -527,6 +603,8 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, radius, col)
 		# Aim pip only when no sprite.
 		draw_line(Vector2.ZERO, aim_dir * (radius + 6), Color(1, 1, 1, 0.7), 2.0)
+	if klass == "berserker":
+		_draw_berserker_fx()
 	# HP bar.
 	var w := 40.0
 	var h := 4.0
