@@ -28,7 +28,7 @@ if [ ! -f "$KEY" ]; then
     exit 1
 fi
 
-SSH_OPT="-i $KEY -o StrictHostKeyChecking=no -o ConnectTimeout=15"
+SSH_OPT="-i $KEY -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=40"
 SSH="ssh $SSH_OPT root@$IP"
 
 echo "==> Deploying to $IP (port=$GAME_PORT, min_players=$MIN_PLAYERS)"
@@ -45,8 +45,8 @@ apt-get install -y -qq git curl unzip ufw
 echo "--- [2/5] Godot ${GODOT_VER} headless ---"
 if ! command -v godot &>/dev/null; then
     URL="https://github.com/godotengine/godot/releases/download/${GODOT_VER}-stable/Godot_v${GODOT_VER}-stable_linux.x86_64.zip"
-    echo "    downloading..."
-    curl -fsSL "\$URL" -o /tmp/godot.zip
+    echo "    downloading (~100 MB)..."
+    curl -fL --progress-bar "\$URL" -o /tmp/godot.zip
     unzip -q /tmp/godot.zip -d /tmp/_godot
     mv "/tmp/_godot/Godot_v${GODOT_VER}-stable_linux.x86_64" /usr/local/bin/godot
     chmod +x /usr/local/bin/godot
