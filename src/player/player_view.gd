@@ -14,8 +14,11 @@ const CLASS_SPRITE_PATHS: Dictionary = {
 
 @export var owner_path: NodePath = NodePath("..")
 
+const FLASH_SHADER := preload("res://src/player/iframe_flash.gdshader")
+
 var _player: Node = null
 var _sprite_cache: Dictionary = {}  # StringName -> Texture2D or null sentinel not stored
+var _flash_mat: ShaderMaterial = null
 
 func _sprite_texture(klass: StringName) -> Texture2D:
 	if _sprite_cache.has(klass):
@@ -30,8 +33,19 @@ func _sprite_texture(klass: StringName) -> Texture2D:
 func _ready() -> void:
 	_player = get_node(owner_path)
 	z_index = 1
+	_flash_mat = ShaderMaterial.new()
+	_flash_mat.shader = FLASH_SHADER
+	_flash_mat.set_shader_parameter("flash", 0.0)
+	material = _flash_mat
 
 func _process(_delta: float) -> void:
+	if _flash_mat != null and _player != null:
+		var now_t: float = Time.get_ticks_msec() / 1000.0
+		var iframe_active: bool = _player.alive and now_t < float(_player.iframes_until)
+		var flash: float = 0.0
+		if iframe_active:
+			flash = 0.5 + 0.5 * sin(now_t * 32.0)
+		_flash_mat.set_shader_parameter("flash", flash)
 	queue_redraw()
 
 func _draw() -> void:

@@ -1,22 +1,19 @@
 extends Skill
 
-# Short teleport toward the cursor.
-
-@export var max_distance: float = 220.0
+# Teleport directly to the cursor, any distance.
 
 func _init() -> void:
-	base_cooldown = 5.0
+	base_cooldown = 8.0
 
 func on_pressed() -> void:
 	if not ready_to_cast():
 		return
 	consume_cost()
 	start_cooldown()
-	var off: Vector2 = owner_player.aim_world() - owner_player.global_position
-	var d: float = min(off.length(), max_distance)
-	if d <= 0.0:
-		return
+	var target: Vector2 = owner_player.aim_world()
 	var from_pos: Vector2 = owner_player.global_position
-	owner_player.teleport(owner_player.global_position + off.normalized() * d)
+	if from_pos.distance_squared_to(target) <= 1.0:
+		return
+	owner_player.teleport(target)
 	trigger_visual_fx("blink", {"from": from_pos, "to": owner_player.global_position})
 	AudioBus.play_at(&"mage_cast", from_pos)

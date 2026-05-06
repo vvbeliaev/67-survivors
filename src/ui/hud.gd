@@ -110,7 +110,6 @@ func _ready() -> void:
 	_build_status_bar()
 	_build_minimap()
 	_build_vitals_and_skills()
-	_build_event_log()
 	_build_boss_watch()
 	_build_upgrade_panel()
 	_build_endgame_panel()
@@ -130,7 +129,6 @@ func _process(_dt: float) -> void:
 	_update_vitals()
 	_update_skills()
 	_update_boss_watch()
-	_update_event_log()
 
 # =========================================================================
 # Party panel (top-left)
@@ -423,11 +421,25 @@ func _update_vitals() -> void:
 func _update_skills() -> void:
 	var glyphs: Array = []
 	var skills: Array = []
+	var cd_lefts: Array = [0.0, 0.0, 0.0, 0.0]
+	var cd_totals: Array = [0.0, 0.0, 0.0, 0.0]
 	if _local_player != null and is_instance_valid(_local_player) and _local_player.class_node != null:
 		var cn = _local_player.class_node
 		skills = [cn.auto_skill, cn.primary_skill, cn.secondary_skill, cn.utility_skill]
 		var klass: StringName = StringName(String(_local_player.klass))
 		glyphs = SKILL_GLYPHS.get(klass, ["•", "•", "•", "•"])
+		cd_lefts = [
+			float(_local_player.cd_left_auto),
+			float(_local_player.cd_left_primary),
+			float(_local_player.cd_left_secondary),
+			float(_local_player.cd_left_utility),
+		]
+		cd_totals = [
+			float(_local_player.cd_total_auto),
+			float(_local_player.cd_total_primary),
+			float(_local_player.cd_total_secondary),
+			float(_local_player.cd_total_utility),
+		]
 	for i in _skill_slots.size():
 		var slot: SkillSlot = _skill_slots[i]
 		var s = skills[i] if i < skills.size() else null
@@ -437,17 +449,12 @@ func _update_skills() -> void:
 			slot.set_state(0.0, 0.0, true)
 			continue
 		slot.glyph = g
-		var base_cd: float = max(float(s.base_cooldown), 0.001)
-		var owner = s.owner_player
-		var factor: float = 1.0
-		if owner != null and owner.has_method("cooldown_factor"):
-			factor = float(owner.cooldown_factor())
-		var cd_total: float = base_cd * factor
-		var cd_left: float = float(s.cooldown_left)
-		var cd_pct: float = clampf(cd_left / max(cd_total, 0.001), 0.0, 1.0)
+		var cd_left: float = float(cd_lefts[i])
+		var cd_total: float = max(float(cd_totals[i]), 0.001)
+		var cd_pct: float = clampf(cd_left / cd_total, 0.0, 1.0)
 		var disabled := false
-		if float(s.mana_cost) > 0.0 and owner != null:
-			disabled = float(owner.mp) < float(s.mana_cost)
+		if float(s.mana_cost) > 0.0 and _local_player != null:
+			disabled = float(_local_player.mp) < float(s.mana_cost)
 		slot.set_state(cd_pct, cd_left, disabled)
 
 # =========================================================================
@@ -564,7 +571,7 @@ func _build_boss_watch() -> void:
 	v.add_child(_boss_name_label)
 
 	_boss_countdown = Label.new()
-	_boss_countdown.text = "⏳ через 00:00"
+	_boss_countdown.text = "через 00:00"
 	_boss_countdown.add_theme_font_override("font", FONT_MONO)
 	_boss_countdown.add_theme_font_size_override("font_size", 11)
 	_boss_countdown.add_theme_color_override("font_color", HUDPalette.INK_MUTE)

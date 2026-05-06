@@ -17,6 +17,10 @@ extends CharacterBody2D
 const RESPAWN_DELAY := 30.0
 const TEAM := "player"
 const COOLDOWN_FLOOR := 0.4
+const HIT_IFRAMES_DURATION := 1.0
+const PLAYER_LAYER_BIT := 1 << 1
+const COLLISION_MASK_NORMAL := (1 << 0) | (1 << 1) | (1 << 2)
+const COLLISION_MASK_GHOST := (1 << 0) | (1 << 1)
 
 # Identity (set at spawn).
 @export var peer_id: int = 1
@@ -35,6 +39,16 @@ const COOLDOWN_FLOOR := 0.4
 @export var aim_dir: Vector2 = Vector2.RIGHT
 @export var charge_started_at: float = -1.0
 @export var iframes_until: float = 0.0
+
+# Skill cooldown mirrors (host-driven, replicated for client HUD).
+@export var cd_left_auto: float = 0.0
+@export var cd_total_auto: float = 0.0
+@export var cd_left_primary: float = 0.0
+@export var cd_total_primary: float = 0.0
+@export var cd_left_secondary: float = 0.0
+@export var cd_total_secondary: float = 0.0
+@export var cd_left_utility: float = 0.0
+@export var cd_total_utility: float = 0.0
 
 # Marker exposed to projectile filtering.
 @export var team_tag: String = "player"
@@ -59,8 +73,8 @@ var _input_age: float = 0.0
 
 func _ready() -> void:
 	add_to_group("players")
-	collision_layer = 1 << 1                          # Players
-	collision_mask = (1 << 0) | (1 << 1) | (1 << 2)   # World, Players, Enemies
+	collision_layer = PLAYER_LAYER_BIT                # Players
+	collision_mask = COLLISION_MASK_NORMAL            # World, Players, Enemies
 
 func setup(peer: int, nck: String, kl: StringName) -> void:
 	peer_id = peer
@@ -134,6 +148,17 @@ func _physics_process(delta: float) -> void:
 	if class_node != null:
 		class_node.on_pre_move(delta)
 
+	# I-frames toggle physical visibility so enemies and their projectiles pass through,
+	# and so the player itself stops sliding against enemy bodies.
+	var now_t: float = Time.get_ticks_msec() / 1000.0
+	var iframe_active: bool = now_t < iframes_until
+	var desired_layer: int = 0 if iframe_active else PLAYER_LAYER_BIT
+	var desired_mask: int = COLLISION_MASK_GHOST if iframe_active else COLLISION_MASK_NORMAL
+	if collision_layer != desired_layer:
+		collision_layer = desired_layer
+	if collision_mask != desired_mask:
+		collision_mask = desired_mask
+
 	# Movement.
 	var speed := stats.value(StatBlock.STAT_SPEED)
 	velocity = _in_move * speed
@@ -186,6 +211,30 @@ func _dispatch_skills(delta: float) -> void:
 		class_node.utility_skill.tick(delta)
 		if _in_utility_pressed:
 			class_node.utility_skill.on_pressed()
+	_publish_cooldowns()
+
+# Replicated to clients for HUD; cd_total_* captures the spike on cast.
+func _publish_cooldowns() -> void:
+	if class_node.auto_skill != null:
+		var cur := float(class_node.auto_skill.cooldown_left)
+		if cur > cd_left_auto + 0.001:
+			cd_total_auto = cur
+		cd_left_auto = cur
+	if class_node.primary_skill != null:
+		var cur := float(class_node.primary_skill.cooldown_left)
+		if cur > cd_left_primary + 0.001:
+			cd_total_primary = cur
+		cd_left_primary = cur
+	if class_node.secondary_skill != null:
+		var cur := float(class_node.secondary_skill.cooldown_left)
+		if cur > cd_left_secondary + 0.001:
+			cd_total_secondary = cur
+		cd_left_secondary = cur
+	if class_node.utility_skill != null:
+		var cur := float(class_node.utility_skill.cooldown_left)
+		if cur > cd_left_utility + 0.001:
+			cd_total_utility = cur
+		cd_left_utility = cur
 
 # ---- Stat accessors used by skills -------------------------------------
 
@@ -242,6 +291,8 @@ func apply_damage(amount: float, _src_team: String) -> void:
 	if hp <= 0.0:
 		hp = 0.0
 		_go_down()
+	else:
+		iframes_until = (Time.get_ticks_msec() / 1000.0) + HIT_IFRAMES_DURATION
 
 func play_visual_fx(kind: String, data: Dictionary = {}) -> void:
 	if not GameState.is_authority():

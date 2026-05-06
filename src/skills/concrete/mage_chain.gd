@@ -8,7 +8,7 @@ extends Skill
 @export var damage_per_hit: float = 18.0
 
 func _init() -> void:
-	base_cooldown = 4.0
+	base_cooldown = 0.0
 	mana_cost = 50.0
 
 func on_pressed() -> void:
@@ -21,7 +21,8 @@ func on_pressed() -> void:
 	var src: Vector2 = owner_player.global_position
 	var dmg: float = damage_per_hit * owner_player.dmg_mult()
 	var jr: float = jump_range * owner_player.range_mult()
-	for _i in hops:
+	var total_hops: int = hops + int(owner_player.stats.value(StatBlock.STAT_CHAIN_HOPS))
+	for _i in total_hops:
 		var e := Targeting.nearest_enemy_excluding(get_tree(), src, jr, picked)
 		if e == null:
 			break

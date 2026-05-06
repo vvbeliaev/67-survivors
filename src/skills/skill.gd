@@ -61,11 +61,11 @@ func _aoe_damage(center: Vector2, r: float, dmg: float) -> void:
 			if ls > 0.0:
 				owner_player.heal(dmg * ls)
 
-func _spawn_projectile(pos: Vector2, vel: Vector2, dmg: float, color: Color, life: float, r: float, pierce: int) -> void:
+func _spawn_projectile(pos: Vector2, vel: Vector2, dmg: float, color: Color, life: float, r: float, pierce: int, extras: Dictionary = {}) -> void:
 	var arena := get_tree().get_first_node_in_group("arena")
 	if arena == null:
 		return
-	arena.spawn_projectile({
+	var data: Dictionary = {
 		"pos": pos,
 		"vel": vel,
 		"damage": dmg,
@@ -74,7 +74,10 @@ func _spawn_projectile(pos: Vector2, vel: Vector2, dmg: float, color: Color, lif
 		"color": color,
 		"radius": r,
 		"pierce": pierce,
-	})
+	}
+	for k in extras.keys():
+		data[k] = extras[k]
+	arena.spawn_projectile(data)
 
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0

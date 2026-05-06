@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"charge_multishot"
+label = "+1 multishot bolt"
+weight = 1.0
+class_filter = Array[StringName]([&"crossbow"])
+archetype_filter = Array[StringName]([])
+stat = &"charge_multishot"
+mode = 0
+amount = 1.0
+heal_on_pick = 0.0
+refill_mana = false

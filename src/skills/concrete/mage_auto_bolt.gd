@@ -19,6 +19,7 @@ func on_tick(_delta: float) -> void:
 		return
 	cooldown_left = base_cooldown / max(owner_player.atk_speed_mult(), 0.01)
 	var dir: Vector2 = (target.global_position - owner_player.global_position).normalized()
+	var mana_pct: float = owner_player.stats.value(StatBlock.STAT_MANA_ON_HIT)
 	_spawn_projectile(
 		owner_player.global_position + dir * (owner_player.radius + 4),
 		dir * projectile_speed,
@@ -27,5 +28,6 @@ func on_tick(_delta: float) -> void:
 		projectile_lifetime,
 		projectile_radius,
 		0,
+		{"source_peer": int(owner_player.peer_id), "mana_on_hit_pct": mana_pct},
 	)
 	trigger_visual_fx("auto", {})

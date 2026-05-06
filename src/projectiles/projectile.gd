@@ -12,6 +12,8 @@ var color_hint: Color = Color(1, 1, 1)
 var radius: float = 6.0
 var pierce: int = 0
 var hit_set: Dictionary = {}
+var source_peer: int = 0
+var mana_on_hit_pct: float = 0.0
 
 func _ready() -> void:
 	monitoring = GameState.is_authority()
@@ -55,7 +57,16 @@ func _try_hit(node: Node) -> void:
 		return
 	hit_set[node] = true
 	node.apply_damage(damage, team)
+	if mana_on_hit_pct > 0.0 and source_peer != 0:
+		_restore_source_mana()
 	if pierce > 0:
 		pierce -= 1
 	else:
 		queue_free()
+
+func _restore_source_mana() -> void:
+	for p in get_tree().get_nodes_in_group("players"):
+		if p.peer_id == source_peer:
+			if p.alive and p.max_mp > 0.0:
+				p.mp = min(p.mp + p.max_mp * mana_on_hit_pct, p.max_mp)
+			return

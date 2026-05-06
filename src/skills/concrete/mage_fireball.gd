@@ -10,7 +10,7 @@ extends Skill
 @export var projectile_radius: float = 7.0
 
 func _init() -> void:
-	base_cooldown = 0.8
+	base_cooldown = 0.0
 	mana_cost = 30.0
 
 func on_pressed() -> void:

@@ -96,6 +96,8 @@ func _spawn_projectile(data: Variant) -> Node:
 	pr.color_hint = d.get("color", Color(1, 1, 1))
 	pr.radius = d.get("radius", 6.0)
 	pr.pierce = int(d.get("pierce", 0))
+	pr.source_peer = int(d.get("source_peer", 0))
+	pr.mana_on_hit_pct = float(d.get("mana_on_hit_pct", 0.0))
 	if pr.team == "player":
 		pr.collision_layer = 1 << 3
 		pr.collision_mask = 1 << 2

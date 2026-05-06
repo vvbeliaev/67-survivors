@@ -35,6 +35,7 @@ func _ready() -> void:
 	print("[smoke] boss_count=%d" % boss_count)
 	if players.size() > 0:
 		var p: Node = players[0]
+		p.iframes_until = 0.0
 		var hp_before: float = p.hp
 		p.apply_damage(50.0, "enemy")
 		print("[smoke] player hp %.1f -> %.1f" % [hp_before, p.hp])

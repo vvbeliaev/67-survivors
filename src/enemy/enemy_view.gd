@@ -83,8 +83,11 @@ func _draw() -> void:
 		draw_arc(_enemy.boss_aoe_pos - _enemy.global_position, _enemy.boss_aoe_radius, 0, TAU, 48, Color(1, 0.2, 0.2, 0.7), 3.0)
 
 func _draw_slime_trail() -> void:
-	# Build a single tapered ribbon polygon from oldest → newest position.
-	# Width grows toward the slime; alpha fades toward the tail.
+	# Tapered ribbon from oldest → newest position. Width grows toward the
+	# slime; alpha fades toward the tail. Drawn as N-1 per-segment quads:
+	# a single closed ribbon polygon would self-intersect on tight curves
+	# and collapse at the tail (w=0 → duplicate vertex), breaking
+	# Geometry2D ear-clip triangulation.
 	var n: int = _trail.size()
 	if n < 2:
 		return
@@ -106,23 +109,18 @@ func _draw_slime_trail() -> void:
 			dir = Vector2.RIGHT
 		dir = dir.normalized()
 		var perp: Vector2 = Vector2(-dir.y, dir.x)
-		# Tapered: 0 at the tail (i=0), full width at the slime (i=n-1).
 		var t_along: float = float(i) / float(n - 1)
 		var w: float = t_along * max_width
 		left.append(pts[i] + perp * w)
 		right.append(pts[i] - perp * w)
-	# Closed polygon: forward along left side, back along right side.
-	var poly: PackedVector2Array = PackedVector2Array()
-	var cols: PackedColorArray = PackedColorArray()
-	for i in n:
-		poly.append(left[i])
-		var t_along: float = float(i) / float(n - 1)
-		cols.append(Color(SLIME_TRAIL_COLOR, t_along * 0.55))
-	for i in range(n - 1, -1, -1):
-		poly.append(right[i])
-		var t_along: float = float(i) / float(n - 1)
-		cols.append(Color(SLIME_TRAIL_COLOR, t_along * 0.55))
-	draw_polygon(poly, cols)
+	for i in range(n - 1):
+		var t_a: float = float(i) / float(n - 1)
+		var t_b: float = float(i + 1) / float(n - 1)
+		var ca := Color(SLIME_TRAIL_COLOR, t_a * 0.55)
+		var cb := Color(SLIME_TRAIL_COLOR, t_b * 0.55)
+		var quad := PackedVector2Array([left[i], left[i + 1], right[i + 1], right[i]])
+		var qcols := PackedColorArray([ca, cb, cb, ca])
+		draw_polygon(quad, qcols)
 
 func _frames_for(t: StringName) -> Array[Texture2D]:
 	match t:

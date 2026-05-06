@@ -32,8 +32,7 @@ func _draw() -> void:
 	draw_rect(map_rect, Color(0.039, 0.024, 0.016, 1.0), true)
 	draw_rect(map_rect, HUDPalette.STROKE, false, 1.0)
 
-	# Fog of war — radial gradient lighting up the explored area near centroid.
-	_draw_fog(map_rect)
+	draw_rect(map_rect, Color(0, 0, 0, 0.55), true)
 
 	# Centroid + spread.
 	var centroid := _compute_centroid()
@@ -94,20 +93,6 @@ func _draw_panel(r: Rect2) -> void:
 		draw_rect(Rect2(r.position + Vector2(0, i * h), Vector2(r.size.x, h + 1)), HUDPalette.PANEL.lerp(HUDPalette.PANEL_SOFT, t), true)
 	draw_rect(r.grow(-1), HUDPalette.SHADOW_LIGHT, false, 1.0)
 	draw_rect(r, HUDPalette.STROKE_STRONG, false, 1.0)
-
-func _draw_fog(map_rect: Rect2) -> void:
-	# Cheap radial fog: concentric translucent rings darkening toward the edges.
-	var cx := map_rect.position.x + map_rect.size.x * 0.5
-	var cy := map_rect.position.y + map_rect.size.y * 0.55
-	var max_r := map_rect.size.length() * 0.5
-	# Top dark cap.
-	draw_rect(map_rect, Color(0, 0, 0, 0.55), true)
-	# Bright lit area.
-	var n := 6
-	for i in range(n, 0, -1):
-		var rad := max_r * float(i) / float(n)
-		var a := lerpf(0.30, 0.0, float(i) / float(n))
-		draw_circle(Vector2(cx, cy), rad, Color(0.706, 0.549, 0.314, a))
 
 func _draw_diamond(c: Vector2, half: float, col: Color) -> void:
 	var pts := PackedVector2Array([

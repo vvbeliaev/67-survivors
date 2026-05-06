@@ -22,6 +22,7 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 func host(port: int = DEFAULT_PORT) -> Error:
+	leave()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_server(port, MAX_PEERS)
 	if err == OK:
@@ -32,6 +33,7 @@ func host(port: int = DEFAULT_PORT) -> Error:
 # Dedicated-server variant: binds the port but does NOT add the server
 # process itself to the roster. Only connecting players appear as peers.
 func host_dedicated(port: int = DEFAULT_PORT) -> Error:
+	leave()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_server(port, MAX_PEERS)
 	if err == OK:
@@ -39,6 +41,7 @@ func host_dedicated(port: int = DEFAULT_PORT) -> Error:
 	return err
 
 func join(address: String, port: int = DEFAULT_PORT) -> Error:
+	leave()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
 	if err == OK:
