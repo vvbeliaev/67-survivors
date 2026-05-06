@@ -14,12 +14,20 @@ var subzone_label: String = "ЛОГОВО"
 
 var label_font: Font = null
 
+# Minimap is schematic — 60Hz redraw is overkill. Throttle to 20Hz: cuts the
+# enemy iteration cost (~300 nodes) by 3× without any visible smoothness loss.
+const REDRAW_INTERVAL := 0.05
+var _redraw_accum: float = 0.0
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(MAP_W + 16, MAP_H + FOOTER_H + 16)
 
-func _process(_dt: float) -> void:
-	queue_redraw()
+func _process(dt: float) -> void:
+	_redraw_accum += dt
+	if _redraw_accum >= REDRAW_INTERVAL:
+		_redraw_accum = 0.0
+		queue_redraw()
 
 func _draw() -> void:
 	var r := Rect2(Vector2.ZERO, size)
@@ -48,10 +56,10 @@ func _draw() -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
-		if not bool(e.get("alive")):
+		if not e.alive:
 			continue
 		var p: Vector2 = to_map.call(e.global_position)
-		var is_boss: bool = bool(e.get("boss_aoe")) or String(e.get("enemy_type")) == "boss"
+		var is_boss: bool = e.boss_aoe or e.enemy_type == &"boss"
 		if is_boss:
 			# Diamond marker.
 			_draw_diamond(p, 4.0, HUDPalette.DANGER)
@@ -64,8 +72,8 @@ func _draw() -> void:
 		if not is_instance_valid(plr):
 			continue
 		var p: Vector2 = to_map.call(plr.global_position)
-		var is_me: bool = int(plr.get("peer_id")) == local_id
-		if not bool(plr.get("alive")):
+		var is_me: bool = plr.peer_id == local_id
+		if not plr.alive:
 			# Faded gray cross.
 			var col := Color(0.6, 0.6, 0.6, 0.5)
 			draw_line(p + Vector2(-3, -3), p + Vector2(3, 3), col, 1.5)
@@ -110,7 +118,7 @@ func _compute_centroid() -> Vector2:
 	for plr in get_tree().get_nodes_in_group("players"):
 		if not is_instance_valid(plr):
 			continue
-		if not bool(plr.get("alive")):
+		if not plr.alive:
 			continue
 		sum += plr.global_position
 		count += 1

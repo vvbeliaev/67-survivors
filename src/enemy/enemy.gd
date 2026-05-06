@@ -50,9 +50,12 @@ var forced_target_until: float = 0.0
 var ai: EnemyAI = null
 var _def: EnemyDef = null
 
+const SEP_RADIUS_MULT := 2.0
+const SEP_STRENGTH := 0.6
+
 func _ready() -> void:
-	collision_layer = 1 << 2                          # Enemies
-	collision_mask = (1 << 0) | (1 << 1) | (1 << 2)   # World, Players, Enemies
+	collision_layer = 1 << 2                # Enemies
+	collision_mask = (1 << 0) | (1 << 1)    # World, Players (no enemy↔enemy: replaced by manual separation)
 	add_to_group("enemies")
 
 func setup(def: EnemyDef) -> void:
@@ -95,8 +98,33 @@ func _physics_process(delta: float) -> void:
 		return
 	if ai != null:
 		ai.tick(delta)
+	_apply_separation()
+	move_and_slide()
 	if velocity.length_squared() > 1.0:
 		facing_dir = velocity.normalized()
+
+# Cheap boids-style repulsion replacing the removed enemy↔enemy physics
+# pairs. Pulls candidates from SpatialIndex (rebuilt at -1000 priority, so
+# already populated this frame). Inverse-square accumulation, then a single
+# normalized push at SEP_STRENGTH × move_speed — no jitter spikes.
+func _apply_separation() -> void:
+	var sep_r: float = radius * SEP_RADIUS_MULT
+	var others: Array = SpatialIndex.enemies_in_radius(global_position, sep_r)
+	if others.size() <= 1:
+		return
+	var push: Vector2 = Vector2.ZERO
+	var sep_r2: float = sep_r * sep_r
+	for o in others:
+		if o == self:
+			continue
+		if not is_instance_valid(o) or not o.alive:
+			continue
+		var diff: Vector2 = global_position - o.global_position
+		var d2: float = diff.length_squared()
+		if d2 > 0.0001 and d2 < sep_r2:
+			push += diff / d2
+	if push.length_squared() > 0.0:
+		velocity += push.normalized() * move_speed * SEP_STRENGTH
 
 # ---- Status hooks called by skills -------------------------------------
 
