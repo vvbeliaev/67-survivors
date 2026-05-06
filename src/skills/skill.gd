@@ -11,6 +11,8 @@ class_name Skill extends Node
 @export var base_cooldown: float = 1.0
 @export var mana_cost: float = 0.0
 
+# UI icon shown on the skill bar. Subclasses preload it in _init().
+var icon: Texture2D = null
 var owner_player: Node = null   # set by ClassNode at attach time
 var cooldown_left: float = 0.0
 

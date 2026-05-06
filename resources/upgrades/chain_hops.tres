@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/lightning-arc.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
@@ -9,6 +10,12 @@ label = "+1 chain bounce"
 weight = 1.0
 class_filter = Array[StringName]([&"mage"])
 archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Цепная молния"
+description = "Цепные отскоки	+1"
+rarity = 2
+category = &"attack"
+flavor = "Молния голодна."
 stat = &"chain_hops"
 mode = 0
 amount = 1.0

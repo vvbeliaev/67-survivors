@@ -20,7 +20,7 @@ func tick(delta: float) -> void:
 
 	_tick_aoe(delta, target)
 
-	e.velocity = dir * e.move_speed
+	e.velocity = dir * e.move_speed * e.move_speed_mult
 	_attack_cd -= delta
 	if dist < e.radius + 18.0 and _attack_cd <= 0.0:
 		_attack_cd = e.contact_cd

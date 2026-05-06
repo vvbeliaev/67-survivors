@@ -21,6 +21,10 @@ static func roll_for(rng: RandomNumberGenerator, player: Node, count: int) -> Ar
 static func _matches(def: UpgradeDef, player: Node) -> bool:
 	if def == null:
 		return false
+	# weight <= 0 means "milestone-only" — never appears in random rolls,
+	# inserted explicitly by the offer layer at scripted level-ups.
+	if def.weight <= 0.0:
+		return false
 	if def.class_filter.size() > 0 and not def.class_filter.has(player.klass):
 		return false
 	# Archetype filtering reserved for Tier 2.

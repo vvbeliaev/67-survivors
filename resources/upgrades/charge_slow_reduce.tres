@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/lightning-bow.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
@@ -9,6 +10,12 @@ label = "-15% charge slowdown"
 weight = 1.0
 class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Лёгкая стойка"
+description = "Замедление при заряде	-15%"
+rarity = 0
+category = &"utility"
+flavor = "Стой ровно — стреляй точно."
 stat = &"charge_slow"
 mode = 0
 amount = 0.15

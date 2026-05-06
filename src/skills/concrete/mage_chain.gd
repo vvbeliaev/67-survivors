@@ -10,6 +10,7 @@ extends Skill
 func _init() -> void:
 	base_cooldown = 0.0
 	mana_cost = 50.0
+	icon = preload("res://assets/images/icons/thunder-struck.svg")
 
 func on_pressed() -> void:
 	if not ready_to_cast():

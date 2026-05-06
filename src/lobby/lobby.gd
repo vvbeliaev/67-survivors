@@ -1,5 +1,7 @@
 extends Control
 
+const ICON_DIR := "res://assets/images/icons/"
+
 const CLASS_INFO := {
 	"berserker": {
 		"name": "БЕРСЕРК",
@@ -10,10 +12,10 @@ const CLASS_INFO := {
 		"role_note": "Контроль агро",
 		"difficulty": 2,
 		"skills": [
-			{"key": "Авто", "name": "Кружащий клинок", "desc": "AoE вокруг себя", "hot": false},
-			{"key": "ЛКМ",  "name": "Кровавый рывок", "desc": "бьёт сильнее при низком HP", "hot": true},
-			{"key": "ПКМ",  "name": "Боевой рёв", "desc": "стянуть агро в радиусе", "hot": false},
-			{"key": "Space","name": "Землетрясение", "desc": "стан врагов вокруг", "hot": false},
+			{"key": "Авто", "icon": ICON_DIR + "axe-swing.svg",     "name": "Кружащий клинок", "desc": "AoE вокруг себя", "hot": false},
+			{"key": "ЛКМ",  "icon": ICON_DIR + "sprint.svg",        "name": "Кровавый рывок",  "desc": "бьёт сильнее при низком HP", "hot": true},
+			{"key": "ПКМ",  "icon": ICON_DIR + "lion.svg",          "name": "Боевой рёв",      "desc": "стянуть агро в радиусе", "hot": false},
+			{"key": "Space","icon": ICON_DIR + "confrontation.svg", "name": "Землетрясение",   "desc": "стан врагов вокруг", "hot": false},
 		],
 	},
 	"mage": {
@@ -25,10 +27,10 @@ const CLASS_INFO := {
 		"role_note": "Контроль волн",
 		"difficulty": 3,
 		"skills": [
-			{"key": "Авто", "name": "Магический снаряд", "desc": "автоприцел по ближайшему", "hot": false},
-			{"key": "ЛКМ",  "name": "Файрбол", "desc": "AoE по курсору · 30 маны", "hot": false},
-			{"key": "ПКМ",  "name": "Цепная молния", "desc": "по 3 целям · 50 маны", "hot": true},
-			{"key": "Space","name": "Блинк", "desc": "телепорт по курсору", "hot": false},
+			{"key": "Авто", "icon": ICON_DIR + "magic-palm.svg",        "name": "Магический снаряд", "desc": "автоприцел по ближайшему", "hot": false},
+			{"key": "ЛКМ",  "icon": ICON_DIR + "crowned-explosion.svg", "name": "Файрбол",           "desc": "AoE по курсору · 30 маны", "hot": false},
+			{"key": "ПКМ",  "icon": ICON_DIR + "thunder-struck.svg",    "name": "Цепная молния",     "desc": "по 3 целям · 50 маны", "hot": true},
+			{"key": "Space","icon": ICON_DIR + "teleport.svg",          "name": "Блинк",             "desc": "телепорт по курсору", "hot": false},
 		],
 	},
 	"bard": {
@@ -40,10 +42,10 @@ const CLASS_INFO := {
 		"role_note": "Поддержка",
 		"difficulty": 4,
 		"skills": [
-			{"key": "Авто", "name": "Колкий бренчащий", "desc": "слабый снаряд для самозащиты", "hot": false},
-			{"key": "ЛКМ",  "name": "Хил-аура", "desc": "3 пульса лечения союзникам", "hot": false},
-			{"key": "ПКМ",  "name": "Боевая песнь", "desc": "баф скорости и урона рядом", "hot": false},
-			{"key": "Space","name": "Дэш-уворот", "desc": "i-frames на короткую дистанцию", "hot": true},
+			{"key": "Авто", "icon": ICON_DIR + "musical-notes.svg", "name": "Колкий бренчащий", "desc": "слабый снаряд для самозащиты", "hot": false},
+			{"key": "ЛКМ",  "icon": ICON_DIR + "heart-bottle.svg",  "name": "Хил-аура",         "desc": "3 пульса лечения союзникам", "hot": false},
+			{"key": "ПКМ",  "icon": ICON_DIR + "musical-score.svg", "name": "Боевая песнь",     "desc": "баф скорости и урона рядом", "hot": false},
+			{"key": "Space","icon": ICON_DIR + "dodging.svg",       "name": "Дэш-уворот",       "desc": "i-frames на короткую дистанцию", "hot": true},
 		],
 	},
 	"crossbow": {
@@ -55,10 +57,10 @@ const CLASS_INFO := {
 		"role_note": "Single-target · Боссы",
 		"difficulty": 3,
 		"skills": [
-			{"key": "Авто", "name": "Заряжаемый болт", "desc": "12→45 урона при удержании ЛКМ", "hot": false},
-			{"key": "Зарж", "name": "Зарядка", "desc": "замедляет — ловите момент", "hot": true},
-			{"key": "ПКМ",  "name": "Бронебойный болт", "desc": "пробивает группы врагов", "hot": false},
-			{"key": "Space","name": "Перекат", "desc": "i-frames на короткую дистанцию", "hot": false},
+			{"key": "Авто", "icon": ICON_DIR + "arrowhead.svg",    "name": "Авто-болт",        "desc": "стреляет в курсор постоянно", "hot": false},
+			{"key": "ЛКМ",  "icon": ICON_DIR + "crosshair.svg",    "name": "Зарядка",          "desc": "удержание = ×4 урон, но замедляет", "hot": true},
+			{"key": "ПКМ",  "icon": ICON_DIR + "winged-arrow.svg", "name": "Бронебойный болт", "desc": "пробивает группы врагов", "hot": false},
+			{"key": "Space","icon": ICON_DIR + "dodging.svg",      "name": "Перекат",          "desc": "i-frames на короткую дистанцию", "hot": false},
 		],
 	},
 }
@@ -84,6 +86,7 @@ const MAX_SQUAD: int = 4
 @onready var join_btn: Button = %JoinBtn
 @onready var settings_btn: Button = %SettingsBtn
 @onready var leave_btn: Button = %LeaveBtn
+@onready var debug_btn: Button = %DebugBtn
 @onready var ready_btn: Button = %ReadyBtn
 @onready var roster_label: Label = %Roster
 @onready var status_label: Label = %StatusLabel
@@ -106,6 +109,7 @@ var _class_idx: int = 0
 var _is_ready: bool = false
 
 func _ready() -> void:
+	GameState.debug_mode = false
 	nick_edit.text = GameState.local_nick
 	port_edit.text = str(Network.DEFAULT_PORT)
 	_class_idx = max(GameState.VALID_CLASSES.find(GameState.local_class), 0)
@@ -114,10 +118,11 @@ func _ready() -> void:
 	host_btn.pressed.connect(_on_host)
 	join_btn.pressed.connect(_on_join)
 	leave_btn.pressed.connect(_on_quit_app)
+	debug_btn.pressed.connect(_on_debug)
 	ready_btn.pressed.connect(_on_ready_toggle)
 	wr_leave_btn.pressed.connect(_on_leave)
 	start_btn.pressed.connect(_on_start_btn)
-	for b in [prev_btn, next_btn, host_btn, join_btn, leave_btn, ready_btn,
+	for b in [prev_btn, next_btn, host_btn, join_btn, leave_btn, debug_btn, ready_btn,
 			settings_btn, wr_settings_btn, wr_leave_btn, start_btn]:
 		b.pressed.connect(func(): AudioBus.play_ui(&"ui_click"))
 		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover", -10.5))
@@ -181,14 +186,31 @@ func _build_skill_slot(s: Dictionary) -> Control:
 	icon_style.bg_color = Color(0.13, 0.09, 0.06, 0.85)
 	icon_style.border_color = Color(0.22, 0.17, 0.13, 1.0)
 	icon_style.set_border_width_all(1)
+	icon_style.content_margin_left = 7
+	icon_style.content_margin_right = 7
+	icon_style.content_margin_top = 7
+	icon_style.content_margin_bottom = 7
 	icon_panel.add_theme_stylebox_override(&"panel", icon_style)
-	var key_lbl := Label.new()
-	key_lbl.text = String(s.get("key", "")).to_upper()
-	key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	key_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	key_lbl.add_theme_color_override(&"font_color", icon_color)
-	key_lbl.add_theme_font_size_override(&"font_size", 11)
-	icon_panel.add_child(key_lbl)
+
+	var icon_path: String = String(s.get("icon", ""))
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		var tr := TextureRect.new()
+		tr.texture = load(icon_path)
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.modulate = icon_color
+		tr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tr.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_panel.add_child(tr)
+	else:
+		var key_lbl := Label.new()
+		key_lbl.text = String(s.get("key", "")).to_upper()
+		key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		key_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		key_lbl.add_theme_color_override(&"font_color", icon_color)
+		key_lbl.add_theme_font_size_override(&"font_size", 11)
+		icon_panel.add_child(key_lbl)
 	root.add_child(icon_panel)
 
 	var text_col := VBoxContainer.new()
@@ -255,6 +277,7 @@ func _refresh() -> void:
 	# Main menu state
 	host_btn.disabled = connected
 	join_btn.disabled = connected
+	debug_btn.disabled = connected
 	leave_btn.disabled = false
 	ready_btn.visible = false  # in waiting room now
 	roster_label.visible = false
@@ -531,3 +554,10 @@ func _on_leave() -> void:
 
 func _on_quit_app() -> void:
 	get_tree().quit()
+
+func _on_debug() -> void:
+	GameState.local_nick = nick_edit.text.strip_edges()
+	if GameState.local_nick.is_empty():
+		GameState.local_nick = "Debug"
+	GameState.debug_mode = true
+	get_tree().change_scene_to_file(Network.ARENA_SCENE_PATH)

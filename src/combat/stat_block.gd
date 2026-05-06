@@ -6,7 +6,7 @@ class_name StatBlock extends RefCounted
 #   value(stat) = (base + sum(flat)) * (1.0 + sum(pct))
 #
 # Modifiers are addressed by StringName so upgrade stacks (`upg_damage_3`),
-# auras (`aura_bard_atk_speed`), and timed buffs (`buff_haste_42`) can be
+# auras (`aura_bard_haste`), and timed buffs (`buff_haste_42`) can be
 # added and removed without bookkeeping in the consumer.
 
 # Stat ids used by the rest of the game. Listed for documentation.
@@ -17,14 +17,16 @@ const STAT_MP_REGEN  := &"mp_regen"    # flat
 const STAT_LIFESTEAL := &"lifesteal"   # flat (fraction)
 const STAT_SPEED     := &"speed"       # pct on base movement
 const STAT_DMG       := &"dmg"         # pct multiplier (base 1.0)
-const STAT_ATK_SPEED := &"atk_speed"   # pct multiplier (base 1.0)
 const STAT_RANGE     := &"range"       # pct multiplier (base 1.0)
 const STAT_COOLDOWN  := &"cooldown"    # pct multiplier (base 1.0); negative reduces
 const STAT_MANA_ON_HIT := &"mana_on_hit"   # flat (fraction of max_mp restored per auto-hit)
 const STAT_CHARGE_PIERCE := &"charge_pierce"  # flat (extra pierce on crossbow charged bolt)
 const STAT_CHARGE_MULTISHOT := &"charge_multishot"  # flat (extra angled bolts on crossbow charged shot)
 const STAT_CHARGE_SLOW := &"charge_slow"   # pct (negative); applied to speed while crossbow is charging
+const STAT_CHARGE_DAMAGE := &"charge_damage"  # pct multiplier on charge max-mult (base 1.0)
+const STAT_BOLT_DAMAGE := &"bolt_damage"   # flat (added to crossbow auto-bolt and roll-volley base damage)
 const STAT_CHAIN_HOPS := &"chain_hops"     # flat (extra hops on mage chain lightning)
+const STAT_ROLL_VOLLEY := &"roll_volley"   # flat (radial bolts fired from roll origin)
 
 var _base: Dictionary = {}    # StringName -> float
 var _flats: Dictionary = {}   # StringName -> { StringName -> float }
@@ -63,12 +65,26 @@ func remove(mod_id: StringName) -> void:
 		_pcts[s].erase(mod_id)
 
 # Convenience: applies a UpgradeDef as a uniquely-keyed modifier so multiple
-# stacks coexist (`mod_id_<stack_index>`).
+# stacks coexist (`mod_id_<stack_index>`). Any `extra_stats` declared on the
+# def stack under sibling keys (`mod_id_<stack_index>_x<i>`).
 func apply_upgrade(def: UpgradeDef, stack_index: int) -> void:
-	if def == null or def.stat == &"":
+	if def == null:
 		return
 	var key: StringName = StringName("upg_%s_%d" % [String(def.id), stack_index])
-	if def.mode == UpgradeDef.Mode.FLAT:
-		add_flat(def.stat, key, def.amount)
-	else:
-		add_pct(def.stat, key, def.amount)
+	if def.stat != &"":
+		if def.mode == UpgradeDef.Mode.FLAT:
+			add_flat(def.stat, key, def.amount)
+		else:
+			add_pct(def.stat, key, def.amount)
+	var n: int = def.extra_stats.size()
+	for i in n:
+		var es: StringName = def.extra_stats[i]
+		if es == &"":
+			continue
+		var em: int = int(def.extra_modes[i]) if i < def.extra_modes.size() else 0
+		var ea: float = float(def.extra_amounts[i]) if i < def.extra_amounts.size() else 0.0
+		var ekey: StringName = StringName("upg_%s_%d_x%d" % [String(def.id), stack_index, i])
+		if em == int(UpgradeDef.Mode.FLAT):
+			add_flat(es, ekey, ea)
+		else:
+			add_pct(es, ekey, ea)

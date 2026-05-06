@@ -8,6 +8,7 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 12.0
+	icon = preload("res://assets/images/icons/confrontation.svg")
 
 func on_pressed() -> void:
 	if not ready_to_cast():

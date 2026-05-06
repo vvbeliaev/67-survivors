@@ -1,16 +1,28 @@
-[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/health-normal.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
 id = &"max_hp"
-label = "+20 max HP & heal"
+label = "+20 max HP, +1 HP/s regen & heal"
 weight = 1.0
 class_filter = Array[StringName]([])
 archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Сердце исполина"
+description = "Max HP	+20
+Реген	+1 HP/с
+Хил сейчас	+20"
+rarity = 2
+category = &"defense"
+flavor = "Большее сердце — большее бремя."
 stat = &"max_hp"
 mode = 0
 amount = 20.0
+extra_stats = Array[StringName]([&"hp_regen"])
+extra_modes = Array[int]([0])
+extra_amounts = Array[float]([1.0])
 heal_on_pick = 20.0
 refill_mana = false

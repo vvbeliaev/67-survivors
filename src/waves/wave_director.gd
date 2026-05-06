@@ -7,7 +7,7 @@ extends Node
 # to free the farthest off-screen non-boss before placing a new one. If every
 # enemy is within DESPAWN_MIN_DIST of the party, the spawn request is dropped
 # silently and the wave self-throttles. Mirrors the Vampire Survivors model.
-const HARD_CAP := 300
+const HARD_CAP := 150
 const DESPAWN_MIN_DIST_SQ := 1100.0 * 1100.0
 
 var _rng := RandomNumberGenerator.new()
@@ -24,6 +24,8 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _wave_set == null:
+		return
+	if GameState.debug_mode:
 		return
 	if not GameState.is_authority():
 		return

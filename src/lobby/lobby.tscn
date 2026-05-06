@@ -787,6 +787,23 @@ theme_override_styles/disabled = SubResource("SB_btn_disabled")
 theme_override_styles/focus = SubResource("SB_btn_hover")
 script = ExtResource("4_menu_btn")
 
+[node name="DebugBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+text = "Дебаг"
+theme_override_fonts/font = SubResource("FV_btn")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.93, 0.75, 1)
+theme_override_colors/font_pressed_color = Color(0.78, 0.70, 0.55, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.35, 0.27, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_hover")
+theme_override_styles/pressed = SubResource("SB_btn_pressed")
+theme_override_styles/disabled = SubResource("SB_btn_disabled")
+theme_override_styles/focus = SubResource("SB_btn_hover")
+script = ExtResource("4_menu_btn")
+
 [node name="ReadyBtn" type="Button" parent="Layout/Root/MainGrid/RightCol/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)

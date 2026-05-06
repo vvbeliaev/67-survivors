@@ -10,6 +10,7 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 1.2
+	icon = preload("res://assets/images/icons/sprint.svg")
 
 func on_pressed() -> void:
 	if not ready_to_cast():

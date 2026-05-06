@@ -49,6 +49,20 @@ func _ready() -> void:
 	print("[smoke] run_kills=%d run_damage=%d run_xp_gained=%d" % [
 		GameState.run_kills, GameState.run_damage, GameState.run_xp_gained
 	])
+	# Level-up flow: force a level threshold, fire the event, verify the
+	# screen opens and the tree pauses; submit a pick and verify it resumes.
+	GameState.party_xp = 0
+	EventBus.level_up.emit(GameState.party_level + 1)
+	await get_tree().create_timer(0.1).timeout
+	print("[smoke] level_up paused=%s screen=%s" % [
+		str(get_tree().paused),
+		str(get_tree().get_first_node_in_group("level_up_screen") != null),
+	])
+	var offer := get_tree().get_first_node_in_group("upgrade_offer")
+	if offer != null:
+		offer.submit_pick("damage")
+	await get_tree().create_timer(0.1).timeout
+	print("[smoke] after-pick paused=%s" % str(get_tree().paused))
 	# End-screen path: trigger run end and confirm EndScreen instance shows.
 	var rd := get_tree().get_first_node_in_group("run_director")
 	if rd != null:

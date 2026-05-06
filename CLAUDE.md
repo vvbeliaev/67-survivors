@@ -278,6 +278,15 @@ WaveSet содержит массив WavePhase. Каждый Phase в .tres —
 ### Когда новый Skill base vs reuse
 Skill база покрывает 99% случаев (cooldown, mana, input hooks). Если новая механика требует, например, channel-каста или multi-stage — добавь хук в Skill (`on_channel_tick`, `on_stage_advance`), не плоди параллельную иерархию.
 
+## Иконки и UI-арт
+
+Источник иконок способностей, апгрейдов и мелкого UI — **[game-icons.net](https://game-icons.net/1x1/sbed/health-normal.html)** (CC BY 3.0). Все ассеты SVG, белые на прозрачном — Godot тонирует их через `modulate`.
+
+- Лежат в `assets/images/icons/<icon-name>.svg`. Имя файла = слаг иконки на сайте.
+- Скачивать SVG напрямую по шаблону: `https://game-icons.net/icons/ffffff/transparent/1x1/{author}/{slug}.svg`. Например, для `https://game-icons.net/1x1/lorc/axe-swing.html` это `https://game-icons.net/icons/ffffff/transparent/1x1/lorc/axe-swing.svg`.
+- После добавления новых SVG → `make import`, чтобы Godot сгенерировал `.svg.import`. Без импорта `preload(...)` упадёт.
+- Привязка: у скиллов поле `icon: Texture2D`, ставится в `_init()` конкретного скилла (см. [berserker_dash.gd](src/skills/concrete/berserker_dash.gd)). У апгрейдов — поле `icon` в `UpgradeDef.tres`. HUD сам подхватит, ничего по местам прописывать не нужно.
+
 ## Тесты
 
 [`tests/smoke_test/smoke_test.gd`](tests/smoke_test/smoke_test.gd) — базовая проверка: спавн, AI-тик, kill→XP, boss-spawn, damage, upgrade. Любой нетривиальный рефакторинг — `make smoke` обязательно.

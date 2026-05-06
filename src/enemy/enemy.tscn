@@ -43,6 +43,21 @@ properties/10/replication_mode = 0
 properties/11/path = NodePath(".:facing_dir")
 properties/11/spawn = true
 properties/11/replication_mode = 1
+properties/12/path = NodePath(".:aura_kind")
+properties/12/spawn = true
+properties/12/replication_mode = 0
+properties/13/path = NodePath(".:aura_armor_until_msec")
+properties/13/spawn = true
+properties/13/replication_mode = 2
+properties/14/path = NodePath(".:aura_speed_until_msec")
+properties/14/spawn = true
+properties/14/replication_mode = 2
+properties/15/path = NodePath(".:aura_hp_until_msec")
+properties/15/spawn = true
+properties/15/replication_mode = 2
+properties/16/path = NodePath(".:pulse_seq")
+properties/16/spawn = true
+properties/16/replication_mode = 2
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")

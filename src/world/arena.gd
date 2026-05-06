@@ -9,6 +9,7 @@ const ENEMY_SCENE := preload("res://src/enemy/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
 const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
 const TORCH_SCENE := preload("res://src/world/torch.tscn")
+const DEBUG_PANEL_SCENE := preload("res://src/debug/debug_panel.tscn")
 const TORCH_SEED := 0xCAFE
 const TORCH_COUNT := 28
 const TORCH_FIELD_RADIUS := 1600.0
@@ -34,6 +35,9 @@ func _ready() -> void:
 
 	if GameState.is_authority():
 		_host_spawn_roster()
+
+	if GameState.debug_mode:
+		add_child(DEBUG_PANEL_SCENE.instantiate())
 
 func _spawn_torches() -> void:
 	# Deterministic on every peer (same seed) so positions match without sync.
@@ -109,17 +113,30 @@ func _spawn_projectile(data: Variant) -> Node:
 	pr.set_multiplayer_authority(1)
 	return pr
 
+# MultiplayerSpawner.spawn() requires a multiplayer_peer (ENet, WebSocket,
+# OfflineMultiplayerPeer, ...). In true solo (no peer set — e.g. the debug
+# arena entry-point) it ERR_FAIL_COND_V's and returns null. Bypass the
+# spawner in that case by invoking the factory directly: there is no client
+# to replicate to anyway, so the local node is the whole world.
+func _spawn_via(spawner: MultiplayerSpawner, container: Node, factory: Callable, data: Variant) -> void:
+	if multiplayer.has_multiplayer_peer():
+		spawner.spawn(data)
+		return
+	var node: Node = factory.call(data)
+	if node != null:
+		container.add_child(node)
+
 # ---- Public spawn helpers ----------------------------------------------
 
 func spawn_enemy(data: Dictionary) -> void:
 	if not GameState.is_authority():
 		return
-	enemies_spawner.spawn(data)
+	_spawn_via(enemies_spawner, enemies_container, _spawn_enemy, data)
 
 func spawn_projectile(data: Dictionary) -> void:
 	if not GameState.is_authority():
 		return
-	projectiles_spawner.spawn(data)
+	_spawn_via(projectiles_spawner, projectiles_container, _spawn_projectile, data)
 
 func spawn_damage_number(amount: float, world_pos: Vector2, crit: bool = false) -> void:
 	var n := Node2D.new()
@@ -143,7 +160,7 @@ func _host_spawn_roster() -> void:
 		var ang: float = TAU * float(i) / float(max(n, 1))
 		var spread: float = 40.0 if n > 1 else 0.0
 		var pos := Vector2(cos(ang), sin(ang)) * spread
-		players_spawner.spawn({
+		_spawn_via(players_spawner, players_container, _spawn_player, {
 			"peer_id": int(pid),
 			"nick": entry.get("nick", "P"),
 			"klass": String(entry.get("klass", &"berserker")),

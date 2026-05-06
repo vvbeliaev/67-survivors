@@ -259,7 +259,6 @@ func _rpc_play_fx(kind: String, data: Dictionary) -> void:
 	_fx_local[kind] = entry
 
 func dmg_mult() -> float:    return stats.value(StatBlock.STAT_DMG)
-func atk_speed_mult() -> float: return stats.value(StatBlock.STAT_ATK_SPEED)
 func range_mult() -> float:  return stats.value(StatBlock.STAT_RANGE)
 func cooldown_factor() -> float: return max(stats.value(StatBlock.STAT_COOLDOWN), COOLDOWN_FLOOR)
 func lifesteal() -> float:   return stats.value(StatBlock.STAT_LIFESTEAL)

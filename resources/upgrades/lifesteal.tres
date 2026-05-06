@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/heart-drop.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
@@ -9,6 +10,12 @@ label = "+5% lifesteal"
 weight = 1.0
 class_filter = Array[StringName]([])
 archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Жажда крови"
+description = "Lifesteal	+5%"
+rarity = 1
+category = &"attack"
+flavor = "Боль врага — мой пир."
 stat = &"lifesteal"
 mode = 0
 amount = 0.05

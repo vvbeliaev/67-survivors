@@ -22,6 +22,9 @@ var local_class: StringName = &"berserker"
 # peer_id -> {nick: String, klass: StringName}
 var roster: Dictionary = {}
 
+# Set by lobby debug entry-point. Solo-only sandbox: no waves, manual spawn UI.
+var debug_mode: bool = false
+
 # Live arena state. Host-authoritative; replicated via RunDirector RPCs.
 var run_active: bool = false
 var run_time: float = 0.0

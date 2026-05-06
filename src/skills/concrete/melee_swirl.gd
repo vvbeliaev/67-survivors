@@ -7,11 +7,12 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 0.4
+	icon = preload("res://assets/images/icons/axe-swing.svg")
 
 func on_tick(_delta: float) -> void:
 	if not ready_to_cast():
 		return
-	cooldown_left = base_cooldown / max(owner_player.atk_speed_mult(), 0.01)
+	start_cooldown()
 	var r: float = radius * owner_player.range_mult()
 	_aoe_damage(owner_player.global_position, r, damage * owner_player.dmg_mult())
 	trigger_visual_fx("auto", {"r": r})

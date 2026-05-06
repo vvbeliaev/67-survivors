@@ -10,6 +10,7 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 0.8
+	icon = preload("res://assets/images/icons/musical-notes.svg")
 
 func on_tick(_delta: float) -> void:
 	if not ready_to_cast():
@@ -17,7 +18,7 @@ func on_tick(_delta: float) -> void:
 	var target := Targeting.nearest_enemy(get_tree(), owner_player.global_position, seek_range * owner_player.range_mult())
 	if target == null:
 		return
-	cooldown_left = base_cooldown / max(owner_player.atk_speed_mult(), 0.01)
+	start_cooldown()
 	var dir: Vector2 = (target.global_position - owner_player.global_position).normalized()
 	_spawn_projectile(
 		owner_player.global_position + dir * (owner_player.radius + 4),

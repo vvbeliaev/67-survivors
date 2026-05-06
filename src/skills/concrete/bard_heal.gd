@@ -9,6 +9,7 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 6.0
+	icon = preload("res://assets/images/icons/heart-bottle.svg")
 
 var _pulses_left: int = 0
 var _next_pulse_in: float = 0.0

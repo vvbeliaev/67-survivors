@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_def")
 id = &"boss"
-max_hp = 4000.0
+max_hp = 8000.0
 move_speed = 100.0
 contact_damage = 30.0
 contact_cd = 1.0

@@ -68,7 +68,6 @@ const LOG_MAX_ENTRIES := 5
 @onready var _log_anchor: Control = $Root/LogAnchor
 @onready var _vitals_anchor: Control = $Root/VitalsAnchor
 @onready var _boss_anchor: Control = $Root/BossAnchor
-@onready var _center_anchor: Control = $Root/CenterAnchor
 
 # Built widgets — populated in _ready, mutated in _process.
 var _party_box: VBoxContainer = null
@@ -95,9 +94,6 @@ var _boss_status: Label = null
 var _boss_name_label: Label = null
 var _boss_countdown: Label = null
 
-var _upgrade_panel: HUDPanel = null
-var _upgrade_title: Label = null
-var _upgrade_buttons: HBoxContainer = null
 var _end_screen: EndScreen = null
 
 var _local_player: Node = null
@@ -109,7 +105,6 @@ func _ready() -> void:
 	_build_minimap()
 	_build_vitals_and_skills()
 	_build_boss_watch()
-	_build_upgrade_panel()
 	_build_end_screen()
 
 	EventBus.run_ended.connect(_on_run_ended)
@@ -419,11 +414,12 @@ func _update_vitals() -> void:
 func _update_skills() -> void:
 	var glyphs: Array = []
 	var skills: Array = []
+	var class_node: Node = null
 	var cd_lefts: Array = [0.0, 0.0, 0.0, 0.0]
 	var cd_totals: Array = [0.0, 0.0, 0.0, 0.0]
 	if _local_player != null and is_instance_valid(_local_player) and _local_player.class_node != null:
-		var cn = _local_player.class_node
-		skills = [cn.auto_skill, cn.primary_skill, cn.secondary_skill, cn.utility_skill]
+		class_node = _local_player.class_node
+		skills = [class_node.auto_skill, class_node.primary_skill, class_node.secondary_skill, class_node.utility_skill]
 		var klass: StringName = StringName(String(_local_player.klass))
 		glyphs = SKILL_GLYPHS.get(klass, ["•", "•", "•", "•"])
 		cd_lefts = [
@@ -442,11 +438,11 @@ func _update_skills() -> void:
 		var slot: SkillSlot = _skill_slots[i]
 		var s = skills[i] if i < skills.size() else null
 		var g: String = glyphs[i] if i < glyphs.size() else "•"
+		slot.glyph = g
+		slot.icon = class_node.icon_for_slot(i) if class_node != null else null
 		if s == null:
-			slot.glyph = g
 			slot.set_state(0.0, 0.0, true)
 			continue
-		slot.glyph = g
 		var cd_left: float = float(cd_lefts[i])
 		var cd_total: float = max(float(cd_totals[i]), 0.001)
 		var cd_pct: float = clampf(cd_left / cd_total, 0.0, 1.0)
@@ -597,93 +593,6 @@ func _update_boss_watch() -> void:
 	else:
 		_boss_status.text = "БОСС ПРИБЛИЖАЕТСЯ"
 		_boss_countdown.text = "через %d:%02d" % [int(remaining) / 60, int(remaining) % 60]
-
-# =========================================================================
-# Upgrade panel (center, on level up)
-# =========================================================================
-
-func _build_upgrade_panel() -> void:
-	_upgrade_panel = HUDPanel.new()
-	_upgrade_panel.bevel = 12.0
-	_upgrade_panel.rivets = true
-	_upgrade_panel.accent_border = true
-	_upgrade_panel.custom_minimum_size = Vector2(720, 240)
-	_upgrade_panel.position = Vector2(-360, -120)
-	_upgrade_panel.visible = false
-	_upgrade_panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	_center_anchor.add_child(_upgrade_panel)
-
-	var v := VBoxContainer.new()
-	v.position = Vector2(20, 20)
-	v.size = Vector2(680, 200)
-	v.add_theme_constant_override("separation", 16)
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	_upgrade_panel.add_child(v)
-
-	_upgrade_title = Label.new()
-	_upgrade_title.text = "LEVEL UP — выберите силу"
-	_upgrade_title.add_theme_font_override("font", FONT_DISPLAY)
-	_upgrade_title.add_theme_font_size_override("font_size", 20)
-	_upgrade_title.add_theme_color_override("font_color", HUDPalette.ACCENT)
-	_upgrade_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_upgrade_title.add_theme_constant_override("outline_size", 4)
-	_upgrade_title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	v.add_child(_upgrade_title)
-
-	_upgrade_buttons = HBoxContainer.new()
-	_upgrade_buttons.add_theme_constant_override("separation", 16)
-	_upgrade_buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_child(_upgrade_buttons)
-
-func show_upgrade_picks(options: Array) -> void:
-	_upgrade_title.text = "LEVEL UP — выберите силу"
-	for c in _upgrade_buttons.get_children():
-		c.queue_free()
-	for opt in options:
-		var b := _make_upgrade_button(String(opt.get("label", opt.get("id", "?"))), String(opt.get("id", "")))
-		_upgrade_buttons.add_child(b)
-	_upgrade_panel.visible = true
-
-func _make_upgrade_button(label: String, id: String) -> Button:
-	var b := Button.new()
-	b.text = label
-	b.custom_minimum_size = Vector2(200, 96)
-	b.add_theme_font_override("font", FONT_DISPLAY)
-	b.add_theme_font_size_override("font_size", 14)
-	b.add_theme_color_override("font_color", HUDPalette.INK)
-	b.add_theme_color_override("font_hover_color", HUDPalette.ACCENT_GLOW)
-	b.add_theme_color_override("font_pressed_color", HUDPalette.ACCENT_DEEP)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = HUDPalette.PANEL
-	sb.border_color = HUDPalette.STROKE_STRONG
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(2)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 12
-	sb.content_margin_bottom = 12
-	b.add_theme_stylebox_override("normal", sb)
-	var sb_hover := sb.duplicate()
-	sb_hover.bg_color = HUDPalette.PANEL_SOFT
-	sb_hover.border_color = HUDPalette.ACCENT_DEEP
-	b.add_theme_stylebox_override("hover", sb_hover)
-	var sb_pressed := sb.duplicate()
-	sb_pressed.bg_color = HUDPalette.BG_DEEP
-	sb_pressed.border_color = HUDPalette.ACCENT
-	b.add_theme_stylebox_override("pressed", sb_pressed)
-	b.pressed.connect(func ():
-		AudioBus.play_ui(&"ui_click")
-		_upgrade_panel.visible = false
-		_local_pick_upgrade(id)
-	)
-	b.mouse_entered.connect(func (): AudioBus.play_ui(&"ui_hover", -10.5))
-	return b
-
-func _local_pick_upgrade(id: String) -> void:
-	var offer := get_tree().get_first_node_in_group("upgrade_offer")
-	if offer == null:
-		return
-	offer.submit_pick(id)
 
 # =========================================================================
 # End screen (victory / death)

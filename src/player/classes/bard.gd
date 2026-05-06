@@ -11,7 +11,6 @@ func seed_stats(def: ClassDef, stats: StatBlock) -> void:
 	stats.set_base(StatBlock.STAT_MP_REGEN, def.base_mana_regen)
 	stats.set_base(StatBlock.STAT_SPEED, def.base_speed)
 	stats.set_base(StatBlock.STAT_DMG, 1.0)
-	stats.set_base(StatBlock.STAT_ATK_SPEED, 1.0)
 	stats.set_base(StatBlock.STAT_RANGE, 1.0)
 	stats.set_base(StatBlock.STAT_COOLDOWN, 1.0)
 

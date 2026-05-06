@@ -17,10 +17,11 @@ func tick(delta: float) -> void:
 	var dist: float = to_t.length()
 	var dir: Vector2 = to_t.normalized() if dist > 0.001 else Vector2.ZERO
 	var desired: float = e.ranged_dist
+	var spd: float = e.move_speed * e.move_speed_mult
 	if dist < desired - 30.0:
-		e.velocity = -dir * e.move_speed
+		e.velocity = -dir * spd
 	elif dist > desired + 30.0:
-		e.velocity = dir * e.move_speed
+		e.velocity = dir * spd
 	else:
 		e.velocity = Vector2.ZERO
 	_ranged_cd -= delta

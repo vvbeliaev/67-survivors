@@ -5,7 +5,8 @@ class_name SkillSlot extends Control
 # observe a Skill — the HUD owns state and pushes via `set_state()`.
 
 @export var key_label: String = ""
-@export var glyph: String = "•"           # textual icon (we have no skill icons)
+@export var glyph: String = "•"           # textual fallback when icon is null
+@export var icon: Texture2D = null        # game-icons.net SVG, white-on-transparent
 @export var glyph_color: Color = HUDPalette.ACCENT
 @export var cd_pct: float = 0.0           # 0.0 .. 1.0
 @export var cd_seconds: float = 0.0
@@ -50,20 +51,27 @@ func _draw() -> void:
 		# Inner accent ring.
 		draw_rect(r.grow(-2), HUDPalette.ACCENT_DEEP, false, 1.0)
 
-	# Glyph.
-	if glyph_font != null and glyph != "":
+	# Icon (preferred) or text glyph (fallback).
+	var content_col: Color = HUDPalette.INK_MUTE if disabled else glyph_color
+	if icon != null:
+		var pad := 12.0
+		var dest_size: float = min(r.size.x, r.size.y) - pad * 2.0
+		var dest := Rect2(
+			r.position + Vector2((r.size.x - dest_size) * 0.5, (r.size.y - dest_size) * 0.5),
+			Vector2(dest_size, dest_size)
+		)
+		var shadow := Rect2(dest.position + Vector2(1, 2), dest.size)
+		draw_texture_rect(icon, shadow, false, Color(0, 0, 0, 0.55))
+		draw_texture_rect(icon, dest, false, content_col)
+	elif glyph_font != null and glyph != "":
 		var gfs := 36
-		var col := glyph_color
-		if disabled:
-			col = HUDPalette.INK_MUTE
 		var ts := glyph_font.get_string_size(glyph, HORIZONTAL_ALIGNMENT_CENTER, -1, gfs)
 		var pos := Vector2(
 			r.position.x + (r.size.x - ts.x) * 0.5,
 			r.position.y + (r.size.y + ts.y) * 0.5 - 6.0
 		)
-		# Shadow.
 		draw_string(glyph_font, pos + Vector2(1, 2), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs, Color(0, 0, 0, 0.85))
-		draw_string(glyph_font, pos, glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs, col)
+		draw_string(glyph_font, pos, glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs, content_col)
 
 	# Cooldown overlay (vignette + remaining seconds).
 	if cd_pct > 0.0:

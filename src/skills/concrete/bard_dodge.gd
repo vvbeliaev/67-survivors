@@ -7,6 +7,7 @@ extends Skill
 
 func _init() -> void:
 	base_cooldown = 4.0
+	icon = preload("res://assets/images/icons/dodging.svg")
 
 func on_pressed() -> void:
 	if not ready_to_cast():

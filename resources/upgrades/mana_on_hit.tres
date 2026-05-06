@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/magic-swirl.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
@@ -9,6 +10,12 @@ label = "+10% max mana on auto-hit"
 weight = 1.0
 class_filter = Array[StringName]([&"mage"])
 archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Эссенция врага"
+description = "Мана при попадании	+10% max"
+rarity = 1
+category = &"mana"
+flavor = "Каждый удар — глоток силы."
 stat = &"mana_on_hit"
 mode = 0
 amount = 0.1

@@ -28,6 +28,17 @@ func seed_stats(_def: ClassDef, _stats: StatBlock) -> void:
 func on_pre_move(_delta: float) -> void:
 	pass
 
+# HUD reads the icon for slot (0=auto, 1=LMB, 2=RMB, 3=Space). Default just
+# forwards the bound skill's icon; classes with empty slots can override to
+# return a placeholder (e.g. crossbow has no auto skill but still wants an
+# icon in that slot).
+func icon_for_slot(idx: int) -> Texture2D:
+	var slots: Array = [auto_skill, primary_skill, secondary_skill, utility_skill]
+	if idx < 0 or idx >= slots.size():
+		return null
+	var s: Skill = slots[idx]
+	return s.icon if s != null else null
+
 # ---- Helpers used by sub-classes ----------------------------------------
 
 func _attach(skill: Skill) -> void:

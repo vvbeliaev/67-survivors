@@ -27,8 +27,25 @@ const TEAM := "enemy"
 # sprite consistently for every peer.
 @export var facing_dir: Vector2 = Vector2.DOWN
 
+# ---- Aura state (colossus-driven, but lives on every enemy because any
+# enemy may be buffed by a nearby colossus) ------------------------------
+# Aura type the enemy itself emits ("" = none). Set once at setup, immutable.
+@export var aura_kind: StringName = &""
+# Per-kind buff expiry (Time.get_ticks_msec). Tracked separately so a mob
+# inside multiple overlapping colossi auras can carry several buffs at once
+# and the view can lay out an icon per active kind.
+@export var aura_armor_until_msec: int = 0
+@export var aura_speed_until_msec: int = 0
+@export var aura_hp_until_msec: int = 0
+# Monotonic counter incremented by colossus AI on each pulse — clients
+# observe the change and replay the expanding-ring animation.
+@export var pulse_seq: int = 0
+
 # Host-only fields (not replicated).
 var move_speed: float = 180.0
+var move_speed_mult: float = 1.0
+var damage_taken_mult: float = 1.0
+var aura_radius: float = 0.0
 var contact_damage: float = 8.0
 var contact_cd: float = 0.6
 var ranged: bool = false
@@ -96,12 +113,42 @@ func _physics_process(delta: float) -> void:
 		return
 	if not alive:
 		return
+	_tick_aura_buff()
 	if ai != null:
 		ai.tick(delta)
 	_apply_separation()
 	move_and_slide()
 	if velocity.length_squared() > 1.0:
 		facing_dir = velocity.normalized()
+
+func _tick_aura_buff() -> void:
+	var now: int = Time.get_ticks_msec()
+	damage_taken_mult = 0.7 if now < aura_armor_until_msec else 1.0
+	move_speed_mult = 1.2 if now < aura_speed_until_msec else 1.0
+
+# Called by colossus_ai on each pulse. Refreshes (or extends) the per-kind
+# buff timer. kind: &"armor" | &"speed" | &"hp" — &"hp" is visual-only
+# (icon over the HP bar) since the actual heal is applied immediately.
+func apply_aura_buff(kind: StringName, duration: float) -> void:
+	if not GameState.is_authority():
+		return
+	if not alive:
+		return
+	var until: int = Time.get_ticks_msec() + int(duration * 1000.0)
+	match kind:
+		&"armor":
+			aura_armor_until_msec = max(aura_armor_until_msec, until)
+		&"speed":
+			aura_speed_until_msec = max(aura_speed_until_msec, until)
+		&"hp":
+			aura_hp_until_msec = max(aura_hp_until_msec, until)
+
+func heal(amount: float) -> void:
+	if not GameState.is_authority():
+		return
+	if not alive:
+		return
+	hp = clampf(hp + amount, 0.0, max_hp)
 
 # Cheap boids-style repulsion replacing the removed enemy↔enemy physics
 # pairs. Pulls candidates from SpatialIndex (rebuilt at -1000 priority, so
@@ -133,9 +180,10 @@ func apply_damage(amount: float, _src_team: String) -> void:
 		return
 	if not alive:
 		return
-	hp -= amount
-	EventBus.damage_dealt.emit(self, amount, _src_team)
-	_broadcast_damage_number(amount, global_position)
+	var taken: float = amount * damage_taken_mult
+	hp -= taken
+	EventBus.damage_dealt.emit(self, taken, _src_team)
+	_broadcast_damage_number(taken, global_position)
 	if hp <= 0.0:
 		alive = false
 		EventBus.enemy_killed.emit(self, 1)
