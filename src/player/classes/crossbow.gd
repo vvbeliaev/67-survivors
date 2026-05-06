@@ -9,7 +9,6 @@ const CrossbowPierce     := preload("res://src/skills/concrete/crossbow_pierce.g
 const CrossbowRoll       := preload("res://src/skills/concrete/crossbow_roll.gd")
 
 const CHARGE_SLOW_MOD := &"crossbow_charge_slow"
-const CHARGE_SLOW_PCT := -0.6
 
 var _slow_active: bool = false
 
@@ -22,6 +21,7 @@ func seed_stats(def: ClassDef, stats: StatBlock) -> void:
 	stats.set_base(StatBlock.STAT_ATK_SPEED, 1.0)
 	stats.set_base(StatBlock.STAT_RANGE, 1.0)
 	stats.set_base(StatBlock.STAT_COOLDOWN, 1.0)
+	stats.set_base(StatBlock.STAT_CHARGE_SLOW, -0.75)
 
 func build_skills() -> void:
 	primary_skill = CrossbowChargeShot.new()
@@ -33,9 +33,11 @@ func build_skills() -> void:
 
 func on_pre_move(_delta: float) -> void:
 	var charging: bool = owner_player.charge_started_at >= 0.0
-	if charging and not _slow_active:
-		owner_player.stats.add_pct(StatBlock.STAT_SPEED, CHARGE_SLOW_MOD, CHARGE_SLOW_PCT)
+	var slow: float = min(owner_player.stats.value(StatBlock.STAT_CHARGE_SLOW), 0.0)
+	var should_apply: bool = charging and slow < 0.0
+	if should_apply:
+		owner_player.stats.add_pct(StatBlock.STAT_SPEED, CHARGE_SLOW_MOD, slow)
 		_slow_active = true
-	elif not charging and _slow_active:
+	elif _slow_active:
 		owner_player.stats.remove(CHARGE_SLOW_MOD)
 		_slow_active = false

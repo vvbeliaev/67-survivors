@@ -23,6 +23,7 @@ const STAT_COOLDOWN  := &"cooldown"    # pct multiplier (base 1.0); negative red
 const STAT_MANA_ON_HIT := &"mana_on_hit"   # flat (fraction of max_mp restored per auto-hit)
 const STAT_CHARGE_PIERCE := &"charge_pierce"  # flat (extra pierce on crossbow charged bolt)
 const STAT_CHARGE_MULTISHOT := &"charge_multishot"  # flat (extra angled bolts on crossbow charged shot)
+const STAT_CHARGE_SLOW := &"charge_slow"   # pct (negative); applied to speed while crossbow is charging
 const STAT_CHAIN_HOPS := &"chain_hops"     # flat (extra hops on mage chain lightning)
 
 var _base: Dictionary = {}    # StringName -> float

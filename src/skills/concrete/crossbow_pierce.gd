@@ -20,9 +20,10 @@ func on_pressed() -> void:
 		owner_player.global_position + owner_player.aim_dir * (owner_player.radius + 4),
 		owner_player.aim_dir * speed,
 		damage * owner_player.dmg_mult(),
-		Color(1.0, 0.6, 0.2),
+		Color(1.0, 0.55, 0.15),
 		2.5,
-		6.0,
+		7.5,
 		pierce,
+		{"sprite_path": "res://assets/images/arrow.png", "sprite_size": Vector2(84.0, 33.0)},
 	)
 	owner_player.emit_fx("ap", {})

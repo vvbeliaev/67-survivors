@@ -52,8 +52,9 @@ func _fire_bolt(pos: Vector2, dir: Vector2, speed: float, dmg: float, pierce: in
 		pos,
 		dir * speed,
 		dmg,
-		Color(1.0, 0.95, 0.5),
+		Color(1, 1, 1),
 		2.5,
 		5.0,
 		pierce,
+		{"sprite_path": "res://assets/images/arrow.png", "sprite_size": Vector2(56.0, 22.0)},
 	)

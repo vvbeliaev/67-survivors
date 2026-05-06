@@ -14,6 +14,11 @@ var pierce: int = 0
 var hit_set: Dictionary = {}
 var source_peer: int = 0
 var mana_on_hit_pct: float = 0.0
+var sprite_path: String = ""
+var sprite_size: Vector2 = Vector2.ZERO
+
+var _sprite_tex: Texture2D = null
+var _sprite_loaded: bool = false
 
 func _ready() -> void:
 	monitoring = GameState.is_authority()
@@ -33,7 +38,26 @@ func _physics_process(delta: float) -> void:
 			visible = false
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, radius, color_hint)
+	var tex: Texture2D = _get_sprite()
+	if tex != null:
+		var w: float = sprite_size.x if sprite_size.x > 0.0 else radius * 8.0
+		var h: float = sprite_size.y if sprite_size.y > 0.0 else radius * 3.0
+		var ang: float = velocity.angle() if velocity.length_squared() > 0.0 else 0.0
+		draw_set_transform(Vector2.ZERO, ang, Vector2.ONE)
+		draw_texture_rect(tex, Rect2(-Vector2(w, h) * 0.5, Vector2(w, h)), false, color_hint)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		draw_circle(Vector2.ZERO, radius, color_hint)
+
+func _get_sprite() -> Texture2D:
+	if _sprite_loaded:
+		return _sprite_tex
+	if sprite_path.is_empty():
+		_sprite_loaded = true
+		return null
+	_sprite_tex = ResourceLoader.load(sprite_path) as Texture2D
+	_sprite_loaded = true
+	return _sprite_tex
 
 func _on_body_entered(body: Node) -> void:
 	_try_hit(body)

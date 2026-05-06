@@ -98,6 +98,8 @@ func _spawn_projectile(data: Variant) -> Node:
 	pr.pierce = int(d.get("pierce", 0))
 	pr.source_peer = int(d.get("source_peer", 0))
 	pr.mana_on_hit_pct = float(d.get("mana_on_hit_pct", 0.0))
+	pr.sprite_path = String(d.get("sprite_path", ""))
+	pr.sprite_size = d.get("sprite_size", Vector2.ZERO)
 	if pr.team == "player":
 		pr.collision_layer = 1 << 3
 		pr.collision_mask = 1 << 2

@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1_def")
-id = &"range"
-label = "+10% range"
+id = &"charge_slow_reduce"
+label = "-15% charge slowdown"
 weight = 1.0
-class_filter = Array[StringName]([&"berserker", &"mage", &"bard"])
+class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
-stat = &"range"
-mode = 1
-amount = 0.10
+stat = &"charge_slow"
+mode = 0
+amount = 0.15
 heal_on_pick = 0.0
 refill_mana = false
