@@ -134,6 +134,7 @@ func apply_damage(amount: float, _src_team: String) -> void:
 	if not alive:
 		return
 	hp -= amount
+	EventBus.damage_dealt.emit(self, amount, _src_team)
 	_broadcast_damage_number(amount, global_position)
 	if hp <= 0.0:
 		alive = false

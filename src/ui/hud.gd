@@ -98,9 +98,7 @@ var _boss_countdown: Label = null
 var _upgrade_panel: HUDPanel = null
 var _upgrade_title: Label = null
 var _upgrade_buttons: HBoxContainer = null
-var _endgame_panel: HUDPanel = null
-var _endgame_title: Label = null
-var _endgame_back: Button = null
+var _end_screen: EndScreen = null
 
 var _local_player: Node = null
 
@@ -112,7 +110,7 @@ func _ready() -> void:
 	_build_vitals_and_skills()
 	_build_boss_watch()
 	_build_upgrade_panel()
-	_build_endgame_panel()
+	_build_end_screen()
 
 	EventBus.run_ended.connect(_on_run_ended)
 	EventBus.enemy_killed.connect(_on_enemy_killed)
@@ -688,64 +686,30 @@ func _local_pick_upgrade(id: String) -> void:
 	offer.submit_pick(id)
 
 # =========================================================================
-# Endgame panel
+# End screen (victory / death)
 # =========================================================================
 
-func _build_endgame_panel() -> void:
-	_endgame_panel = HUDPanel.new()
-	_endgame_panel.bevel = 12.0
-	_endgame_panel.rivets = true
-	_endgame_panel.accent_border = true
-	_endgame_panel.custom_minimum_size = Vector2(420, 200)
-	_endgame_panel.position = Vector2(-210, -100)
-	_endgame_panel.visible = false
-	_endgame_panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	_center_anchor.add_child(_endgame_panel)
-
-	var v := VBoxContainer.new()
-	v.position = Vector2(20, 28)
-	v.size = Vector2(380, 144)
-	v.add_theme_constant_override("separation", 24)
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	_endgame_panel.add_child(v)
-
-	_endgame_title = Label.new()
-	_endgame_title.text = "—"
-	_endgame_title.add_theme_font_override("font", FONT_DISPLAY)
-	_endgame_title.add_theme_font_size_override("font_size", 36)
-	_endgame_title.add_theme_color_override("font_color", HUDPalette.ACCENT)
-	_endgame_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_endgame_title.add_theme_constant_override("outline_size", 4)
-	_endgame_title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	v.add_child(_endgame_title)
-
-	var center_btn := CenterContainer.new()
-	v.add_child(center_btn)
-
-	_endgame_back = Button.new()
-	_endgame_back.text = "В лобби"
-	_endgame_back.custom_minimum_size = Vector2(180, 44)
-	_endgame_back.add_theme_font_override("font", FONT_DISPLAY)
-	_endgame_back.add_theme_font_size_override("font_size", 16)
-	_endgame_back.add_theme_color_override("font_color", HUDPalette.INK)
-	_endgame_back.add_theme_color_override("font_hover_color", HUDPalette.ACCENT_GLOW)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = HUDPalette.PANEL
-	sb.border_color = HUDPalette.STROKE_STRONG
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(2)
-	_endgame_back.add_theme_stylebox_override("normal", sb)
-	var sbh := sb.duplicate()
-	sbh.bg_color = HUDPalette.PANEL_SOFT
-	sbh.border_color = HUDPalette.ACCENT_DEEP
-	_endgame_back.add_theme_stylebox_override("hover", sbh)
-	_endgame_back.pressed.connect(_on_back_to_lobby)
-	center_btn.add_child(_endgame_back)
+func _build_end_screen() -> void:
+	_end_screen = EndScreen.new()
+	_end_screen.back_to_lobby.connect(_on_back_to_lobby)
+	_root.add_child(_end_screen)
 
 func _on_run_ended(won: bool) -> void:
-	_endgame_title.text = "ПОБЕДА" if won else "ЗАБЕГ ОКОНЧЕН"
-	_endgame_title.add_theme_color_override("font_color", HUDPalette.ACCENT if won else HUDPalette.DANGER)
-	_endgame_panel.visible = true
+	if _end_screen == null:
+		return
+	# Hide every other HUD anchor so the death overlay reads cleanly.
+	for child in _root.get_children():
+		if child == _end_screen:
+			continue
+		if child is Control:
+			(child as Control).visible = false
+	_end_screen.show_for_run(
+		won,
+		GameState.run_time,
+		GameState.run_kills,
+		GameState.run_damage,
+		GameState.run_xp_gained,
+	)
 
 func _on_back_to_lobby() -> void:
 	Network.leave()

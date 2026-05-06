@@ -46,5 +46,17 @@ func _ready() -> void:
 		if def != null:
 			p2.apply_upgrade_def(def)
 			print("[smoke] upgrade damage %.2f -> %.2f" % [dmg_before, p2.dmg_mult()])
+	print("[smoke] run_kills=%d run_damage=%d run_xp_gained=%d" % [
+		GameState.run_kills, GameState.run_damage, GameState.run_xp_gained
+	])
+	# End-screen path: trigger run end and confirm EndScreen instance shows.
+	var rd := get_tree().get_first_node_in_group("run_director")
+	if rd != null:
+		rd._end(false)
+	await get_tree().create_timer(0.1).timeout
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud != null and hud.get("_end_screen") != null:
+		var es = hud.get("_end_screen")
+		print("[smoke] end_screen visible=%s" % str(es.visible))
 	print("[smoke] DONE")
 	get_tree().quit(0)

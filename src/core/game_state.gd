@@ -28,6 +28,11 @@ var run_time: float = 0.0
 var party_level: int = 1
 var party_xp: int = 0
 
+# Aggregated run stats (host-tracked, snapshot-replicated to clients on run end).
+var run_kills: int = 0
+var run_damage: int = 0
+var run_xp_gained: int = 0
+
 signal roster_changed
 signal party_level_changed(new_level: int)
 signal run_state_changed(active: bool, won: bool)
@@ -41,6 +46,9 @@ func reset_run() -> void:
 	run_time = 0.0
 	party_level = 1
 	party_xp = 0
+	run_kills = 0
+	run_damage = 0
+	run_xp_gained = 0
 
 func xp_threshold(level: int) -> int:
 	return 5 + 3 * level + level * level
