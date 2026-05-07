@@ -285,3 +285,45 @@ func _check_all_ready() -> void:
 		if not _ready_set.has(pid):
 			return
 	request_start_round()
+
+# ---- Arena-ready handshake -------------------------------------------------
+# Used by arena.gd: each client pings the host once arena.tscn is loaded so
+# the host can wait for all peers to attach to MultiplayerSpawners before
+# spawning the roster — otherwise late peers (browsers through WSS) miss
+# spawn-events and end up on an empty arena.
+
+var _arena_ready_peers: Array[int] = []
+
+signal arena_peer_ready(peer_id: int)
+
+func reset_arena_ready() -> void:
+	_arena_ready_peers.clear()
+
+func mark_self_arena_ready() -> void:
+	if multiplayer.multiplayer_peer == null:
+		# Solo/debug — no peers to wait for.
+		return
+	if multiplayer.is_server():
+		_register_arena_ready(multiplayer.get_unique_id())
+	else:
+		_rpc_arena_ready.rpc_id(1)
+
+@rpc("any_peer", "reliable")
+func _rpc_arena_ready() -> void:
+	if not multiplayer.is_server():
+		return
+	_register_arena_ready(multiplayer.get_remote_sender_id())
+
+func _register_arena_ready(peer_id: int) -> void:
+	if _arena_ready_peers.has(peer_id):
+		return
+	_arena_ready_peers.append(peer_id)
+	arena_peer_ready.emit(peer_id)
+
+func arena_pending_peers() -> Array[int]:
+	var pending: Array[int] = []
+	for pid in GameState.roster.keys():
+		var int_pid: int = int(pid)
+		if not _arena_ready_peers.has(int_pid):
+			pending.append(int_pid)
+	return pending
