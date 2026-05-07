@@ -108,6 +108,11 @@ var _class_idx: int = 0
 var _is_ready: bool = false
 var _join_error: String = ""
 
+const WEB_BLOCK_HINT := "Недоступно в браузере: ENet/UDP не поддерживается WebAssembly. Скачай десктоп-сборку для коопа."
+
+func _is_web() -> bool:
+	return OS.has_feature("web")
+
 func _ready() -> void:
 	GameState.debug_mode = false
 	nick_edit.text = GameState.local_nick
@@ -137,6 +142,13 @@ func _ready() -> void:
 	Network.join_failed.connect(_on_join_failed)
 	GameState.roster_changed.connect(_refresh)
 	version_label.text = "v 0.7.3 · alpha"
+	if _is_web():
+		host_btn.tooltip_text = WEB_BLOCK_HINT
+		join_btn.tooltip_text = WEB_BLOCK_HINT
+		addr_edit.editable = false
+		addr_edit.tooltip_text = WEB_BLOCK_HINT
+		port_edit.editable = false
+		port_edit.tooltip_text = WEB_BLOCK_HINT
 	_apply_class_selection()
 	_refresh()
 
@@ -281,8 +293,9 @@ func _refresh() -> void:
 	waiting_room_view.visible = connected
 
 	# Main menu state
-	host_btn.disabled = connected or connecting
-	join_btn.disabled = connected or connecting
+	var web := _is_web()
+	host_btn.disabled = connected or connecting or web
+	join_btn.disabled = connected or connecting or web
 	debug_btn.disabled = connected or connecting
 	leave_btn.disabled = false
 	ready_btn.visible = false  # in waiting room now
@@ -305,6 +318,9 @@ func _refresh() -> void:
 	elif not _join_error.is_empty():
 		status_label.text = "● %s" % _join_error
 		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
+	elif web:
+		status_label.text = "● Браузерная версия — только соло (Debug). Кооп требует десктоп."
+		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
 	else:
 		status_label.text = "● Сервер найден"
 		status_label.modulate = Color(0.83, 0.63, 0.29, 1)

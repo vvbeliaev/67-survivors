@@ -3,7 +3,7 @@
 /android/
 *.translation
 export.cfg
-export_presets.cfg
+build/
 
 # IDE
 .idea/
