@@ -27,6 +27,7 @@ const STAT_CHARGE_DAMAGE := &"charge_damage"  # pct multiplier on charge max-mul
 const STAT_BOLT_DAMAGE := &"bolt_damage"   # flat (added to crossbow auto-bolt and roll-volley base damage)
 const STAT_CHAIN_HOPS := &"chain_hops"     # flat (extra hops on mage chain lightning)
 const STAT_ROLL_VOLLEY := &"roll_volley"   # flat (radial bolts fired from roll origin)
+const STAT_FIREBALL_DAMAGE := &"fireball_damage"  # flat (added to mage fireball AoE base damage)
 
 var _base: Dictionary = {}    # StringName -> float
 var _flats: Dictionary = {}   # StringName -> { StringName -> float }

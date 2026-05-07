@@ -1,23 +1,23 @@
 [gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
-[ext_resource type="Texture2D" path="res://assets/images/icons/lightning-arc.svg" id="2_icon"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/crowned-explosion.svg" id="2_icon"]
 
 [resource]
 script = ExtResource("1_def")
-id = &"chain_hops"
-label = "+3 chain bounces"
+id = &"mage_fireball_damage"
+label = "+10 fireball damage"
 weight = 1.0
 class_filter = Array[StringName]([&"mage"])
 archetype_filter = Array[StringName]([])
 icon = ExtResource("2_icon")
-display_name = "Цепная молния"
-description = "Цепные отскоки	+3"
+display_name = "Перегретый файрбол"
+description = "Урон файрбола	+10"
 rarity = 2
 category = &"attack"
-flavor = "Молния голодна."
-stat = &"chain_hops"
+flavor = "Жар, что плавит руны."
+stat = &"fireball_damage"
 mode = 0
-amount = 3.0
+amount = 10.0
 heal_on_pick = 0.0
 refill_mana = false
