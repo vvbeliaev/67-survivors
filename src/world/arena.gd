@@ -46,30 +46,15 @@ func _ready() -> void:
 		add_child(DEBUG_PANEL_SCENE.instantiate())
 
 	if GameState.is_authority():
-		Network.reset_arena_ready()
-
-	# Каждый клиент пингует хоста: «я в арене, спавнеры подписаны».
-	# В соло-режиме mark_self_arena_ready() — no-op.
-	Network.mark_self_arena_ready()
-
-	if GameState.is_authority():
-		await _wait_for_arena_peers()
+		# Хост попадает сюда уже после того, как все клиенты загрузили арену —
+		# Network.request_start_round дожидается ack-ов до смены сцены у хоста.
+		# Поэтому RPC из дочерних _ready (RunDirector, MultiplayerSpawner-ы)
+		# летят в уже существующее /root/Arena у клиентов. Спавним ростер сразу.
 		_host_spawn_roster()
-
-# Хост ждёт пока все из roster пришлют arena-ready ack, иначе late peers
-# (особенно браузеры через WSS) пропустят MultiplayerSpawner.spawn() и
-# окажутся на пустой арене. Жёсткий таймаут — не больше 8 сек.
-func _wait_for_arena_peers() -> void:
-	if not multiplayer.has_multiplayer_peer():
-		return
-	const TIMEOUT_MS := 8000
-	const POLL_MS := 100
-	var deadline := Time.get_ticks_msec() + TIMEOUT_MS
-	while Network.arena_pending_peers().size() > 0:
-		if Time.get_ticks_msec() > deadline:
-			push_warning("[arena] timed out waiting for peers: %s" % str(Network.arena_pending_peers()))
-			return
-		await get_tree().create_timer(POLL_MS / 1000.0).timeout
+	else:
+		# Клиент: подтверждаем хосту, что арена в дереве и spawnery готовы
+		# принимать spawn-пакеты.
+		Network.mark_self_arena_ready()
 
 func _spawn_torches() -> void:
 	# Deterministic by index, so positions match across peers without sync.

@@ -11,6 +11,8 @@ const DEFAULT_PORT := 7777
 const MAX_PEERS := 8
 const ARENA_SCENE_PATH := "res://src/world/arena.tscn"
 const JOIN_TIMEOUT_SEC := 6.0
+const ARENA_LOAD_TIMEOUT_MS := 8000
+const ARENA_LOAD_POLL_MS := 100
 
 signal lobby_updated
 signal start_round_requested
@@ -23,6 +25,9 @@ var _ready_set: Array[int] = []
 var _pending_address: String = ""
 var _pending_port: int = 0
 var _join_session: int = 0
+# Защита от повторного запуска request_start_round пока хост ждёт ack-ов
+# от клиентов. Сбрасывается в leave() (возврат в лобби).
+var _starting_round: bool = false
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -147,6 +152,8 @@ func leave() -> void:
 	multiplayer.multiplayer_peer = null
 	GameState.roster.clear()
 	_ready_set.clear()
+	_starting_round = false
+	reset_arena_ready()
 	GameState.roster_changed.emit()
 
 func _register_self() -> void:
@@ -230,11 +237,35 @@ func set_local_class(klass: StringName) -> void:
 		rpc_id(1, "_rpc_register_peer", GameState.local_nick, String(klass))
 
 func request_start_round() -> void:
-	if multiplayer.is_server():
-		rpc("_rpc_start_round")
+	if not multiplayer.is_server():
+		return
+	if _starting_round:
+		return
+	_starting_round = true
+	# Сначала клиенты грузят арену и шлют ack, и только ПОСЛЕ этого хост грузит
+	# свою. Иначе дочерние ноды Arena (RunDirector → _rpc_set_run_state в
+	# _ready, MultiplayerSpawner-ы при path-resolve) у хоста улетают клиенту,
+	# у которого сцены ещё нет в дереве, и сыпется "Node not found: Arena/…".
+	# Дочерний _ready бежит раньше Arena._ready, так что хендшейк должен
+	# случиться ДО смены сцены, а не внутри неё.
+	if multiplayer.has_multiplayer_peer():
+		reset_arena_ready()
+		_register_arena_ready(multiplayer.get_unique_id())
+		_rpc_clients_load_arena.rpc()
+		await _await_clients_arena_loaded()
+	start_round_requested.emit()
+	get_tree().change_scene_to_file(ARENA_SCENE_PATH)
 
-@rpc("authority", "reliable", "call_local")
-func _rpc_start_round() -> void:
+func _await_clients_arena_loaded() -> void:
+	var deadline := Time.get_ticks_msec() + ARENA_LOAD_TIMEOUT_MS
+	while arena_pending_peers().size() > 0:
+		if Time.get_ticks_msec() > deadline:
+			push_warning("[net] arena-load ack timeout, pending peers: %s" % str(arena_pending_peers()))
+			return
+		await get_tree().create_timer(ARENA_LOAD_POLL_MS / 1000.0).timeout
+
+@rpc("authority", "reliable")
+func _rpc_clients_load_arena() -> void:
 	start_round_requested.emit()
 	get_tree().change_scene_to_file(ARENA_SCENE_PATH)
 
@@ -287,10 +318,12 @@ func _check_all_ready() -> void:
 	request_start_round()
 
 # ---- Arena-ready handshake -------------------------------------------------
-# Used by arena.gd: each client pings the host once arena.tscn is loaded so
-# the host can wait for all peers to attach to MultiplayerSpawners before
-# spawning the roster — otherwise late peers (browsers through WSS) miss
-# spawn-events and end up on an empty arena.
+# Хост ждёт ack-ов от всех клиентов ДО собственной смены сцены (см.
+# request_start_round). Каждый клиент пингует хоста через mark_self_arena_ready
+# из arena._ready, как только сцена в дереве и spawnery подписаны. Иначе
+# дочерние ноды Arena (RunDirector с RPC в _ready, MultiplayerSpawner-ы
+# при path-resolve) у хоста улетают раньше, чем у клиента появится
+# /root/Arena — и сыпется "Node not found: Arena/…".
 
 var _arena_ready_peers: Array[int] = []
 
