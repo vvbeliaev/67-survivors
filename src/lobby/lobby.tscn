@@ -437,44 +437,6 @@ theme_override_constants/margin_bottom = 14
 [node name="Root" type="VBoxContainer" parent="Layout"]
 theme_override_constants/separation = 14
 
-[node name="TopStrip" type="HBoxContainer" parent="Layout/Root"]
-theme_override_constants/separation = 16
-
-[node name="Brand" type="HBoxContainer" parent="Layout/Root/TopStrip"]
-theme_override_constants/separation = 16
-size_flags_horizontal = 3
-
-[node name="BrandDiamond" type="Control" parent="Layout/Root/TopStrip/Brand"]
-custom_minimum_size = Vector2(14, 14)
-size_flags_vertical = 4
-script = ExtResource("5_diamond")
-
-[node name="BrandLabel" type="Label" parent="Layout/Root/TopStrip/Brand"]
-size_flags_vertical = 4
-text = "CRYPT  OF  THE  SURVIVORS"
-theme_override_fonts/font = SubResource("FV_brand")
-theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)
-theme_override_constants/shadow_outline_size = 0
-
-[node name="Souls" type="HBoxContainer" parent="Layout/Root/TopStrip"]
-theme_override_constants/separation = 14
-alignment = 2
-
-[node name="SoulsLabel" type="Label" parent="Layout/Root/TopStrip/Souls"]
-text = "ЖИВЫХ ДУШ"
-size_flags_vertical = 8
-theme_override_fonts/font = ExtResource("10_mono")
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
-
-[node name="SoulsCount" type="Label" parent="Layout/Root/TopStrip/Souls"]
-unique_name_in_owner = true
-text = "067"
-theme_override_fonts/font = SubResource("FV_brand")
-theme_override_font_sizes/font_size = 30
-theme_override_colors/font_color = Color(0.83, 0.63, 0.29, 1)
-
 [node name="MainGrid" type="HBoxContainer" parent="Layout/Root"]
 size_flags_vertical = 3
 theme_override_constants/separation = 36
@@ -988,7 +950,7 @@ theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.61, 0.53, 0.41, 1)
 
 [node name="DungeonValue" type="Label" parent="WaitingRoomView/WRLayout/WRRoot/WRMainGrid/WRRightCol/RaidPanel/RaidLayout/RaidRows/DungeonRow"]
-text = "Логово Костей"
+text = "Паучье Логово"
 theme_override_fonts/font = ExtResource("8_cinzel")
 theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.92, 0.85, 0.72, 1)

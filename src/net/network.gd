@@ -6,13 +6,19 @@ extends Node
 const DEFAULT_PORT := 7777
 const MAX_PEERS := 8
 const ARENA_SCENE_PATH := "res://src/world/arena.tscn"
+const JOIN_TIMEOUT_SEC := 6.0
 
 signal lobby_updated
 signal start_round_requested
 signal ready_state_changed
+signal join_started(address: String, port: int)
+signal join_failed(address: String, port: int, reason: String)
 
 # peer_id → bool (mirrors of who has clicked "Ready").
 var _ready_set: Array[int] = []
+var _pending_address: String = ""
+var _pending_port: int = 0
+var _join_session: int = 0
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -44,11 +50,66 @@ func join(address: String, port: int = DEFAULT_PORT) -> Error:
 	leave()
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
-	if err == OK:
-		multiplayer.multiplayer_peer = peer
-	return err
+	if err != OK:
+		join_failed.emit(address, port, "не удалось создать клиент")
+		return err
+	multiplayer.multiplayer_peer = peer
+	_pending_address = address
+	_pending_port = port
+	_join_session += 1
+	var session := _join_session
+	get_tree().create_timer(JOIN_TIMEOUT_SEC).timeout.connect(_on_join_timeout.bind(session))
+	join_started.emit(address, port)
+	lobby_updated.emit()
+	return OK
+
+func is_join_pending() -> bool:
+	if _pending_address.is_empty():
+		return false
+	var peer := multiplayer.multiplayer_peer
+	if peer == null or not (peer is ENetMultiplayerPeer):
+		return false
+	return peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING
+
+func pending_address() -> String:
+	return _pending_address
+
+func pending_port() -> int:
+	return _pending_port
+
+func _on_join_timeout(session: int) -> void:
+	if session != _join_session:
+		return
+	if _pending_address.is_empty():
+		return
+	var peer := multiplayer.multiplayer_peer
+	if peer != null and peer is ENetMultiplayerPeer \
+			and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		return
+	_fail_pending_join("сервер не отвечает")
+
+func _fail_pending_join(reason: String) -> void:
+	if _pending_address.is_empty():
+		return
+	var addr := _pending_address
+	var port := _pending_port
+	_clear_pending_join()
+	if multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer.close()
+		multiplayer.multiplayer_peer = null
+	GameState.roster.clear()
+	_ready_set.clear()
+	GameState.roster_changed.emit()
+	join_failed.emit(addr, port, reason)
+	lobby_updated.emit()
+
+func _clear_pending_join() -> void:
+	_pending_address = ""
+	_pending_port = 0
+	_join_session += 1
 
 func leave() -> void:
+	_clear_pending_join()
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
@@ -76,6 +137,7 @@ func _on_peer_disconnected(id: int) -> void:
 		rpc("_rpc_remove_roster_entry", id)
 
 func _on_connected_to_server() -> void:
+	_clear_pending_join()
 	var id := multiplayer.get_unique_id()
 	GameState.roster[id] = _entry(GameState.local_nick, GameState.local_class)
 	rpc_id(1, "_rpc_register_peer", GameState.local_nick, String(GameState.local_class))
@@ -83,6 +145,9 @@ func _on_connected_to_server() -> void:
 	lobby_updated.emit()
 
 func _on_connection_failed() -> void:
+	if not _pending_address.is_empty():
+		_fail_pending_join("не удалось подключиться")
+		return
 	multiplayer.multiplayer_peer = null
 	lobby_updated.emit()
 

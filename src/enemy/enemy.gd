@@ -27,6 +27,13 @@ const TEAM := "enemy"
 # sprite consistently for every peer.
 @export var facing_dir: Vector2 = Vector2.DOWN
 
+# ---- Dasher state (only meaningful for the dasher archetype) -----------
+# 0=idle/walk, 1=telegraph (line tracks player), 2=locked (no tracking),
+# 3=dashing, 4=post-dash cooldown. Drives the view's red trajectory line and
+# walk-frame freeze; populated by dasher_ai on the host.
+@export var dash_state: int = 0
+@export var dash_target_pos: Vector2 = Vector2.ZERO
+
 # ---- Aura state (colossus-driven, but lives on every enemy because any
 # enemy may be buffed by a nearby colossus) ------------------------------
 # Aura type the enemy itself emits ("" = none). Set once at setup, immutable.

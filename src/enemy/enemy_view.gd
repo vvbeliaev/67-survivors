@@ -15,8 +15,12 @@ const RUSHER_FRAME_DURATION := 0.18
 const SPRITE_SIZE_MULT := 2.6
 const SWARM_SPRITE_MULT := SPRITE_SIZE_MULT * 1.2
 const COLOSSUS_SPRITE_MULT := SPRITE_SIZE_MULT * 1.4
+# Dasher reuses the spider frames but draws a touch larger so the size step
+# (and the blue tint) reads at a glance.
+const DASHER_SPRITE_MULT := SPRITE_SIZE_MULT * 1.15
 
 const SWARM_FRAME_DURATION := 0.28
+const SHOCKWAVE_DURATION := 0.45
 const SLIME_TRAIL_COLOR   := Color(0.15, 0.72, 0.10)
 const TRAIL_POINTS        := 14
 const TRAIL_INTERVAL      := 0.05
@@ -41,9 +45,30 @@ var _swarm_frames: Array[Texture2D] = []
 var _colossus_frames: Array[Texture2D] = []
 var _icon_textures: Dictionary = {}     # StringName aura kind → Texture2D
 
+# Default-art enemies all reuse the spider sprite, recolored via a per-type
+# luminance ramp. Source PNG is warm-toned (avg R≈0.35, G≈0.20, B≈0.09) and
+# multiply-modulate can't pull it into other hues because the original blue
+# channel is near-zero — so we bake a recolored copy once per type and reuse
+# it for every instance. Cost: ~one image walk × 3 frames × types-in-play.
+#
+# To add a new tinted spider variant: add an entry here with the per-channel
+# ramp factor — values >1 emphasize that channel, <1 dampen it. Outline /
+# shadow pixels stay dark either way (lum≈0 → output≈0), preserving silhouette.
+const TINT_RAMP_BY_TYPE: Dictionary = {
+	&"dasher": Vector3(0.30, 0.55, 1.55),  # cool blue
+	&"ranged": Vector3(0.30, 1.55, 0.55),  # acid green
+	&"tank":   Vector3(1.10, 0.45, 1.40),  # bruise purple
+	&"boss":   Vector3(1.55, 0.35, 1.30),  # magenta
+}
+static var _tinted_spider_cache: Dictionary = {}  # StringName → Array[Texture2D]
+
 # Pulse animation state — replays whenever owner_enemy.pulse_seq changes.
 var _last_pulse_seq: int = 0
 var _pulse_anim_start_msec: int = 0
+
+# Boss shockwave animation — kicks off when boss_aoe_state transitions into 2.
+var _last_boss_aoe_state: int = 0
+var _shockwave_start_msec: int = 0
 
 func _ready() -> void:
 	_enemy = get_node(owner_path)
@@ -59,6 +84,8 @@ func _ready() -> void:
 		var orc_path := "res://assets/images/orc.png"
 		if ResourceLoader.exists(orc_path):
 			_colossus_frames.append(load(orc_path) as Texture2D)
+	if _enemy != null and TINT_RAMP_BY_TYPE.has(_enemy.enemy_type):
+		_bake_tinted_spider_frames(_enemy.enemy_type, TINT_RAMP_BY_TYPE[_enemy.enemy_type])
 	# Aura icons — loaded for any enemy because anyone can be buffed.
 	for entry: Array in [
 		[&"hp", "res://assets/images/aura_health.svg"],
@@ -89,6 +116,10 @@ func _process(_delta: float) -> void:
 	if _enemy != null and is_instance_valid(_enemy) and _enemy.pulse_seq != _last_pulse_seq:
 		_last_pulse_seq = _enemy.pulse_seq
 		_pulse_anim_start_msec = Time.get_ticks_msec()
+	if _enemy != null and is_instance_valid(_enemy) and _enemy.boss_aoe_state != _last_boss_aoe_state:
+		if _enemy.boss_aoe_state == 2:
+			_shockwave_start_msec = Time.get_ticks_msec()
+		_last_boss_aoe_state = _enemy.boss_aoe_state
 	queue_redraw()
 
 func _draw() -> void:
@@ -98,6 +129,8 @@ func _draw() -> void:
 		_draw_slime_trail()
 	if _enemy.aura_kind != &"":
 		_draw_aura_field(_enemy.aura_kind)
+	if _enemy.enemy_type == &"dasher":
+		_draw_dash_indicator()
 	var frames: Array[Texture2D] = _frames_for(_enemy.enemy_type)
 	if frames.is_empty():
 		draw_circle(Vector2.ZERO, _enemy.radius, _enemy.color_hint)
@@ -113,6 +146,55 @@ func _draw() -> void:
 	_draw_aura_buff_icons()
 	if _enemy.boss_aoe and _enemy.boss_aoe_state == 1:
 		draw_arc(_enemy.boss_aoe_pos - _enemy.global_position, _enemy.boss_aoe_radius, 0, TAU, 48, Color(1, 0.2, 0.2, 0.7), 3.0)
+	if _enemy.boss_aoe and _enemy.boss_aoe_state == 2:
+		_draw_shockwave()
+
+func _draw_shockwave() -> void:
+	# Expanding ring — sweeps from 30% to 110% of the AoE radius over
+	# SHOCKWAVE_DURATION while the trailing wash fills the impact zone.
+	var t: float = float(Time.get_ticks_msec() - _shockwave_start_msec) / 1000.0
+	if t < 0.0 or t > SHOCKWAVE_DURATION:
+		return
+	var f: float = clampf(t / SHOCKWAVE_DURATION, 0.0, 1.0)
+	var center: Vector2 = _enemy.boss_aoe_pos - _enemy.global_position
+	var max_r: float = _enemy.boss_aoe_radius
+	var ring_r: float = lerpf(max_r * 0.3, max_r * 1.1, f)
+	var alpha_ring: float = (1.0 - f) * 0.95
+	var alpha_fill: float = (1.0 - f) * 0.45
+	var inner_r: float = max(ring_r - 18.0, 0.0)
+	# Bright impact wash — radial fade approximated by stacking two filled
+	# disks (light core + outer translucent) since draw_circle has no gradient.
+	draw_circle(center, ring_r, Color(1.0, 0.55, 0.25, alpha_fill * 0.55))
+	draw_circle(center, inner_r, Color(1.0, 0.85, 0.45, alpha_fill * 0.35))
+	# Two concentric rings give the wave a clear leading edge.
+	draw_arc(center, ring_r, 0, TAU, 64, Color(1.0, 0.95, 0.7, alpha_ring), 6.0)
+	draw_arc(center, ring_r * 0.78, 0, TAU, 48, Color(1.0, 0.4, 0.15, alpha_ring * 0.7), 3.0)
+
+func _draw_dash_indicator() -> void:
+	if _enemy.dash_state != 1 and _enemy.dash_state != 2:
+		return
+	var origin: Vector2 = Vector2.ZERO  # local space — Player View is centered on enemy
+	var endpoint: Vector2 = _enemy.dash_target_pos - _enemy.global_position
+	var diff: Vector2 = endpoint - origin
+	var len_sq: float = diff.length_squared()
+	if len_sq < 0.0001:
+		return
+	var dir: Vector2 = diff.normalized()
+	var perp: Vector2 = Vector2(-dir.y, dir.x)
+	var half_w: float = _enemy.radius * 1.12  # was 1.4; -20% per request
+	# Brighter alpha during the locked window so players read the commit.
+	var alpha: float = 0.15 if _enemy.dash_state == 1 else 0.26
+	var fill := Color(1.0, 0.18, 0.18, alpha)
+	var edge := Color(1.0, 0.25, 0.25, alpha + 0.15)
+	var quad := PackedVector2Array([
+		origin + perp * half_w,
+		endpoint + perp * half_w,
+		endpoint - perp * half_w,
+		origin - perp * half_w,
+	])
+	draw_polygon(quad, PackedColorArray([fill, fill, fill, fill]))
+	draw_line(origin + perp * half_w, endpoint + perp * half_w, edge, 1.5)
+	draw_line(origin - perp * half_w, endpoint - perp * half_w, edge, 1.5)
 
 func _draw_aura_field(kind: StringName) -> void:
 	# Constant translucent disk + outline so the radius is legible.
@@ -212,6 +294,12 @@ func _draw_slime_trail() -> void:
 		draw_polygon(quad, qcols)
 
 func _frames_for(t: StringName) -> Array[Texture2D]:
+	# Tinted spiders win over the raw rusher art when a ramp is registered.
+	if TINT_RAMP_BY_TYPE.has(t):
+		var cached = _tinted_spider_cache.get(t)
+		if cached != null and not (cached as Array).is_empty():
+			return cached
+		return RUSHER_FRAMES
 	match t:
 		&"rusher":
 			return RUSHER_FRAMES
@@ -221,6 +309,38 @@ func _frames_for(t: StringName) -> Array[Texture2D]:
 			return _colossus_frames
 		_:
 			return []
+
+# Bake a recolored spider palette for `t` by mapping per-pixel luminance onto
+# a cool / warm / acid ramp. Outline / shadow pixels stay dark (lum≈0), so
+# silhouette is preserved. Idempotent — first caller for a given type pays
+# the cost, subsequent instances hit the static cache.
+func _bake_tinted_spider_frames(t: StringName, ramp: Vector3) -> void:
+	if _tinted_spider_cache.has(t):
+		return
+	var out: Array[Texture2D] = []
+	for src: Texture2D in RUSHER_FRAMES:
+		var img: Image = src.get_image()
+		if img == null:
+			continue
+		if img.is_compressed():
+			img.decompress()
+		img.convert(Image.FORMAT_RGBA8)
+		var w: int = img.get_width()
+		var h: int = img.get_height()
+		for y in h:
+			for x in w:
+				var c: Color = img.get_pixel(x, y)
+				if c.a <= 0.0:
+					continue
+				var lum: float = c.r * 0.299 + c.g * 0.587 + c.b * 0.114
+				img.set_pixel(x, y, Color(
+					clampf(lum * ramp.x, 0.0, 1.0),
+					clampf(lum * ramp.y, 0.0, 1.0),
+					clampf(lum * ramp.z, 0.0, 1.0),
+					c.a,
+				))
+		out.append(ImageTexture.create_from_image(img))
+	_tinted_spider_cache[t] = out
 
 func _frame_duration_for(t: StringName) -> float:
 	if t == &"swarm":
@@ -232,6 +352,8 @@ func _sprite_mult_for(t: StringName) -> float:
 		return SWARM_SPRITE_MULT
 	if t == &"colossus":
 		return COLOSSUS_SPRITE_MULT
+	if t == &"dasher":
+		return DASHER_SPRITE_MULT
 	return SPRITE_SIZE_MULT
 
 # Per-type rotation offset added to facing_dir.angle(). Default formula
@@ -244,14 +366,25 @@ func _sprite_rot_offset_for(t: StringName) -> float:
 	return PI * 0.5
 
 func _draw_animated_sprite(frames: Array[Texture2D], frame_dur: float, size_mult: float, rot_offset: float = PI * 0.5) -> void:
-	var t: float = Time.get_ticks_msec() / 1000.0
-	var idx: int = int(t / frame_dur) % frames.size()
+	var idx: int
+	# Dasher freezes its walk frame whenever it's preparing or executing the
+	# dash — only state 0 (walk) and 4 (post-dash) play the animation. The
+	# user-facing rule is "preparing the dash → walk animation freezes" so we
+	# also freeze during the dash itself, otherwise the spider visibly shimmies
+	# during the lunge.
+	if _enemy.enemy_type == &"dasher" and _enemy.dash_state != 0 and _enemy.dash_state != 4:
+		idx = 0
+	else:
+		var t: float = Time.get_ticks_msec() / 1000.0
+		idx = int(t / frame_dur) % frames.size()
 	var tex: Texture2D = frames[idx]
 	var s: float = _enemy.radius * size_mult
 	var rot: float = _enemy.facing_dir.angle() + rot_offset
+	# Dasher uses a baked blue palette (see _bake_dasher_frames), so plain
+	# white modulate keeps the recolored pixels intact.
 	var tint := Color(1, 1, 1, 1)
 	if not _enemy.alive:
-		tint = Color(1, 1, 1, 0.45)
+		tint.a = 0.45
 	draw_set_transform(Vector2.ZERO, rot, Vector2.ONE)
 	draw_texture_rect(tex, Rect2(-Vector2(s, s) * 0.5, Vector2(s, s)), false, tint)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

@@ -29,6 +29,9 @@ func tick(delta: float) -> void:
 		_ranged_cd = e.ranged_cd
 		_fire(target, dir)
 
+const POIZON_SPRITE: String = "res://assets/images/poizon_ball.png"
+const POIZON_SIZE: Vector2 = Vector2(18, 18)
+
 func _fire(target: Node2D, dir: Vector2) -> void:
 	var arena := get_tree().get_first_node_in_group("arena")
 	if arena == null:
@@ -41,7 +44,9 @@ func _fire(target: Node2D, dir: Vector2) -> void:
 		"damage": e.projectile_damage,
 		"lifetime": 3.0,
 		"team": "enemy",
-		"color": Color(1.0, 0.5, 0.2),
+		"color": Color(1, 1, 1, 1),
 		"radius": 6.0,
 		"pierce": 0,
+		"sprite_path": POIZON_SPRITE,
+		"sprite_size": POIZON_SIZE,
 	})

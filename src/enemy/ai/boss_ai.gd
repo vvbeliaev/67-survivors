@@ -1,6 +1,15 @@
 extends EnemyAI
 
 # Boss: melee + telegraphed AoE on the targeted player's position.
+#
+# AoE state machine:
+#   0 — cooldown between casts.
+#   1 — windup, red ring telegraphed at boss_aoe_pos.
+#   2 — shockwave detonation. Damage is applied at the 1→2 transition; this
+#       state simply keeps the enemy state replicated long enough for every
+#       peer's view to play the expanding-ring animation.
+
+const SHOCKWAVE_DURATION: float = 0.45
 
 var _attack_cd: float = 0.0
 var _aoe_cd: float = 0.0
@@ -40,6 +49,11 @@ func _tick_aoe(delta: float, target: Node2D) -> void:
 			e.boss_aoe_timer -= delta
 			if e.boss_aoe_timer <= 0.0:
 				_resolve(e)
+				e.boss_aoe_state = 2
+				e.boss_aoe_timer = SHOCKWAVE_DURATION
+		2:
+			e.boss_aoe_timer -= delta
+			if e.boss_aoe_timer <= 0.0:
 				e.boss_aoe_state = 0
 				_aoe_cd = e.boss_aoe_cd
 

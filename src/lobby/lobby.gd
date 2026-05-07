@@ -91,7 +91,6 @@ const MAX_SQUAD: int = 4
 @onready var roster_label: Label = %Roster
 @onready var status_label: Label = %StatusLabel
 @onready var version_label: Label = %VersionLabel
-@onready var souls_count_label: Label = %SoulsCount
 
 # Waiting room nodes
 @onready var waiting_room_view: Control = %WaitingRoomView
@@ -107,6 +106,7 @@ const MAX_SQUAD: int = 4
 
 var _class_idx: int = 0
 var _is_ready: bool = false
+var _join_error: String = ""
 
 func _ready() -> void:
 	GameState.debug_mode = false
@@ -127,11 +127,15 @@ func _ready() -> void:
 		b.pressed.connect(func(): AudioBus.play_ui(&"ui_click"))
 		b.mouse_entered.connect(func(): AudioBus.play_ui(&"ui_hover", -10.5))
 	nick_edit.text_changed.connect(func(t): GameState.local_nick = t)
-	chat_input.text_submitted.connect(_on_chat_submit)
+	chat_input.editable = false
+	chat_input.placeholder_text = "(чат пока отключён)"
+	chat_input.focus_mode = Control.FOCUS_NONE
+	chat_input.mouse_default_cursor_shape = Control.CURSOR_FORBIDDEN
 	Network.lobby_updated.connect(_refresh)
 	Network.ready_state_changed.connect(_refresh)
+	Network.join_started.connect(_on_join_started)
+	Network.join_failed.connect(_on_join_failed)
 	GameState.roster_changed.connect(_refresh)
-	souls_count_label.text = "067"
 	version_label.text = "v 0.7.3 · alpha"
 	_apply_class_selection()
 	_refresh()
@@ -237,7 +241,18 @@ func _build_skill_slot(s: Dictionary) -> Control:
 func _exit_tree() -> void:
 	Network.lobby_updated.disconnect(_refresh)
 	Network.ready_state_changed.disconnect(_refresh)
+	Network.join_started.disconnect(_on_join_started)
+	Network.join_failed.disconnect(_on_join_failed)
 	GameState.roster_changed.disconnect(_refresh)
+
+func _on_join_started(_addr: String, _port: int) -> void:
+	_join_error = ""
+	_refresh()
+
+func _on_join_failed(addr: String, port: int, reason: String) -> void:
+	_is_ready = false
+	_join_error = "не удалось подключиться к %s:%d (%s)" % [addr, port, reason]
+	_refresh()
 
 func _on_ready_toggle() -> void:
 	_is_ready = not _is_ready
@@ -251,33 +266,24 @@ func _on_start_btn() -> void:
 	else:
 		_on_ready_toggle()
 
-func _on_chat_submit(text: String) -> void:
-	if text.strip_edges().is_empty():
-		chat_input.text = ""
-		return
-	var nick: String = GameState.local_nick if not GameState.local_nick.is_empty() else "?"
-	var line := "[%s] %s" % [nick, text]
-	if chat_log.text.is_empty():
-		chat_log.text = line
-	else:
-		chat_log.text = "%s    %s" % [chat_log.text, line]
-	chat_input.text = ""
-
 func _is_online() -> bool:
 	var peer := multiplayer.multiplayer_peer
-	return peer != null and peer is ENetMultiplayerPeer
+	if peer == null or not (peer is ENetMultiplayerPeer):
+		return false
+	return peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 
 func _refresh() -> void:
 	if not is_inside_tree():
 		return
 	var connected := _is_online()
+	var connecting := Network.is_join_pending()
 	main_menu_view.visible = not connected
 	waiting_room_view.visible = connected
 
 	# Main menu state
-	host_btn.disabled = connected
-	join_btn.disabled = connected
-	debug_btn.disabled = connected
+	host_btn.disabled = connected or connecting
+	join_btn.disabled = connected or connecting
+	debug_btn.disabled = connected or connecting
 	leave_btn.disabled = false
 	ready_btn.visible = false  # in waiting room now
 	roster_label.visible = false
@@ -293,6 +299,12 @@ func _refresh() -> void:
 		_update_start_status()
 		status_label.text = "● Подключено · id=%d" % multiplayer.get_unique_id()
 		status_label.modulate = Color(0.76, 0.88, 0.62, 1)
+	elif connecting:
+		status_label.text = "● Подключение к %s:%d..." % [Network.pending_address(), Network.pending_port()]
+		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
+	elif not _join_error.is_empty():
+		status_label.text = "● %s" % _join_error
+		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
 	else:
 		status_label.text = "● Сервер найден"
 		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
@@ -497,12 +509,12 @@ func _update_start_status() -> void:
 	var is_host := multiplayer.is_server()
 	if is_host:
 		start_btn.text = "Начать поход"
-		start_btn.disabled = total == 0 or not_ready > 0
-		if total == 0:
-			start_status.text = "● ожидаем игроков"
+		start_btn.disabled = false
+		if total <= 1:
+			start_status.text = "● можно начинать соло"
 			start_status.modulate = Color(0.61, 0.53, 0.41, 1)
 		elif not_ready > 0:
-			start_status.text = "● %d игрок%s не готов" % [not_ready, _plural_suffix(not_ready)]
+			start_status.text = "● %d из %d готовы · можно стартовать" % [ready_count, total]
 			start_status.modulate = Color(0.85, 0.50, 0.30, 1)
 		else:
 			start_status.text = "● все готовы"
@@ -527,6 +539,7 @@ func _on_host() -> void:
 	if GameState.local_nick.is_empty():
 		GameState.local_nick = "Host"
 	var port := int(port_edit.text)
+	_join_error = ""
 	var err := Network.host(port)
 	if err != OK:
 		status_label.text = "● Host failed: %s" % str(err)
@@ -541,14 +554,13 @@ func _on_join() -> void:
 	var addr := addr_edit.text.strip_edges()
 	if addr.is_empty():
 		addr = "127.0.0.1"
-	var err := Network.join(addr, port)
-	if err != OK:
-		status_label.text = "● Join failed: %s" % str(err)
-		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
+	_join_error = ""
+	Network.join(addr, port)
 	_refresh()
 
 func _on_leave() -> void:
 	_is_ready = false
+	_join_error = ""
 	Network.leave()
 	_refresh()
 

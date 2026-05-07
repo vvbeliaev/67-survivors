@@ -31,7 +31,6 @@ window/size/viewport_height=720
 window/size/window_width_override=1600
 window/size/window_height_override=900
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [input]
 
@@ -75,10 +74,6 @@ utility={
 ]
 }
 
-[physics]
-
-2d/default_gravity=0.0
-
 [layer_names]
 
 2d_physics/layer_1="World"
@@ -87,7 +82,12 @@ utility={
 2d_physics/layer_4="PlayerProjectiles"
 2d_physics/layer_5="EnemyProjectiles"
 
+[physics]
+
+2d/default_gravity=0.0
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true

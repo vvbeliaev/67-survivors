@@ -11,6 +11,7 @@ const _MOVE_SPEED_BY_ID: Dictionary = {
 	&"ranged": 82.0,
 	&"tank": 62.0,
 	&"colossus": 38.0,
+	&"dasher": 70.0,
 }
 
 

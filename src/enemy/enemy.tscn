@@ -58,6 +58,12 @@ properties/15/replication_mode = 2
 properties/16/path = NodePath(".:pulse_seq")
 properties/16/spawn = true
 properties/16/replication_mode = 2
+properties/17/path = NodePath(".:dash_state")
+properties/17/spawn = true
+properties/17/replication_mode = 2
+properties/18/path = NodePath(".:dash_target_pos")
+properties/18/spawn = true
+properties/18/replication_mode = 1
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")

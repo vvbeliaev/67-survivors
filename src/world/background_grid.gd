@@ -1,12 +1,12 @@
 extends Node2D
 
-# Tiled floor background. The texture (1254² seamless dungeon stone) is drawn
-# inside a huge centered rect with texture_repeat enabled; CanvasModulate
-# darkens it, torches and player lights brighten it back up.
+# Tiled floor background. The texture (1254² seamless tile) is drawn inside a
+# huge centered rect with texture_repeat enabled; CanvasModulate darkens it,
+# torches and player lights brighten it back up.
 
 const TILE_TEX: Texture2D = preload("res://assets/images/floor_tile.png")
 const HALF_EXTENT := 6000.0
-const TILE_SCALE := 0.6  # render the 1254² tile a bit smaller so detail reads
+const TILE_SCALE := 1.5  # 1254 * 1.5 ≈ 1880 world-px per tile (rare repeats on screen)
 
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED

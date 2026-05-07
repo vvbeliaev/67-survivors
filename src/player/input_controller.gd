@@ -20,10 +20,15 @@ func _physics_process(_delta: float) -> void:
 		return
 	var move := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var aim_world: Vector2 = _player.get_global_mouse_position()
-	var primary_just := Input.is_action_just_pressed("cast_primary")
-	var secondary_just := Input.is_action_just_pressed("cast_secondary")
+	# Mouse-driven cast inputs are dropped while the cursor is over a Control
+	# that consumes input — otherwise clicking the debug spawn button (or any
+	# future panel button) would also trigger the primary cast on the same
+	# frame, since polling Input bypasses the GUI handling layer.
+	var over_gui: bool = get_viewport().gui_get_hovered_control() != null
+	var primary_just := Input.is_action_just_pressed("cast_primary") and not over_gui
+	var secondary_just := Input.is_action_just_pressed("cast_secondary") and not over_gui
 	var utility_just := Input.is_action_just_pressed("utility")
-	var primary_held := Input.is_action_pressed("cast_primary")
+	var primary_held := Input.is_action_pressed("cast_primary") and not over_gui
 	var primary_release := Input.is_action_just_released("cast_primary")
 	if multiplayer.multiplayer_peer == null or multiplayer.is_server():
 		_player.apply_input(move, aim_world, primary_just, secondary_just, utility_just, primary_held, primary_release)

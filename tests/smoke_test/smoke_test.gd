@@ -26,6 +26,17 @@ func _ready() -> void:
 		print("[smoke] killed one enemy")
 	await get_tree().create_timer(0.5).timeout
 	print("[smoke] post-kill xp=%d lvl=%d" % [GameState.party_xp, GameState.party_level])
+	# Force-spawn a dasher near a player to drive the dash state machine through
+	# at least the IDLE→TELEGRAPH transition. Pure crash-check.
+	if players.size() > 0 and arena.has_method("spawn_enemy"):
+		var p_pos: Vector2 = players[0].global_position
+		arena.spawn_enemy({"type": "dasher", "pos": p_pos + Vector2(150, 0)})
+	await get_tree().create_timer(0.6).timeout
+	var dasher_states: Array[int] = []
+	for ee in get_tree().get_nodes_in_group("enemies"):
+		if ee.enemy_type == &"dasher":
+			dasher_states.append(int(ee.dash_state))
+	print("[smoke] dashers=%d states=%s" % [dasher_states.size(), str(dasher_states)])
 	GameState.run_time = (Defs.wave_set.run_duration if Defs.wave_set != null else 600.0) + 1.0
 	await get_tree().create_timer(2.0).timeout
 	var boss_count := 0
