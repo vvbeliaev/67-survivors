@@ -1,7 +1,11 @@
 extends Node
 
-# ENet host/join + roster sync. Owns lobby-level connectivity. The arena scene
+# Host/join + roster sync. Owns lobby-level connectivity. The arena scene
 # is loaded after `request_start_round()` is acknowledged across peers.
+# Two transports supported:
+#   - ENet (UDP) — for desktop LAN play.
+#   - WebSocket — for browser clients connecting through a reverse proxy.
+# Server.gd picks transport via --transport ws|enet (default ws for deploys).
 
 const DEFAULT_PORT := 7777
 const MAX_PEERS := 8
@@ -46,6 +50,17 @@ func host_dedicated(port: int = DEFAULT_PORT) -> Error:
 		multiplayer.multiplayer_peer = peer
 	return err
 
+# WebSocket dedicated server. Binds to `bind_address` (default: localhost,
+# so a reverse proxy like nginx can sit in front and terminate TLS / serve
+# the HTML5 client on :80/:443). Set bind_address="*" to expose directly.
+func host_dedicated_ws(port: int = DEFAULT_PORT, bind_address: String = "127.0.0.1") -> Error:
+	leave()
+	var peer := WebSocketMultiplayerPeer.new()
+	var err := peer.create_server(port, bind_address)
+	if err == OK:
+		multiplayer.multiplayer_peer = peer
+	return err
+
 func join(address: String, port: int = DEFAULT_PORT) -> Error:
 	leave()
 	var peer := ENetMultiplayerPeer.new()
@@ -63,11 +78,29 @@ func join(address: String, port: int = DEFAULT_PORT) -> Error:
 	lobby_updated.emit()
 	return OK
 
+# WebSocket client. Accepts a full url (ws://host[:port]/path or wss://...).
+func join_ws(url: String) -> Error:
+	leave()
+	var peer := WebSocketMultiplayerPeer.new()
+	var err := peer.create_client(url)
+	if err != OK:
+		join_failed.emit(url, 0, "не удалось создать ws-клиент")
+		return err
+	multiplayer.multiplayer_peer = peer
+	_pending_address = url
+	_pending_port = 0
+	_join_session += 1
+	var session := _join_session
+	get_tree().create_timer(JOIN_TIMEOUT_SEC).timeout.connect(_on_join_timeout.bind(session))
+	join_started.emit(url, 0)
+	lobby_updated.emit()
+	return OK
+
 func is_join_pending() -> bool:
 	if _pending_address.is_empty():
 		return false
 	var peer := multiplayer.multiplayer_peer
-	if peer == null or not (peer is ENetMultiplayerPeer):
+	if peer == null:
 		return false
 	return peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTING
 
@@ -83,8 +116,7 @@ func _on_join_timeout(session: int) -> void:
 	if _pending_address.is_empty():
 		return
 	var peer := multiplayer.multiplayer_peer
-	if peer != null and peer is ENetMultiplayerPeer \
-			and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+	if peer != null and peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		return
 	_fail_pending_join("сервер не отвечает")
 

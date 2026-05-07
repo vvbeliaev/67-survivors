@@ -199,8 +199,8 @@ func _draw_dash_indicator() -> void:
 func _draw_aura_field(kind: StringName) -> void:
 	# Constant translucent disk + outline so the radius is legible.
 	var col: Color = _aura_color(kind)
-	var fill := Color(col.r, col.g, col.b, 0.10)
-	var ring := Color(col.r, col.g, col.b, 0.55)
+	var fill := Color(col.r, col.g, col.b, 0.05)
+	var ring := Color(col.r, col.g, col.b, 0.275)
 	draw_circle(Vector2.ZERO, COLOSSUS_AURA_RADIUS, fill)
 	draw_arc(Vector2.ZERO, COLOSSUS_AURA_RADIUS, 0, TAU, 96, ring, 1.5)
 	# Expanding pulse animation — replayed each time pulse_seq increments.
@@ -208,7 +208,7 @@ func _draw_aura_field(kind: StringName) -> void:
 	if t >= 0.0 and t < PULSE_DURATION:
 		var f: float = t / PULSE_DURATION
 		var r: float = f * COLOSSUS_AURA_RADIUS
-		var a: float = (1.0 - f) * 0.7
+		var a: float = (1.0 - f) * 0.35
 		var pulse_col := Color(col.r, col.g, col.b, a)
 		draw_arc(Vector2.ZERO, r, 0, TAU, 64, pulse_col, 4.0)
 

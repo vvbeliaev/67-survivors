@@ -1,0 +1,8 @@
+.git
+.godot
+build
+.idea
+.vscode
+.claude
+.DS_Store
+*.zip

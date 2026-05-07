@@ -1,0 +1,43 @@
+# Stack for 67-survivors. Lives next to the pereezdvmax stack on the same host:
+# we plug into pereezdvmax's traefik via the shared external network and TLS is
+# handled by their already-configured letsencrypt resolver. Their compose.yml
+# is *not* touched.
+
+services:
+  game:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: game
+    container_name: 67survivors-game
+    restart: unless-stopped
+    networks: [traefik]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=pereezdvmax_default"
+      - "traefik.http.routers.67s-game.rule=Host(`67survivors.pereezdvmax.ru`) && PathPrefix(`/game`)"
+      - "traefik.http.routers.67s-game.entrypoints=websecure"
+      - "traefik.http.routers.67s-game.tls.certresolver=letsencrypt"
+      - "traefik.http.services.67s-game.loadbalancer.server.port=7777"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: web
+    container_name: 67survivors-web
+    restart: unless-stopped
+    networks: [traefik]
+    depends_on: [game]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=pereezdvmax_default"
+      - "traefik.http.routers.67s-web.rule=Host(`67survivors.pereezdvmax.ru`)"
+      - "traefik.http.routers.67s-web.entrypoints=websecure"
+      - "traefik.http.routers.67s-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.67s-web.loadbalancer.server.port=80"
+
+networks:
+  traefik:
+    name: pereezdvmax_default
+    external: true

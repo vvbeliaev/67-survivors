@@ -1,0 +1,10 @@
+[Unit]
+Description=67-survivors auto-update from GitHub main
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/srv/67-survivors/deploy/update.sh
+StandardOutput=append:/var/log/67survivors-update.log
+StandardError=append:/var/log/67survivors-update.log

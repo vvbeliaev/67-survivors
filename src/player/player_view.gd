@@ -42,9 +42,12 @@ func _process(_delta: float) -> void:
 	if _flash_mat != null and _player != null:
 		var now_t: float = Time.get_ticks_msec() / 1000.0
 		var iframe_active: bool = _player.alive and now_t < float(_player.iframes_until)
+		var recovery_active: bool = _player.alive and now_t < float(_player.hit_recovery_until)
 		var flash: float = 0.0
 		if iframe_active:
 			flash = 0.5 + 0.5 * sin(now_t * 32.0)
+		elif recovery_active:
+			flash = 0.25 + 0.25 * sin(now_t * 32.0)
 		_flash_mat.set_shader_parameter("flash", flash)
 	queue_redraw()
 

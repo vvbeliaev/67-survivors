@@ -1,0 +1,10 @@
+[Unit]
+Description=Run 67-survivors update every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=67-survivors-update.service
+
+[Install]
+WantedBy=timers.target

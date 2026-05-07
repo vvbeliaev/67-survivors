@@ -88,6 +88,9 @@ properties/21/replication_mode = 2
 properties/22/path = NodePath(".:cd_total_utility")
 properties/22/spawn = true
 properties/22/replication_mode = 2
+properties/23/path = NodePath(".:hit_recovery_until")
+properties/23/spawn = true
+properties/23/replication_mode = 2
 
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_player")

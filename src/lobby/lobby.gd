@@ -108,10 +108,33 @@ var _class_idx: int = 0
 var _is_ready: bool = false
 var _join_error: String = ""
 
-const WEB_BLOCK_HINT := "Недоступно в браузере: ENet/UDP не поддерживается WebAssembly. Скачай десктоп-сборку для коопа."
+const WEB_HOST_HINT := "Браузер не умеет хостить — жми Join к серверу или Соло."
+
+# Веб-сборка всегда коннектится сюда — независимо от того, где захостен клиент
+# (наш домен, github pages, itch и т.д.). Меняй здесь при переезде сервера.
+const PROD_WS_URL := "wss://67survivors.pereezdvmax.ru/game"
 
 func _is_web() -> bool:
 	return OS.has_feature("web")
+
+# Returns "host:port" of the page in browser builds, "" otherwise.
+func _web_page_host() -> String:
+	if not _is_web():
+		return ""
+	var v: Variant = JavaScriptBridge.eval("window.location.host", true)
+	return String(v) if v != null else ""
+
+# Build a ws:// or wss:// URL from a user-typed address. Rules:
+#   - already a ws/wss URL → returned as is
+#   - in web build → fixed PROD_WS_URL (server lives on a known domain)
+#   - on desktop, bare "host[:port]" → ws://host[:port]/game
+func _to_ws_url(addr: String) -> String:
+	var s := addr.strip_edges()
+	if s.begins_with("ws://") or s.begins_with("wss://"):
+		return s
+	if _is_web():
+		return PROD_WS_URL
+	return "ws://%s/game" % s
 
 func _ready() -> void:
 	GameState.debug_mode = false
@@ -143,12 +166,11 @@ func _ready() -> void:
 	GameState.roster_changed.connect(_refresh)
 	version_label.text = "v 0.7.3 · alpha"
 	if _is_web():
-		host_btn.text = "Начать поход"
-		join_btn.tooltip_text = WEB_BLOCK_HINT
-		addr_edit.editable = false
-		addr_edit.tooltip_text = WEB_BLOCK_HINT
-		port_edit.editable = false
-		port_edit.tooltip_text = WEB_BLOCK_HINT
+		host_btn.text = "Соло"
+		host_btn.tooltip_text = WEB_HOST_HINT
+		# В вебе хост — всегда страница (wss://<page>/game), поля не нужны.
+		addr_edit.get_parent().visible = false
+		port_edit.get_parent().visible = false
 		debug_btn.visible = false
 		leave_btn.visible = false
 	_apply_class_selection()
@@ -282,7 +304,7 @@ func _on_start_btn() -> void:
 
 func _is_online() -> bool:
 	var peer := multiplayer.multiplayer_peer
-	if peer == null or not (peer is ENetMultiplayerPeer):
+	if peer == null:
 		return false
 	return peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 
@@ -297,19 +319,24 @@ func _refresh() -> void:
 	# Main menu state
 	var web := _is_web()
 	host_btn.disabled = connected or connecting
-	join_btn.disabled = connected or connecting or web
+	join_btn.disabled = connected or connecting
 	debug_btn.disabled = connected or connecting
 	leave_btn.disabled = false
 	ready_btn.visible = false  # in waiting room now
 	roster_label.visible = false
 
 	if connected:
-		var addr := addr_edit.text.strip_edges()
-		if addr.is_empty():
-			addr = "127.0.0.1"
-		var port := int(port_edit.text)
-		var info_addr := "хост" if multiplayer.is_server() else addr
-		wr_subtitle.text = "ЛОББИ · %s:%d · id %d" % [info_addr, port, multiplayer.get_unique_id()]
+		var info_addr: String
+		if multiplayer.is_server():
+			info_addr = "хост"
+		elif _is_web():
+			info_addr = _web_page_host()
+		else:
+			var addr := addr_edit.text.strip_edges()
+			if addr.is_empty():
+				addr = "127.0.0.1"
+			info_addr = "%s:%d" % [addr, int(port_edit.text)]
+		wr_subtitle.text = "ЛОББИ · %s · id %d" % [info_addr, multiplayer.get_unique_id()]
 		_rebuild_squad()
 		_update_start_status()
 		status_label.text = "● Подключено · id=%d" % multiplayer.get_unique_id()
@@ -321,7 +348,7 @@ func _refresh() -> void:
 		status_label.text = "● %s" % _join_error
 		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
 	elif web:
-		status_label.text = "● Браузерная версия — только соло. Для коопа скачай десктоп."
+		status_label.text = "● Браузер · Join — кооп через сервер, Соло — без сети"
 		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
 	else:
 		status_label.text = "● Сервер найден"
@@ -573,12 +600,20 @@ func _on_join() -> void:
 	GameState.local_nick = nick_edit.text.strip_edges()
 	if GameState.local_nick.is_empty():
 		GameState.local_nick = "Peer"
+	_join_error = ""
+	if _is_web():
+		# В браузере всегда коннектимся к серверу-странице.
+		Network.join_ws(_to_ws_url(""))
+		_refresh()
+		return
 	var port := int(port_edit.text)
 	var addr := addr_edit.text.strip_edges()
 	if addr.is_empty():
 		addr = "127.0.0.1"
-	_join_error = ""
-	Network.join(addr, port)
+	if addr.begins_with("ws://") or addr.begins_with("wss://"):
+		Network.join_ws(_to_ws_url(addr))
+	else:
+		Network.join(addr, port)
 	_refresh()
 
 func _on_leave() -> void:

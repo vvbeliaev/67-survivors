@@ -17,7 +17,8 @@ extends CharacterBody2D
 const RESPAWN_DELAY := 30.0
 const TEAM := "player"
 const COOLDOWN_FLOOR := 0.4
-const HIT_IFRAMES_DURATION := 1.0
+const HIT_RECOVERY_DURATION := 0.5
+const HIT_RECOVERY_SPEED_BONUS := 0.10
 const PLAYER_LAYER_BIT := 1 << 1
 const COLLISION_MASK_NORMAL := (1 << 0) | (1 << 1) | (1 << 2)
 const COLLISION_MASK_GHOST := (1 << 0) | (1 << 1)
@@ -39,6 +40,7 @@ const COLLISION_MASK_GHOST := (1 << 0) | (1 << 1)
 @export var aim_dir: Vector2 = Vector2.RIGHT
 @export var charge_started_at: float = -1.0
 @export var iframes_until: float = 0.0
+@export var hit_recovery_until: float = 0.0
 
 # Skill cooldown mirrors (host-driven, replicated for client HUD).
 @export var cd_left_auto: float = 0.0
@@ -148,12 +150,19 @@ func _physics_process(delta: float) -> void:
 	if class_node != null:
 		class_node.on_pre_move(delta)
 
-	# I-frames toggle physical visibility so enemies and their projectiles pass through,
-	# and so the player itself stops sliding against enemy bodies.
+	# Skill-granted iframes (roll/leap/dodge/respawn) and on-hit recovery both
+	# ghost the player through enemy bodies. iframes additionally block damage;
+	# hit recovery only grants ghosting and a small speed bonus.
 	var now_t: float = Time.get_ticks_msec() / 1000.0
 	var iframe_active: bool = now_t < iframes_until
-	var desired_layer: int = 0 if iframe_active else PLAYER_LAYER_BIT
-	var desired_mask: int = COLLISION_MASK_GHOST if iframe_active else COLLISION_MASK_NORMAL
+	var hit_recovery_active: bool = now_t < hit_recovery_until
+	var ghost_active: bool = iframe_active or hit_recovery_active
+	if hit_recovery_active:
+		stats.add_pct(StatBlock.STAT_SPEED, &"hit_recovery", HIT_RECOVERY_SPEED_BONUS)
+	else:
+		stats.remove(&"hit_recovery")
+	var desired_layer: int = 0 if ghost_active else PLAYER_LAYER_BIT
+	var desired_mask: int = COLLISION_MASK_GHOST if ghost_active else COLLISION_MASK_NORMAL
 	if collision_layer != desired_layer:
 		collision_layer = desired_layer
 	if collision_mask != desired_mask:
@@ -282,6 +291,7 @@ func apply_damage(amount: float, _src_team: String) -> void:
 		return
 	if not alive:
 		return
+	# Skill-granted invulnerability still gates damage; on-hit recovery does not.
 	if Time.get_ticks_msec() / 1000.0 < iframes_until:
 		return
 	hp -= amount
@@ -291,7 +301,7 @@ func apply_damage(amount: float, _src_team: String) -> void:
 		hp = 0.0
 		_go_down()
 	else:
-		iframes_until = (Time.get_ticks_msec() / 1000.0) + HIT_IFRAMES_DURATION
+		hit_recovery_until = (Time.get_ticks_msec() / 1000.0) + HIT_RECOVERY_DURATION
 
 func play_visual_fx(kind: String, data: Dictionary = {}) -> void:
 	if not GameState.is_authority():
