@@ -5,13 +5,15 @@ extends Node
 # the player directly. The host applies inputs via Player._apply_input().
 #
 # On touch devices (mobile build, or web build with a touchscreen) the
-# pipeline switches to the TouchControls overlay: joystick → move, fingers
-# on the skill ring → edge-triggered casts, joystick direction → idle facing,
-# nearest enemy → aim for any directional skill that fires this frame.
+# pipeline switches to the TouchControls overlay:
+#   - movement is the unit vector from the hero toward the held finger
+#   - skill buttons emit edge-triggered cast presses
+#   - aim is auto-resolved to the nearest enemy for any directional skill
+#     so the player never has to "aim" — the projectile finds its target.
 
 # Distance from the player at which the synthetic aim point sits when no
-# enemy is targeted — anything beyond `radius + ε` is enough for aim_dir to
-# resolve cleanly.
+# enemy exists for auto-targeting. Anything beyond the player's radius is
+# enough for `aim_dir` to resolve cleanly.
 const TOUCH_AIM_FALLBACK_DIST := 256.0
 
 @export var owner_path: NodePath = NodePath("..")
@@ -48,22 +50,29 @@ func _physics_process(_delta: float) -> void:
 		secondary_just = t.consume_secondary()
 		utility_just = t.consume_utility()
 		primary_release = t.consume_primary_release()
-		var auto_just: bool = t.consume_auto()
-		var fallback_dir: Vector2 = move
-		if fallback_dir.length_squared() < 0.001:
-			fallback_dir = t.aim_hint_dir
-		# Default aim: ahead of the player, in joystick direction. Skills that
-		# don't actually read aim ignore it; visuals (player facing,
-		# crossbow auto) follow the finger.
-		aim_world = _player.global_position + fallback_dir * TOUCH_AIM_FALLBACK_DIST
-		# Any directional skill firing this frame snaps aim to the nearest
-		# enemy so projectiles / blinks land where mobile players expect them.
-		# Utility (dash) keeps the joystick direction.
-		var seek_target: bool = primary_just or secondary_just or primary_release or auto_just
-		if seek_target:
+		# `auto_just` is consumed but not dispatched — the auto-skill ticks on
+		# its own; the press only exists to keep the consumer state clean.
+		t.consume_auto()
+		# Aim resolution rules (touch-only):
+		#   - Utility (dash / blink / roll) fires "where the finger is" — we
+		#     project aim along the walk direction so movement skills go
+		#     where the hero is heading, not into the nearest enemy's face.
+		#   - Every other skill auto-aims at the nearest enemy, so the
+		#     player never has to drag-aim.
+		#   - With no enemy in sight, aim falls back to the walk direction
+		#     too — purely so the sprite faces something stable.
+		var fallback: Vector2 = move
+		if fallback.length_squared() < 0.001:
+			fallback = _player.aim_dir
+		var fallback_aim: Vector2 = _player.global_position + fallback * TOUCH_AIM_FALLBACK_DIST
+		if utility_just:
+			aim_world = fallback_aim
+		else:
 			var nearest := Targeting.nearest_enemy(get_tree(), _player.global_position, 99999.0)
 			if nearest != null:
 				aim_world = nearest.global_position
+			else:
+				aim_world = fallback_aim
 	else:
 		move = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		aim_world = _player.get_global_mouse_position()

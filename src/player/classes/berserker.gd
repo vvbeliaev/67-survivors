@@ -3,7 +3,7 @@ extends ClassNode
 const MeleeSwirl     := preload("res://src/skills/concrete/melee_swirl.gd")
 const BerserkerDash  := preload("res://src/skills/concrete/berserker_dash.gd")
 const BerserkerRoar  := preload("res://src/skills/concrete/berserker_roar.gd")
-const BerserkerQuake := preload("res://src/skills/concrete/berserker_quake.gd")
+const BerserkerLeap  := preload("res://src/skills/concrete/berserker_leap.gd")
 
 func seed_stats(def: ClassDef, stats: StatBlock) -> void:
 	stats.set_base(StatBlock.STAT_MAX_HP, def.base_max_hp)
@@ -18,7 +18,7 @@ func build_skills() -> void:
 	auto_skill = MeleeSwirl.new()
 	primary_skill = BerserkerDash.new()
 	secondary_skill = BerserkerRoar.new()
-	utility_skill = BerserkerQuake.new()
+	utility_skill = BerserkerLeap.new()
 	_attach(auto_skill)
 	_attach(primary_skill)
 	_attach(secondary_skill)
