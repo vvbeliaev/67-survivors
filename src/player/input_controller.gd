@@ -16,6 +16,12 @@ extends Node
 # enough for `aim_dir` to resolve cleanly.
 const TOUCH_AIM_FALLBACK_DIST := 256.0
 
+# Cap on the auto-aim search radius. Larger than any reasonable on-screen
+# range (camera half-view is ~600 even at min zoom) and tiny compared to
+# 99999 — every cell beyond this is empty anyway, and SpatialIndex pays for
+# the bounding box of the search.
+const AUTO_AIM_RANGE := 1800.0
+
 @export var owner_path: NodePath = NodePath("..")
 
 var _player: Node = null
@@ -53,26 +59,23 @@ func _physics_process(_delta: float) -> void:
 		# `auto_just` is consumed but not dispatched — the auto-skill ticks on
 		# its own; the press only exists to keep the consumer state clean.
 		t.consume_auto()
-		# Aim resolution rules (touch-only):
-		#   - Utility (dash / blink / roll) fires "where the finger is" — we
-		#     project aim along the walk direction so movement skills go
-		#     where the hero is heading, not into the nearest enemy's face.
-		#   - Every other skill auto-aims at the nearest enemy, so the
-		#     player never has to drag-aim.
-		#   - With no enemy in sight, aim falls back to the walk direction
-		#     too — purely so the sprite faces something stable.
+		# Aim resolution (touch-only). Default cheap path: walk direction.
+		# Calling `Targeting.nearest_enemy` every frame is *much* too heavy
+		# for mobile WebGL — the host pays for one targeting query per fire
+		# instead, and skills that need true auto-aim (crossbow auto-bolt)
+		# query themselves on tick.
 		var fallback: Vector2 = move
 		if fallback.length_squared() < 0.001:
 			fallback = _player.aim_dir
 		var fallback_aim: Vector2 = _player.global_position + fallback * TOUCH_AIM_FALLBACK_DIST
-		if utility_just:
-			aim_world = fallback_aim
-		else:
-			var nearest := Targeting.nearest_enemy(get_tree(), _player.global_position, 99999.0)
+		aim_world = fallback_aim
+		# When a directional skill button is tapped, snap aim to the nearest
+		# enemy so projectiles / blinks land on a real target. Utility (dash)
+		# keeps the walk direction.
+		if primary_just or secondary_just or primary_release:
+			var nearest := Targeting.nearest_enemy(get_tree(), _player.global_position, AUTO_AIM_RANGE)
 			if nearest != null:
 				aim_world = nearest.global_position
-			else:
-				aim_world = fallback_aim
 	else:
 		move = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		aim_world = _player.get_global_mouse_position()

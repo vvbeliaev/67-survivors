@@ -329,10 +329,15 @@ func _draw_skill_button(slot: int, center: Vector2, pressed: bool, cd_left: floa
 			tint = Color(0.55, 0.50, 0.45, 0.7)
 		var rect := Rect2(center - Vector2(s, s) * 0.5, Vector2(s, s))
 		draw_texture_rect(icon, rect, false, tint)
-	# Cooldown overlay — drains clockwise from 12 o'clock.
+	# Cooldown overlay — flat translucent fill plus a remaining-arc ring.
+	# (Earlier this drew a per-frame conic via 36 wedge polygons, which
+	# cratered mobile WebGL framerates and emitted a steady stream of
+	# triangulation errors.)
 	if cd_left > 0.0 and cd_total > 0.0:
 		var pct: float = clampf(cd_left / cd_total, 0.0, 1.0)
-		_draw_cd_sweep(center, SKILL_BTN_RADIUS - 1.0, pct)
+		draw_circle(center, SKILL_BTN_RADIUS - 1.0, Color(0, 0, 0, 0.55))
+		var arc_to: float = -PI * 0.5 + TAU * pct
+		draw_arc(center, SKILL_BTN_RADIUS - 4.0, -PI * 0.5, arc_to, 32, Color(0.92, 0.85, 0.72, 0.9), 3.0, true)
 		var lbl: String = "%.1f" % cd_left if cd_left < 10.0 else str(int(ceil(cd_left)))
 		var fs: int = 22
 		var ts: Vector2 = FONT_DISPLAY.get_string_size(lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
@@ -350,18 +355,3 @@ func _draw_skill_button(slot: int, center: Vector2, pressed: bool, cd_left: floa
 		draw_string(FONT_MONO, p + Vector2(1, 1), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, 0.85))
 		draw_string(FONT_MONO, p, lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.61, 0.53, 0.41, 1.0))
 
-func _draw_cd_sweep(center: Vector2, r: float, pct: float) -> void:
-	# Cheap pie sweep — stack thin radial wedges, fill the ones inside the
-	# remaining cooldown arc. Clockwise from 12 o'clock.
-	var bands: int = 36
-	var blocked: int = int(round(float(bands) * pct))
-	for i in blocked:
-		var a0: float = -PI * 0.5 + TAU * float(i) / float(bands)
-		var a1: float = a0 + TAU / float(bands) + 0.005
-		var pts := PackedVector2Array()
-		pts.append(center)
-		var steps: int = 4
-		for k in (steps + 1):
-			var a: float = lerp(a0, a1, float(k) / float(steps))
-			pts.append(center + Vector2(cos(a), sin(a)) * r)
-		draw_colored_polygon(pts, Color(0, 0, 0, 0.65))

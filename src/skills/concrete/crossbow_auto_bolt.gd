@@ -26,6 +26,14 @@ func on_tick(_delta: float) -> void:
 # damage multiplier from charge time. Caller is responsible for cooldown.
 func fire_volley(charge_mult: float) -> void:
 	var dir: Vector2 = owner_player.aim_dir
+	# On touch builds the player can't aim a cursor, so the auto-bolt snaps
+	# to the nearest enemy at fire-time. Resolved here (not every input
+	# tick) so the cost stays at ~one targeting query per second.
+	if GameState.is_touch_ui():
+		var nearest := Targeting.nearest_enemy(get_tree(), owner_player.global_position, 1800.0)
+		if nearest == null:
+			return
+		dir = (nearest.global_position - owner_player.global_position).normalized()
 	var origin: Vector2 = owner_player.global_position + dir * (owner_player.radius + 4)
 	var bolt_flat: float = owner_player.stats.value(StatBlock.STAT_BOLT_DAMAGE)
 	var dmg: float = (damage + bolt_flat) * charge_mult * owner_player.dmg_mult()
