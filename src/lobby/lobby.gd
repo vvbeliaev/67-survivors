@@ -12,10 +12,10 @@ const CLASS_INFO := {
 		"role_note": "Контроль агро",
 		"difficulty": 2,
 		"skills": [
-			{"key": "Авто", "icon": ICON_DIR + "axe-swing.svg",   "name": "Кружащий клинок", "desc": "AoE вокруг себя", "hot": false},
-			{"key": "ЛКМ",  "icon": ICON_DIR + "sprint.svg",      "name": "Кровавый рывок",  "desc": "бьёт сильнее при низком HP", "hot": true},
-			{"key": "ПКМ",  "icon": ICON_DIR + "lion.svg",        "name": "Боевой рёв",      "desc": "стянуть агро в радиусе", "hot": false},
-			{"key": "Space","icon": ICON_DIR + "winged-leg.svg",  "name": "Прыжок",          "desc": "i-frames, рывок без урона", "hot": false},
+			{"key": "Авто", "icon": ICON_DIR + "axe-swing.svg",     "name": "Кружащий клинок", "desc": "AoE вокруг себя", "hot": false},
+			{"key": "ЛКМ",  "icon": ICON_DIR + "confrontation.svg", "name": "Землетрясение",   "desc": "стан врагов вокруг", "hot": true},
+			{"key": "ПКМ",  "icon": ICON_DIR + "lion.svg",          "name": "Боевой рёв",      "desc": "стянуть агро в радиусе", "hot": false},
+			{"key": "Space","icon": ICON_DIR + "winged-leg.svg",    "name": "Прыжок",          "desc": "i-frames, рывок без урона", "hot": false},
 		],
 	},
 	"mage": {
