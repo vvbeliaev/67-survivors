@@ -6,7 +6,8 @@ extends Node
 
 const RUN_DURATION := 600.0
 const BOSS_HP := 4000
-const VALID_CLASSES: Array[StringName] = [&"berserker", &"mage", &"bard", &"crossbow"]
+# Bard temporarily disabled — class not finished. Re-add &"bard" when ready.
+const VALID_CLASSES: Array[StringName] = [&"berserker", &"mage", &"crossbow"]
 
 const NICK_POOL: Array[String] = [
 	"Vrok", "Asha", "Lyra", "Korin", "Tessa", "Mireth", "Brann", "Sylvi",
@@ -68,3 +69,27 @@ func is_authority() -> bool:
 
 func is_valid_class(klass: StringName) -> bool:
 	return VALID_CLASSES.has(klass)
+
+# True when the runtime should show on-screen touch controls instead of mouse/keys.
+# Mobile native build → always true. Web build → true if the device exposes a
+# touchscreen, OR if the URL carries `?touch=1` (handy for testing the mobile
+# UX in a desktop browser without DevTools' touch emulation).
+var _touch_force_cached: int = -1  # -1 unknown, 0 no, 1 yes — eval'd once.
+
+func is_touch_ui() -> bool:
+	if OS.has_feature("mobile"):
+		return true
+	if OS.has_feature("web") and DisplayServer.is_touchscreen_available():
+		return true
+	if _touch_force_url():
+		return true
+	return false
+
+func _touch_force_url() -> bool:
+	if not OS.has_feature("web"):
+		return false
+	if _touch_force_cached >= 0:
+		return _touch_force_cached == 1
+	var v: Variant = JavaScriptBridge.eval("window.location.search.indexOf('touch=1') >= 0 ? 1 : 0", true)
+	_touch_force_cached = 1 if int(v) == 1 else 0
+	return _touch_force_cached == 1

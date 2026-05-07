@@ -44,13 +44,13 @@ func _physics_process(delta: float) -> void:
 	if _spawn_accum >= phase.spawn_interval:
 		_spawn_accum = 0.0
 		for _i in phase.batch_size:
-			_spawn_one(phase.enemy_types)
+			_spawn_one(phase)
 	if phase.burst_enabled:
 		_burst_accum += delta
 		if _burst_accum >= phase.burst_interval:
 			_burst_accum = 0.0
 			for _i in phase.burst_size:
-				_spawn_one(phase.enemy_types)
+				_spawn_one(phase)
 	else:
 		_burst_accum = 0.0
 
@@ -69,17 +69,34 @@ func _centroid() -> Vector2:
 		return Vector2.ZERO
 	return sum / float(count)
 
-func _spawn_one(types: Array) -> void:
+func _spawn_one(phase: WavePhase) -> void:
 	var arena := get_tree().get_first_node_in_group("arena")
-	if arena == null or types.is_empty():
+	if arena == null or phase == null or phase.enemy_types.is_empty():
 		return
 	if not _make_room_for_spawn():
 		return
-	var t: StringName = types[_rng.randi() % types.size()]
+	var t: StringName = _pick_type(phase.enemy_types, phase.enemy_weights)
 	var ang := _rng.randf() * TAU
 	var rad := _rng.randf_range(_wave_set.spawn_radius_min, _wave_set.spawn_radius_max)
 	var pos := _centroid() + Vector2(cos(ang), sin(ang)) * rad
 	arena.spawn_enemy({"type": String(t), "pos": pos})
+
+# Weighted pick. Empty/mismatched/zero-sum weights → uniform random fallback.
+func _pick_type(types: Array, weights: Array) -> StringName:
+	if weights.is_empty() or weights.size() != types.size():
+		return types[_rng.randi() % types.size()]
+	var total: float = 0.0
+	for w in weights:
+		total += max(0.0, float(w))
+	if total <= 0.0:
+		return types[_rng.randi() % types.size()]
+	var r: float = _rng.randf() * total
+	var acc: float = 0.0
+	for i in types.size():
+		acc += max(0.0, float(weights[i]))
+		if r <= acc:
+			return types[i]
+	return types[types.size() - 1]
 
 # Returns true if a spawn slot is available. If we're at HARD_CAP, frees the
 # farthest non-boss enemy that's safely off-screen and returns true; if every

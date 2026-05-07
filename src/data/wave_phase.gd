@@ -7,6 +7,9 @@ class_name WavePhase extends Resource
 @export var spawn_interval: float = 2.5
 @export var batch_size: int = 2
 @export var enemy_types: Array[StringName] = [&"rusher"]
+# Optional parallel array of weights for enemy_types. Empty → uniform random.
+# If set, length must match enemy_types; weights are normalized at pick time.
+@export var enemy_weights: Array[float] = []
 
 @export_group("Burst")
 @export var burst_enabled: bool = false

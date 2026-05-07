@@ -85,6 +85,8 @@ var _mp_bar: ThemedBar = null
 var _mp_label_node: Label = null
 var _mp_holder: Control = null
 var _skill_slots: Array[SkillSlot] = []
+var _skill_row: HBoxContainer = null
+var _vitals_holder: VBoxContainer = null
 
 var _log_box: VBoxContainer = null
 var _log_entries: Array = []             # of {text: String, color: Color, time: float, kill_key: String, kill_n: int}
@@ -95,6 +97,7 @@ var _boss_name_label: Label = null
 var _boss_countdown: Label = null
 
 var _end_screen: EndScreen = null
+var _touch_controls: TouchControls = null
 
 var _local_player: Node = null
 
@@ -106,6 +109,7 @@ func _ready() -> void:
 	_build_vitals_and_skills()
 	_build_boss_watch()
 	_build_end_screen()
+	_build_touch_controls()
 
 	EventBus.run_ended.connect(_on_run_ended)
 	EventBus.enemy_killed.connect(_on_enemy_killed)
@@ -321,6 +325,7 @@ func _build_vitals_and_skills() -> void:
 	holder.position = Vector2(-330, -136)
 	holder.custom_minimum_size = Vector2(660, 0)
 	_vitals_anchor.add_child(holder)
+	_vitals_holder = holder
 
 	# Vitals row.
 	var vrow := HBoxContainer.new()
@@ -381,6 +386,7 @@ func _build_vitals_and_skills() -> void:
 	sb.alignment = BoxContainer.ALIGNMENT_CENTER
 	sb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(sb)
+	_skill_row = sb
 	for i in 4:
 		var slot := SkillSlot.new()
 		slot.glyph_font = FONT_DISPLAY
@@ -390,6 +396,10 @@ func _build_vitals_and_skills() -> void:
 		slot.glyph = "•"
 		_skill_slots.append(slot)
 		sb.add_child(slot)
+	# On touch UI the on-screen mobile skill buttons replace the desktop slots —
+	# hide them so the bottom-center area only carries the vitals bar.
+	if GameState.is_touch_ui():
+		_skill_row.visible = false
 
 func _update_vitals() -> void:
 	if _local_player == null or not is_instance_valid(_local_player):
@@ -574,6 +584,11 @@ func _build_boss_watch() -> void:
 func _update_boss_watch() -> void:
 	if _boss_panel == null:
 		return
+	# On touch devices we hide the boss watch entirely — its bottom-right corner
+	# is taken by the mobile skill buttons.
+	if GameState.is_touch_ui():
+		_boss_panel.visible = false
+		return
 	var run_duration: float = RUN_DURATION_FALLBACK
 	var boss_id: StringName = &"boss"
 	if Defs.wave_set != null:
@@ -602,6 +617,16 @@ func _build_end_screen() -> void:
 	_end_screen = EndScreen.new()
 	_end_screen.back_to_lobby.connect(_on_back_to_lobby)
 	_root.add_child(_end_screen)
+
+func _build_touch_controls() -> void:
+	if not GameState.is_touch_ui():
+		return
+	_touch_controls = TouchControls.new()
+	_touch_controls.name = "TouchControls"
+	# Added after end_screen so it sits above gameplay HUD; level-up overlays
+	# (added at runtime) become later siblings and naturally receive touches
+	# first, while TouchControls hides itself whenever such an overlay exists.
+	_root.add_child(_touch_controls)
 
 func _on_run_ended(won: bool) -> void:
 	if _end_screen == null:
