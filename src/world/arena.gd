@@ -42,11 +42,17 @@ func _ready() -> void:
 
 	_spawn_torches()
 
-	if GameState.is_authority():
-		_host_spawn_roster()
-
 	if GameState.debug_mode:
 		add_child(DEBUG_PANEL_SCENE.instantiate())
+
+	if GameState.is_authority():
+		# В сетевой игре клиенты доходят до arena.tscn с задержкой (особенно
+		# браузеры через WSS). Если спавнить мгновенно, late peers пропустят
+		# spawn-events и окажутся на пустой арене. В соло — без peer — нет
+		# смысла ждать.
+		if multiplayer.has_multiplayer_peer():
+			await get_tree().create_timer(0.5).timeout
+		_host_spawn_roster()
 
 func _spawn_torches() -> void:
 	# Deterministic by index, so positions match across peers without sync.
