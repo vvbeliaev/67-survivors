@@ -6,8 +6,9 @@ class_name MinimapWidget extends Control
 
 const MAP_W := 220
 const MAP_H := 160
-const WORLD_RADIUS := 1100.0   # world span shown in the minimap
+const WORLD_RADIUS := 2800.0   # world span shown in the minimap
 const FOOTER_H := 18
+const ARENA_BORDER_COLOR := Color(0.0, 0.0, 0.0, 0.85)
 
 var sector_label: String = "СЕКТОР III"
 var subzone_label: String = "ЛОГОВО"
@@ -50,6 +51,16 @@ func _draw() -> void:
 		var nx := clampf(rel.x / WORLD_RADIUS, -1.0, 1.0)
 		var ny := clampf(rel.y / WORLD_RADIUS, -1.0, 1.0)
 		return map_rect.position + Vector2(map_rect.size.x * 0.5, map_rect.size.y * 0.5) + Vector2(nx, ny) * Vector2(map_rect.size.x * 0.45, map_rect.size.y * 0.45)
+
+	# Arena boundary (semi-transparent ring around origin). Projected onto
+	# the minimap using the same scaling as world->map for x/y; the result is
+	# an ellipse if the map is non-square, which matches the projection.
+	var arena_radius := _arena_radius()
+	if arena_radius > 0.0:
+		var center: Vector2 = to_map.call(Vector2.ZERO)
+		var rx: float = (arena_radius / WORLD_RADIUS) * (map_rect.size.x * 0.45)
+		var ry: float = (arena_radius / WORLD_RADIUS) * (map_rect.size.y * 0.45)
+		_draw_ellipse(center, rx, ry, ARENA_BORDER_COLOR, 1.5, map_rect)
 
 	# Enemies.
 	var local_id := _local_peer_id()
@@ -101,6 +112,31 @@ func _draw_panel(r: Rect2) -> void:
 		draw_rect(Rect2(r.position + Vector2(0, i * h), Vector2(r.size.x, h + 1)), HUDPalette.PANEL.lerp(HUDPalette.PANEL_SOFT, t), true)
 	draw_rect(r.grow(-1), HUDPalette.SHADOW_LIGHT, false, 1.0)
 	draw_rect(r, HUDPalette.STROKE_STRONG, false, 1.0)
+
+func _arena_radius() -> float:
+	var node := get_tree().get_first_node_in_group("arena_boundary")
+	if node == null:
+		return 0.0
+	if node.has_method("get_radius"):
+		return float(node.get_radius())
+	return 0.0
+
+func _draw_ellipse(center: Vector2, rx: float, ry: float, col: Color, thickness: float, clip: Rect2) -> void:
+	if rx <= 0.0 or ry <= 0.0:
+		return
+	var seg := 64
+	var pts := PackedVector2Array()
+	pts.resize(seg + 1)
+	for i in seg + 1:
+		var a: float = TAU * float(i) / float(seg)
+		pts[i] = center + Vector2(cos(a) * rx, sin(a) * ry)
+	# Cheap clip: skip segments fully outside the map rect.
+	for i in seg:
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[i + 1]
+		if not clip.has_point(a) and not clip.has_point(b):
+			continue
+		draw_line(a, b, col, thickness)
 
 func _draw_diamond(c: Vector2, half: float, col: Color) -> void:
 	var pts := PackedVector2Array([

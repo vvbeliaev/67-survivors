@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b0arena67surv"]
+[gd_scene load_steps=9 format=3 uid="uid://b0arena67surv"]
 
 [ext_resource type="Script" path="res://src/world/arena.gd" id="1_arena"]
 [ext_resource type="Script" path="res://src/world/background_grid.gd" id="2_bg"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://src/progression/xp_system.gd" id="6_xp"]
 [ext_resource type="Script" path="res://src/progression/upgrade_offer.gd" id="7_upg"]
 [ext_resource type="PackedScene" path="res://src/ui/hud.tscn" id="8_hud"]
+[ext_resource type="Script" path="res://src/world/arena_boundary.gd" id="9_bound"]
 
 [node name="Arena" type="Node2D"]
 script = ExtResource("1_arena")
@@ -17,6 +18,9 @@ color = Color(0.22, 0.2, 0.3, 1)
 
 [node name="BackgroundGrid" type="Node2D" parent="."]
 script = ExtResource("2_bg")
+
+[node name="ArenaBoundary" type="Node2D" parent="."]
+script = ExtResource("9_bound")
 
 [node name="TorchesContainer" type="Node2D" parent="."]
 

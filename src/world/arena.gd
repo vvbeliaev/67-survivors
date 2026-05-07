@@ -10,10 +10,19 @@ const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
 const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
 const TORCH_SCENE := preload("res://src/world/torch.tscn")
 const DEBUG_PANEL_SCENE := preload("res://src/debug/debug_panel.tscn")
-const TORCH_SEED := 0xCAFE
-const TORCH_COUNT := 28
-const TORCH_FIELD_RADIUS := 1600.0
-const TORCH_MIN_DIST := 200.0
+# Concentric torch rings: 1 center torch plus four rings at growing radii.
+# Each ring uses a different torch count (4, 6, 7, 8) so rings don't align
+# radially and the eye picks up multiple rhythms at once. The half-step
+# phase offset on alternate rings shifts them tangentially. Counts stay
+# below what would fully light each ring's perimeter (light radius ≈ 512),
+# so dark sections remain between adjacent torches.
+# Rows: [count, radius, phase_steps] — phase_steps is fraction of one slot.
+const TORCH_RINGS: Array = [
+	[4, 550.0, 0.5],
+	[6, 1100.0, 0.0],
+	[7, 1600.0, 0.5],
+	[8, 2050.0, 0.0],
+]
 
 @onready var players_container: Node = $PlayersContainer
 @onready var enemies_container: Node = $EnemiesContainer
@@ -40,30 +49,23 @@ func _ready() -> void:
 		add_child(DEBUG_PANEL_SCENE.instantiate())
 
 func _spawn_torches() -> void:
-	# Deterministic on every peer (same seed) so positions match without sync.
+	# Deterministic by index, so positions match across peers without sync.
 	var container := get_node_or_null("TorchesContainer")
 	if container == null:
 		return
-	var rng := RandomNumberGenerator.new()
-	rng.seed = TORCH_SEED
-	var placed: Array[Vector2] = []
-	var attempts := 0
-	while placed.size() < TORCH_COUNT and attempts < TORCH_COUNT * 30:
-		attempts += 1
-		var ang: float = rng.randf() * TAU
-		var rad: float = sqrt(rng.randf()) * TORCH_FIELD_RADIUS
-		var pos := Vector2(cos(ang), sin(ang)) * rad
-		var ok := true
-		for p in placed:
-			if pos.distance_to(p) < TORCH_MIN_DIST:
-				ok = false
-				break
-		if not ok:
-			continue
-		placed.append(pos)
-		var torch: Node2D = TORCH_SCENE.instantiate()
-		torch.position = pos
-		container.add_child(torch)
+	_place_torch(container, Vector2.ZERO)
+	for ring in TORCH_RINGS:
+		var count: int = int(ring[0])
+		var radius: float = float(ring[1])
+		var phase: float = float(ring[2])
+		for i in count:
+			var ang: float = TAU * (float(i) + phase) / float(count)
+			_place_torch(container, Vector2(cos(ang), sin(ang)) * radius)
+
+func _place_torch(container: Node, pos: Vector2) -> void:
+	var torch: Node2D = TORCH_SCENE.instantiate()
+	torch.position = pos
+	container.add_child(torch)
 
 # ---- Spawn factories (called by spawner callbacks) ---------------------
 
