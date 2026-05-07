@@ -255,6 +255,13 @@ func request_start_round() -> void:
 		await _await_clients_arena_loaded()
 	start_round_requested.emit()
 	get_tree().change_scene_to_file(ARENA_SCENE_PATH)
+	# Гард нужен только чтобы заблокировать ПАРАЛЛЕЛЬНЫЕ вызовы во время await
+	# (peer быстро тоглит готов/не готов, _check_all_ready дёргает повторно).
+	# После того как смена сцены поставлена в очередь, следующий раунд должен
+	# мочь стартануть — иначе на dedicated-сервере, где leave() никогда не
+	# вызывается, после первого старта флаг застревает true и F5 → ready
+	# больше не пускает в новую партию.
+	_starting_round = false
 
 func _await_clients_arena_loaded() -> void:
 	var deadline := Time.get_ticks_msec() + ARENA_LOAD_TIMEOUT_MS
