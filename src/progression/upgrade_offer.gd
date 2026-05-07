@@ -54,6 +54,8 @@ func _start_round(new_level: int) -> void:
 		var pid: int = int(pid_var)
 		var player := _find_player(pid)
 		if player == null or not bool(player.alive):
+			print("[upgrade_offer] skip pid=%d (player_null=%s alive=%s)" %
+				[pid, player == null, player != null and bool(player.alive)])
 			continue
 		_waiting[pid] = true
 		var picks: Array = UpgradePool.roll_for(_rng, player, 3)
@@ -72,12 +74,15 @@ func _start_round(new_level: int) -> void:
 	_set_paused_global(true)
 
 	var summary: Array = _party_summary()
+	print("[upgrade_offer] _start_round level=%d, peers waiting=%s" % [new_level, str(_waiting.keys())])
 	for pid_var in per_peer_ids.keys():
 		var pid: int = int(pid_var)
 		var ids: PackedStringArray = per_peer_ids[pid]
 		if pid == 1:
+			print("[upgrade_offer] open local for host pid=1")
 			_open_screen_local(ids, new_level, summary)
 		else:
+			print("[upgrade_offer] rpc_open_screen → pid=%d ids=%s" % [pid, str(ids)])
 			_rpc_open_screen.rpc_id(pid, ids, new_level, summary)
 
 func _finish_round() -> void:
@@ -186,18 +191,22 @@ func _rpc_set_paused(p: bool) -> void:
 
 @rpc("authority", "reliable")
 func _rpc_open_screen(ids: PackedStringArray, new_level: int, summary: Array) -> void:
+	print("[upgrade_offer] rpc_open_screen received: level=%d ids=%s" % [new_level, str(ids)])
 	_open_screen_local(ids, new_level, summary)
 
 func _open_screen_local(ids: PackedStringArray, new_level: int, summary: Array) -> void:
 	var screen := _ensure_screen()
 	if screen == null:
+		push_error("[upgrade_offer] _open_screen_local: screen is null (HUD missing?)")
 		return
 	var options: Array = []
 	for s in ids:
 		var def: UpgradeDef = Defs.upgrade_def(StringName(String(s)))
 		if def != null:
 			options.append(def)
+	print("[upgrade_offer] _open_screen_local: opening with %d options" % options.size())
 	screen.open(new_level, options, summary)
+	print("[upgrade_offer] screen visible=%s" % str(screen.visible))
 
 @rpc("authority", "reliable")
 func _rpc_update_party_status(summary: Array) -> void:
