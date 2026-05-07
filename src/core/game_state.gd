@@ -58,7 +58,11 @@ func xp_threshold(level: int) -> int:
 	return 5 + 3 * level + level * level
 
 func is_networked() -> bool:
-	return multiplayer.multiplayer_peer != null
+	# В Godot 4.6 multiplayer_peer по умолчанию — OfflineMultiplayerPeer,
+	# а не null. Считаем «по сети» только если выставлен реальный peer
+	# (ENet/WebSocket/WebRTC), иначе остаёмся в соло-режиме.
+	var peer := multiplayer.multiplayer_peer
+	return peer != null and not (peer is OfflineMultiplayerPeer)
 
 func is_host() -> bool:
 	return is_networked() and multiplayer.is_server()

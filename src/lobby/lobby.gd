@@ -304,7 +304,10 @@ func _on_start_btn() -> void:
 
 func _is_online() -> bool:
 	var peer := multiplayer.multiplayer_peer
-	if peer == null:
+	# Godot 4.6 на «нет peer'а» подсовывает OfflineMultiplayerPeer со статусом
+	# CONNECTED и id=1. Без отсева мы бы показывали ЗАЛ ОЖИДАНИЯ при первом
+	# открытии в браузере (и считали бы себя «host id 1» в соло-режиме).
+	if peer == null or peer is OfflineMultiplayerPeer:
 		return false
 	return peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 
