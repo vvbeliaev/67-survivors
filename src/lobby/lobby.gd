@@ -150,6 +150,7 @@ func _ready() -> void:
 		port_edit.editable = false
 		port_edit.tooltip_text = WEB_BLOCK_HINT
 		debug_btn.visible = false
+		leave_btn.visible = false
 	_apply_class_selection()
 	_refresh()
 
