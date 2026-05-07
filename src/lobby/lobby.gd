@@ -143,12 +143,13 @@ func _ready() -> void:
 	GameState.roster_changed.connect(_refresh)
 	version_label.text = "v 0.7.3 · alpha"
 	if _is_web():
-		host_btn.tooltip_text = WEB_BLOCK_HINT
+		host_btn.text = "Начать поход"
 		join_btn.tooltip_text = WEB_BLOCK_HINT
 		addr_edit.editable = false
 		addr_edit.tooltip_text = WEB_BLOCK_HINT
 		port_edit.editable = false
 		port_edit.tooltip_text = WEB_BLOCK_HINT
+		debug_btn.visible = false
 	_apply_class_selection()
 	_refresh()
 
@@ -294,7 +295,7 @@ func _refresh() -> void:
 
 	# Main menu state
 	var web := _is_web()
-	host_btn.disabled = connected or connecting or web
+	host_btn.disabled = connected or connecting
 	join_btn.disabled = connected or connecting or web
 	debug_btn.disabled = connected or connecting
 	leave_btn.disabled = false
@@ -319,7 +320,7 @@ func _refresh() -> void:
 		status_label.text = "● %s" % _join_error
 		status_label.modulate = Color(0.84, 0.29, 0.23, 1)
 	elif web:
-		status_label.text = "● Браузерная версия — только соло (Debug). Кооп требует десктоп."
+		status_label.text = "● Браузерная версия — только соло. Для коопа скачай десктоп."
 		status_label.modulate = Color(0.83, 0.63, 0.29, 1)
 	else:
 		status_label.text = "● Сервер найден"
@@ -554,6 +555,11 @@ func _on_host() -> void:
 	GameState.local_nick = nick_edit.text.strip_edges()
 	if GameState.local_nick.is_empty():
 		GameState.local_nick = "Host"
+	if _is_web():
+		# No ENet/UDP in browser — go straight into a solo run.
+		GameState.debug_mode = false
+		get_tree().change_scene_to_file(Network.ARENA_SCENE_PATH)
+		return
 	var port := int(port_edit.text)
 	_join_error = ""
 	var err := Network.host(port)
