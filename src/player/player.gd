@@ -77,6 +77,8 @@ func _ready() -> void:
 	add_to_group("players")
 	collision_layer = PLAYER_LAYER_BIT                # Players
 	collision_mask = COLLISION_MASK_NORMAL            # World, Players, Enemies
+	if GameState.is_authority() and class_node != null:
+		class_node.on_player_ready()
 
 func setup(peer: int, nck: String, kl: StringName) -> void:
 	peer_id = peer

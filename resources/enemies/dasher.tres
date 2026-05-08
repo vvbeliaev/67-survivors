@@ -6,11 +6,11 @@
 [resource]
 script = ExtResource("1_def")
 id = &"dasher"
-max_hp = 150.0
+max_hp = 450.0
 move_speed = 70.0
 contact_damage = 8.0
 contact_cd = 0.6
-xp_value = 8
+xp_value = 24
 color_hint = Color(0.42, 0.62, 1.0, 1)
 radius = 16.0
 ranged = false

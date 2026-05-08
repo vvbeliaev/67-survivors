@@ -5,12 +5,20 @@ extends Node2D
 # через 0.10s повторяет каст в ближайшего к КЛОНУ врага. После 3 повторов
 # или 25s или повторного блинка — растворяется.
 #
-# Host-only логика. Клиент рендерит позицию + счётчик. Поля @export'ятся
-# через MultiplayerSpawner (spawn-only — не синкаются после спавна).
+# Спрайт клона поворачивается лицом к ближайшему врагу (или к цели
+# повторного каста). При срабатывании повтора клон сам рисует FX —
+# взрыв fireball'а в точке цели и линии chain-молнии — чтобы повтор был
+# заметен глазу, а не только в счётчике HP врага. FX триггерится через
+# RPC, чтобы и клиент видел повтор.
+#
+# Host-only логика. Поля @export'ятся через MultiplayerSpawner
+# (spawn-only — не синкаются после спавна).
 
 const REPEAT_DELAY: float = 0.10
 const LIFETIME_MAX: float = 25.0
 const FADE_DURATION: float = 0.4
+const FIREBALL_FX_DURATION: float = 0.45
+const CHAIN_FX_DURATION: float = 0.35
 
 @export var owner_peer_id: int = 0
 @export var repeats_left: int = 3
@@ -20,6 +28,15 @@ var owner_player: Node = null
 var _pending: Array = []
 var _spawn_time: float = 0.0
 var _fade_started_at: float = -1.0
+
+var _aim_angle: float = 0.0
+
+# Локальные FX-стейты (выставляются в RPC, рисуются в _draw).
+var _fireball_fx_pos: Vector2 = Vector2.ZERO
+var _fireball_fx_radius: float = 0.0
+var _fireball_fx_started_at: float = -1.0
+var _chain_fx_points: Array = []
+var _chain_fx_started_at: float = -1.0
 
 func _ready() -> void:
 	add_to_group("echo_clones")
@@ -86,14 +103,50 @@ func start_fade() -> void:
 
 func _process(_delta: float) -> void:
 	var sprite := get_node_or_null("Sprite")
-	if sprite == null:
-		return
-	if fading:
-		var t: float = _now() - _fade_started_at
-		var k: float = clampf(1.0 - t / FADE_DURATION, 0.0, 1.0)
-		sprite.modulate = Color(0.45, 0.65, 1.0, 0.55 * k)
-	else:
-		sprite.modulate = Color(0.45, 0.65, 1.0, 0.55)
+	if sprite != null:
+		# Поворот к ближайшему врагу. Считаем локально на каждом пире —
+		# enemies реплицируются, у клиента та же картина.
+		var target: Node2D = Targeting.nearest_enemy(get_tree(), global_position, 9999.0)
+		if target != null:
+			_aim_angle = (target.global_position - global_position).angle()
+		sprite.rotation = _aim_angle
+		if fading:
+			var t: float = _now() - _fade_started_at
+			var k: float = clampf(1.0 - t / FADE_DURATION, 0.0, 1.0)
+			sprite.modulate = Color(0.45, 0.65, 1.0, 0.55 * k)
+		else:
+			sprite.modulate = Color(0.45, 0.65, 1.0, 0.55)
+	_update_counter()
+	queue_redraw()
+
+func _draw() -> void:
+	var t: float = _now()
+	# Fireball impact ring в точке цели.
+	if _fireball_fx_started_at >= 0.0:
+		var tf: float = t - _fireball_fx_started_at
+		if tf >= 0.0 and tf < FIREBALL_FX_DURATION:
+			var k: float = 1.0 - tf / FIREBALL_FX_DURATION
+			var local: Vector2 = _fireball_fx_pos - global_position
+			var grow: float = 0.4 + 0.6 * (1.0 - k)
+			draw_circle(local, _fireball_fx_radius * grow * 0.5, Color(1, 0.55, 0.2, 0.45 * k))
+			draw_arc(local, _fireball_fx_radius * grow, 0, TAU, 48, Color(1, 0.75, 0.3, 0.6 * k), 4.0)
+	# Chain lightning от клона по hop-точкам.
+	if _chain_fx_started_at >= 0.0:
+		var tc: float = t - _chain_fx_started_at
+		if tc >= 0.0 and tc < CHAIN_FX_DURATION and _chain_fx_points.size() >= 2:
+			var k: float = 1.0 - tc / CHAIN_FX_DURATION
+			var prev: Vector2 = Vector2.ZERO
+			var i := 0
+			for pt in _chain_fx_points:
+				var p: Vector2 = pt - global_position
+				var dir: Vector2 = (p - prev).normalized()
+				var perp := Vector2(-dir.y, dir.x)
+				var mid: Vector2 = (prev + p) * 0.5 + perp * 14.0 * sin(tc * 30.0 + i)
+				draw_line(prev, mid, Color(0.8, 0.9, 1.0, 0.7 * k), 3.0)
+				draw_line(mid, p, Color(0.8, 0.9, 1.0, 0.7 * k), 3.0)
+				draw_circle(p, 6.0, Color(0.7, 0.85, 1.0, 0.5 * k))
+				prev = p
+				i += 1
 
 func _update_counter() -> void:
 	var lbl := get_node_or_null("Counter")
@@ -128,6 +181,7 @@ func _cast_fireball() -> bool:
 	var projectile_radius: float = float(fb_skill.projectile_radius) if "projectile_radius" in fb_skill else 7.0
 	var rm: float = owner_player.range_mult()
 	var dir: Vector2 = (target.global_position - global_position).normalized()
+	_aim_angle = dir.angle()
 	var origin: Vector2 = global_position + dir * 16.0
 	var arena := get_tree().get_first_node_in_group("arena")
 	if arena != null:
@@ -150,6 +204,7 @@ func _cast_fireball() -> bool:
 	for e in Targeting.enemies_in_radius(get_tree(), target.global_position, aoe_radius * rm):
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
+	_broadcast_fireball_fx(target.global_position, aoe_radius * rm)
 	return true
 
 func _cast_chain() -> bool:
@@ -163,7 +218,9 @@ func _cast_chain() -> bool:
 	if first == null:
 		_pending.push_front({"kind": &"chain", "at": _now() + REPEAT_DELAY})
 		return false
+	_aim_angle = (first.global_position - global_position).angle()
 	var picked: Array = []
+	var pts: Array = [global_position]
 	var src: Vector2 = global_position
 	var dmg: float = damage_per_hit * owner_player.dmg_mult()
 	var jr: float = jump_range * owner_player.range_mult()
@@ -176,7 +233,35 @@ func _cast_chain() -> bool:
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
 		src = e.global_position
+		pts.append(e.global_position)
+	if pts.size() >= 2:
+		_broadcast_chain_fx(PackedVector2Array(pts))
 	return true
+
+func _broadcast_fireball_fx(pos: Vector2, radius: float) -> void:
+	if multiplayer.multiplayer_peer != null:
+		_rpc_fireball_fx.rpc(pos, radius)
+	else:
+		_rpc_fireball_fx(pos, radius)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_fireball_fx(pos: Vector2, radius: float) -> void:
+	_fireball_fx_pos = pos
+	_fireball_fx_radius = radius
+	_fireball_fx_started_at = _now()
+
+func _broadcast_chain_fx(pts: PackedVector2Array) -> void:
+	if multiplayer.multiplayer_peer != null:
+		_rpc_chain_fx.rpc(pts)
+	else:
+		_rpc_chain_fx(pts)
+
+@rpc("authority", "reliable", "call_local")
+func _rpc_chain_fx(pts: PackedVector2Array) -> void:
+	_chain_fx_points.clear()
+	for p in pts:
+		_chain_fx_points.append(Vector2(p))
+	_chain_fx_started_at = _now()
 
 func _player_skill(field: StringName) -> Node:
 	if owner_player == null or owner_player.class_node == null:

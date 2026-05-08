@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0jotarotest67surv"]
+
+[ext_resource type="Script" path="res://tests/jotaro_test/jotaro_test.gd" id="1_jt"]
+
+[node name="JotaroTest" type="Node"]
+script = ExtResource("1_jt")

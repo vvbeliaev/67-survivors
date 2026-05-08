@@ -6,11 +6,11 @@
 [resource]
 script = ExtResource("1_def")
 id = &"colossus"
-max_hp = 600.0
+max_hp = 1800.0
 move_speed = 38.0
 contact_damage = 32.0
 contact_cd = 1.1
-xp_value = 20
+xp_value = 60
 color_hint = Color(0.42, 0.42, 0.48, 1)
 radius = 30.0
 ranged = false

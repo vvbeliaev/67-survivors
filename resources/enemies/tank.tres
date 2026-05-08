@@ -6,11 +6,11 @@
 [resource]
 script = ExtResource("1_def")
 id = &"tank"
-max_hp = 240.0
+max_hp = 720.0
 move_speed = 62.0
 contact_damage = 18.0
 contact_cd = 1.0
-xp_value = 12
+xp_value = 36
 color_hint = Color(0.6, 0.4, 0.7, 1)
 radius = 18.0
 ranged = false

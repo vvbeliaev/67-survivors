@@ -7,7 +7,7 @@ extends Node
 const RUN_DURATION := 600.0
 const BOSS_HP := 4000
 # Bard temporarily disabled — class not finished. Re-add &"bard" when ready.
-const VALID_CLASSES: Array[StringName] = [&"berserker", &"mage", &"crossbow"]
+const VALID_CLASSES: Array[StringName] = [&"berserker", &"mage", &"crossbow", &"jotaro"]
 
 const NICK_POOL: Array[String] = [
 	"Vrok", "Asha", "Lyra", "Korin", "Tessa", "Mireth", "Brann", "Sylvi",

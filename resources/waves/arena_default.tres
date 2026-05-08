@@ -7,45 +7,45 @@
 script = ExtResource("2_phase")
 from_time = 0.0
 spawn_interval = 3.2
-batch_size = 4
+batch_size = 1
 enemy_types = Array[StringName]([&"rusher", &"swarm"])
 enemy_weights = Array[float]([0.5, 0.5])
 burst_enabled = false
 burst_interval = 120.0
-burst_size = 10
+burst_size = 3
 
 [sub_resource type="Resource" id="Phase1"]
 script = ExtResource("2_phase")
 from_time = 120.0
 spawn_interval = 2.5
-batch_size = 5
+batch_size = 1
 enemy_types = Array[StringName]([&"rusher", &"swarm", &"ranged", &"dasher", &"colossus"])
 enemy_weights = Array[float]([0.25, 0.25, 0.25, 0.20, 0.05])
 burst_enabled = true
 burst_interval = 120.0
-burst_size = 12
+burst_size = 3
 
 [sub_resource type="Resource" id="Phase2"]
 script = ExtResource("2_phase")
 from_time = 300.0
 spawn_interval = 2.2
-batch_size = 6
+batch_size = 2
 enemy_types = Array[StringName]([&"rusher", &"swarm", &"ranged", &"dasher", &"tank", &"colossus"])
 enemy_weights = Array[float]([0.20, 0.20, 0.25, 0.20, 0.10, 0.05])
 burst_enabled = true
 burst_interval = 120.0
-burst_size = 14
+burst_size = 4
 
 [sub_resource type="Resource" id="Phase3"]
 script = ExtResource("2_phase")
 from_time = 480.0
 spawn_interval = 1.8
-batch_size = 7
+batch_size = 2
 enemy_types = Array[StringName]([&"rusher", &"swarm", &"ranged", &"dasher", &"tank", &"colossus"])
 enemy_weights = Array[float]([0.15, 0.15, 0.25, 0.20, 0.18, 0.07])
 burst_enabled = true
 burst_interval = 120.0
-burst_size = 16
+burst_size = 4
 
 [resource]
 script = ExtResource("1_set")

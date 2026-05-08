@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0starplat67surv"]
+
+[ext_resource type="Script" path="res://src/skills/concrete/star_platinum.gd" id="1_sp"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sp"]
+properties/0/path = NodePath(".:owner_peer_id")
+properties/0/spawn = true
+properties/0/replication_mode = 0
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="StarPlatinum" type="Node2D"]
+script = ExtResource("1_sp")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_sp")

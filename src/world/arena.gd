@@ -8,6 +8,7 @@ const PLAYER_SCENE := preload("res://src/player/player.tscn")
 const ENEMY_SCENE := preload("res://src/enemy/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
 const ECHO_CLONE_SCENE := preload("res://src/skills/concrete/echo_clone.tscn")
+const STAR_PLATINUM_SCENE := preload("res://src/skills/concrete/star_platinum.tscn")
 const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
 const TORCH_SCENE := preload("res://src/world/torch.tscn")
 const DEBUG_PANEL_SCENE := preload("res://src/debug/debug_panel.tscn")
@@ -33,6 +34,8 @@ const TORCH_RINGS: Array = [
 @onready var projectiles_spawner: MultiplayerSpawner = $ProjectilesSpawner
 @onready var echo_clones_container: Node = $EchoClonesContainer
 @onready var echo_clones_spawner: MultiplayerSpawner = $EchoClonesSpawner
+@onready var minions_container: Node = $MinionsContainer
+@onready var minions_spawner: MultiplayerSpawner = $MinionsSpawner
 
 func _ready() -> void:
 	add_to_group("arena")
@@ -44,6 +47,8 @@ func _ready() -> void:
 	projectiles_spawner.spawn_function = _spawn_projectile
 	echo_clones_spawner.spawn_path = NodePath("../EchoClonesContainer")
 	echo_clones_spawner.spawn_function = _spawn_echo_clone
+	minions_spawner.spawn_path = NodePath("../MinionsContainer")
+	minions_spawner.spawn_function = _spawn_minion
 
 	_spawn_torches()
 
@@ -137,6 +142,20 @@ func _spawn_echo_clone(data: Variant) -> Node:
 	c.set_multiplayer_authority(1)
 	return c
 
+func _spawn_minion(data: Variant) -> Node:
+	var d: Dictionary = data as Dictionary
+	var kind: StringName = StringName(String(d.get("kind", "")))
+	var scene: PackedScene = null
+	if kind == &"star_platinum":
+		scene = STAR_PLATINUM_SCENE
+	if scene == null:
+		return null
+	var m: Node2D = scene.instantiate()
+	m.position = d.get("pos", Vector2.ZERO)
+	m.owner_peer_id = int(d.get("owner_peer_id", 0))
+	m.set_multiplayer_authority(1)
+	return m
+
 # MultiplayerSpawner.spawn() requires a multiplayer_peer (ENet, WebSocket,
 # OfflineMultiplayerPeer, ...). In true solo (no peer set — e.g. the debug
 # arena entry-point) it ERR_FAIL_COND_V's and returns null. Bypass the
@@ -166,6 +185,11 @@ func spawn_echo_clone(data: Dictionary) -> void:
 	if not GameState.is_authority():
 		return
 	_spawn_via(echo_clones_spawner, echo_clones_container, _spawn_echo_clone, data)
+
+func spawn_minion(data: Dictionary) -> void:
+	if not GameState.is_authority():
+		return
+	_spawn_via(minions_spawner, minions_container, _spawn_minion, data)
 
 func spawn_damage_number(amount: float, world_pos: Vector2, crit: bool = false) -> void:
 	var n := Node2D.new()

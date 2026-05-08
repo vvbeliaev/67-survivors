@@ -63,6 +63,18 @@ const CLASS_INFO := {
 			{"key": "Space","icon": ICON_DIR + "dodging.svg",      "name": "Перекат",          "desc": "i-frames на короткую дистанцию", "hot": false},
 		],
 	},
+	"jotaro": {
+		"name": "ДЖОТАРО",
+		"subtitle": "Стенд-юзер",
+		"quote": "«ORA ORA ORA ORA ORA!»",
+		"sprite": "res://assets/images/jotaro.png",
+		"role": "ДД",
+		"role_note": "Стенд бьёт сам",
+		"difficulty": 1,
+		"skills": [
+			{"key": "Стенд", "icon": "", "name": "Star Platinum", "desc": "стенд бьёт ближайшего к Джотаро врага", "hot": true},
+		],
+	},
 }
 
 const MAX_SQUAD: int = 4

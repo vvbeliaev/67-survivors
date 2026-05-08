@@ -28,6 +28,13 @@ func seed_stats(_def: ClassDef, _stats: StatBlock) -> void:
 func on_pre_move(_delta: float) -> void:
 	pass
 
+# Called once after the owning Player has entered the scene tree (so global
+# position and the arena/spawners are reachable). Host-only — runs only on
+# the authority. Default is a no-op; override to spawn class-tied minions
+# (e.g. Jotaro's Star Platinum).
+func on_player_ready() -> void:
+	pass
+
 # HUD reads the icon for slot (0=auto, 1=LMB, 2=RMB, 3=Space). Default just
 # forwards the bound skill's icon; classes with empty slots can override to
 # return a placeholder (e.g. crossbow has no auto skill but still wants an

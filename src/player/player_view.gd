@@ -10,9 +10,22 @@ const CLASS_SPRITE_PATHS: Dictionary = {
 	&"mage": "res://assets/images/wizard_top.png",
 	&"bard": "res://assets/images/bard_top.png",
 	&"crossbow": "res://assets/images/crossbowman_top.png",
+	&"jotaro": "res://assets/images/jotaro_top.png",
 }
 
+# Slash-текстура для берсерк-cleave. Геометрия (со слов автора арта):
+#   • квадрат 1254×1254;
+#   • прямая (627, 627) → (627, 0) — это «рукоятка/клинок»: рука варвара в
+#     центре изображения, клинок уходит вверх в -Y;
+#   • то, что слева от этой линии — след взмаха.
+# При отрисовке центр текстуры крепится к руке (чуть впереди игрока по aim_dir),
+# текстура поворачивается так, чтобы её -Y совпадал с aim_dir, а для swing 1
+# зеркалится по X — тогда след оказывается с другой стороны и взмах визуально
+# идёт справа налево.
 const CLEAVE_SLASH_TEX: Texture2D = preload("res://assets/images/splash.png")
+const CLEAVE_SLASH_TEX_SIZE: float = 1254.0
+const CLEAVE_SLASH_HAND_PX: Vector2 = Vector2(627.0, 627.0)
+const CLEAVE_SLASH_HANDLE_LEN_PX: float = 627.0
 
 @export var owner_path: NodePath = NodePath("..")
 
@@ -59,6 +72,12 @@ func _draw() -> void:
 	var col: Color = _player.color_hint
 	if not _player.alive:
 		col = Color(col.r * 0.4, col.g * 0.4, col.b * 0.4, 0.6)
+
+	# Эффекты «за спиной игрока» — рисуем ДО спрайта героя, чтобы они
+	# перекрывались силуэтом, а не перекрывали его.
+	if String(_player.klass) == "berserker":
+		_draw_berserker_slash_behind()
+
 	var tex: Texture2D = _sprite_texture(_player.klass)
 	if tex != null:
 		var tint := Color(1, 1, 1, 0.55) if not _player.alive else Color(1, 1, 1, 1)
@@ -102,48 +121,57 @@ func _draw() -> void:
 		draw_rect(Rect2(top3, Vector2(w, h)), Color(0.1, 0.1, 0.1))
 		draw_rect(Rect2(top3, Vector2(w * ct, h)), Color(1.0, 0.85, 0.3))
 
+func _draw_berserker_slash_behind() -> void:
+	# Slash-текстура для cleave-автоатаки. Рисуется ДО спрайта героя, чтобы
+	# выходить из-за плеча, а не накрывать персонажа. Центр изображения = рука
+	# варвара; в текстуре рукоятка идёт от (627, 627) — рука — вверх к (627, 0)
+	# в направлении -Y. Базовый поворот aim_angle + PI/2 совмещает -Y с aim_dir.
+	# За 0.25с FX клинок «прометает» дугу вокруг руки:
+	#   • swing 0: угол от -arc/2 к +arc/2 (слева направо относительно aim);
+	#   • swing 1: угол от +arc/2 к -arc/2 + зеркало по X — след оказывается
+	#     с другой стороны, мах справа налево.
+	var ta: float = _player.fx_age("auto")
+	if ta < 0.0 or ta >= 0.25:
+		return
+	if String(_player.fx_get("auto", "shape", "circle")) != "cone":
+		return
+	var k: float = 1.0 - ta / 0.25
+	var r: float = float(_player.fx_get("auto", "r", 1.0))
+	var aim_v: Vector2 = _player.aim_dir
+	if aim_v.length_squared() < 0.0001:
+		aim_v = Vector2.RIGHT
+	var aim_angle: float = atan2(aim_v.y, aim_v.x)
+	var swing: int = int(_player.fx_get("auto", "swing", 0))
+	var t: float = clampf(ta / 0.25, 0.0, 1.0)
+
+	var sweep_rad: float = deg_to_rad(70.0)
+	var sweep_off: float
+	if swing == 0:
+		sweep_off = lerp(-sweep_rad * 0.5, sweep_rad * 0.5, t)
+	else:
+		sweep_off = lerp(sweep_rad * 0.5, -sweep_rad * 0.5, t)
+
+	var px_to_world: float = r / CLEAVE_SLASH_HANDLE_LEN_PX
+	var draw_size: float = CLEAVE_SLASH_TEX_SIZE * px_to_world
+	var hand: Vector2 = aim_v * (_player.radius * 0.5)
+	var rot: float = aim_angle + PI / 2.0 + sweep_off
+	var scale_x: float = 1.0 if swing == 0 else -1.0
+	var color: Color = Color(1.0, 0.92, 0.55, 0.95 * k)
+
+	var dest_rect := Rect2(-CLEAVE_SLASH_HAND_PX * px_to_world, Vector2(draw_size, draw_size))
+	draw_set_transform(hand, rot, Vector2(scale_x, 1.0))
+	draw_texture_rect(CLEAVE_SLASH_TEX, dest_rect, false, color)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 func _draw_berserker_fx() -> void:
+	# Cone-форма (cleave) рисуется отдельно за героем в _draw_berserker_slash_behind.
+	# Здесь — только legacy circular swirl при наличии legendary `berserker_circle`.
 	var ta: float = _player.fx_age("auto")
 	if ta >= 0.0 and ta < 0.25:
 		var k: float = 1.0 - ta / 0.25
 		var r: float = float(_player.fx_get("auto", "r", 1.0))
 		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
-		if shape == "cone":
-			# Slash-текстура: видимый bbox (195,3)–(673,731) ≈ 478×728. Сам слэш
-			# идёт по диагонали из верхнего-левого угла bbox (рукоять/база) в
-			# нижний-правый (остриё). Угол этой диагонали в локальных коорд'ах =
-			# atan2(slash_h, slash_w) ≈ 0.99 rad ≈ 57°. Чтобы слэш указывал в
-			# сторону курсора (+ swing), компенсируем этот угол при повороте.
-			#
-			# Якорь dest-rect — в (0,0) = игрок. Слэш уходит в квадрант (+X, +Y)
-			# до полной поворота. После rotation = draw_angle - local_axis локальная
-			# диагональ совмещается с world-углом draw_angle = курсор.
-			var aim_v: Vector2 = _player.aim_dir
-			if aim_v.length_squared() < 0.0001:
-				aim_v = Vector2.RIGHT
-			var aim_angle: float = atan2(aim_v.y, aim_v.x)
-			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
-			var swing: int = int(_player.fx_get("auto", "swing", 0))
-			var t: float = clampf(ta / 0.25, 0.0, 1.0)
-			# swing 0: справа налево  → угол идёт от +arc/2 к -arc/2.
-			# swing 1: слева направо  → угол идёт от -arc/2 к +arc/2.
-			var start_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
-			var end_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
-			var sweep_offset: float = lerp(start_off, end_off, t)
-			var draw_angle: float = aim_angle + sweep_offset
-
-			var slash_h: float = r * 1.4
-			var slash_w: float = slash_h * (478.0 / 728.0)
-			var local_axis: float = atan2(slash_h, slash_w)
-			var color: Color = Color(1.0, 0.92, 0.55, 0.95 * k)
-
-			var dest_rect := Rect2(Vector2.ZERO, Vector2(slash_w, slash_h))
-			var src_rect := Rect2(195.0, 3.0, 478.0, 728.0)
-			draw_set_transform(Vector2.ZERO, draw_angle - local_axis, Vector2.ONE)
-			draw_texture_rect_region(CLEAVE_SLASH_TEX, dest_rect, src_rect, color)
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		else:
-			# Legacy circular swirl (используется при наличии legendary `berserker_circle`).
+		if shape != "cone":
 			var spin: float = ta * 18.0
 			draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
 			draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)

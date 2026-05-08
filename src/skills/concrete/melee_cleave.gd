@@ -27,7 +27,9 @@ func on_tick(_delta: float) -> void:
 	else:
 		var aim: Vector2 = owner_player.aim_dir
 		var half_arc: float = deg_to_rad(arc_deg) * 0.5
-		_cone_damage(owner_player.global_position, aim, r, half_arc, dmg)
+		# Хитбокс конуса на 20% длиннее визуала — чтобы враги, чей центр чуть
+		# дальше видимого кончика клинка, всё равно попадали под удар.
+		_cone_damage(owner_player.global_position, aim, r * 1.2, half_arc, dmg)
 		var swing := _swing_index
 		_swing_index = (_swing_index + 1) % 2
 		# Note: визуал берёт aim_dir игрока живьём в _draw, чтобы конус

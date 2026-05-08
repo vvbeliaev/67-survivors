@@ -9,7 +9,7 @@ script = ExtResource("1_echo")
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2_wiz")
 modulate = Color(0.45, 0.65, 1.0, 0.55)
-scale = Vector2(0.55, 0.55)
+scale = Vector2(0.281, 0.281)
 
 [node name="Counter" type="Label" parent="."]
 offset_left = -10
