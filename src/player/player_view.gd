@@ -107,9 +107,14 @@ func _draw_berserker_fx() -> void:
 		var r: float = float(_player.fx_get("auto", "r", 1.0))
 		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
 		if shape == "cone":
-			var ax: float = float(_player.fx_get("auto", "aim_x", 1.0))
-			var ay: float = float(_player.fx_get("auto", "aim_y", 0.0))
-			var aim_angle: float = atan2(ay, ax)
+			# Конус всегда смотрит в текущую сторону `aim_dir` — не в замороженный
+			# вектор момента нанесения удара. Удар (хитбокс) уже отработал на
+			# своём aim_dir в момент тика; визуал конуса просто живёт 0.25с и
+			# во время этой жизни доворачивается за курсором.
+			var aim_v: Vector2 = _player.aim_dir
+			if aim_v.length_squared() < 0.0001:
+				aim_v = Vector2.RIGHT
+			var aim_angle: float = atan2(aim_v.y, aim_v.x)
 			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
 			var swing: int = int(_player.fx_get("auto", "swing", 0))
 			# Чередуем смещение начала сектора, чтобы было видно «взмах туда / сюда».

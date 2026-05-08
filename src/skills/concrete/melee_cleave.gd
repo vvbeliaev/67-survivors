@@ -30,11 +30,14 @@ func on_tick(_delta: float) -> void:
 		_cone_damage(owner_player.global_position, aim, r, half_arc, dmg)
 		var swing := _swing_index
 		_swing_index = (_swing_index + 1) % 2
+		# Note: визуал берёт aim_dir игрока живьём в _draw, чтобы конус
+		# доворачивался за курсором во время 0.25с-FX. Здесь передаём только
+		# параметры, которые специфичны для именно этого удара (arc и swing
+		# для альтернации). aim_x/aim_y НЕ передаём — устаревший снэпшот
+		# направления только сбивал бы с толку, если упгрейд изменит arc.
 		trigger_visual_fx("auto", {
 			"r": r,
 			"shape": "cone",
-			"aim_x": aim.x,
-			"aim_y": aim.y,
 			"arc": arc_deg,
 			"swing": swing,
 		})
