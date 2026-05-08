@@ -7,7 +7,7 @@
 script = ExtResource("1_def")
 id = &"crossbow_charge_master"
 label = "Crossbow charge master"
-weight = 0.0
+weight = 1.0
 class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
 icon = ExtResource("2_icon")
