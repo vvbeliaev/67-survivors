@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0rarity67surv"]
+
+[ext_resource type="Script" path="res://tests/rarity_offer/rarity_offer.gd" id="1_rarity"]
+
+[node name="RarityOffer" type="Node"]
+script = ExtResource("1_rarity")

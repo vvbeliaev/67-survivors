@@ -14,7 +14,7 @@ KEY      ?= ~/.ssh/id_ed25519_selectel
 SSH_PORT ?= 22
 USER     ?= root
 
-.PHONY: run editor import smoke check server deploy logs stop peer host join clean help
+.PHONY: run editor import smoke rarity-test check server deploy logs stop peer host join clean help
 
 run: check
 	$(GODOT) --path $(PROJECT_DIR)
@@ -27,6 +27,9 @@ import:
 
 smoke:
 	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/smoke_test/smoke_test.tscn
+
+rarity-test:
+	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/rarity_offer/rarity_offer.tscn
 
 # Headless dedicated server. Clients connect from the lobby (Join + server IP).
 # The round starts automatically once MIN_PLAYERS players are in the roster.
