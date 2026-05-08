@@ -120,10 +120,13 @@ func _draw_berserker_fx() -> void:
 			var swing: int = int(_player.fx_get("auto", "swing", 0))
 			# t — прогресс анимации 0→1 за время жизни FX.
 			var t: float = clampf(ta / 0.25, 0.0, 1.0)
-			# swing 0: справа налево  → угол идёт от +arc/2 к -arc/2 (по часовой → против)
-			# swing 1: слева направо  → угол идёт от -arc/2 к +arc/2
-			var start_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
-			var end_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
+			# swing 0: справа налево  → начинаем с -arc/2 (низ, «ниже курсора» в Y-down)
+			#                            и идём к +arc/2 — для top-down глаза игрока это
+			#                            движение слева-сверху вправо-вниз = right-to-left
+			#                            forehand-взмах правой рукой.
+			# swing 1: слева направо — обратное движение, плюс зеркало по X.
+			var start_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
+			var end_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
 			var sweep_offset: float = lerp(start_off, end_off, t)
 			var draw_angle: float = aim_angle + sweep_offset
 			# Размер: чуть больше длины конуса, чтобы видно было кончик slash'а.
