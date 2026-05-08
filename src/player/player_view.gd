@@ -12,6 +12,8 @@ const CLASS_SPRITE_PATHS: Dictionary = {
 	&"crossbow": "res://assets/images/crossbowman_top.png",
 }
 
+const CLEAVE_SLASH_TEX: Texture2D = preload("res://assets/images/splash.png")
+
 @export var owner_path: NodePath = NodePath("..")
 
 const FLASH_SHADER := preload("res://src/player/iframe_flash.gdshader")
@@ -107,27 +109,36 @@ func _draw_berserker_fx() -> void:
 		var r: float = float(_player.fx_get("auto", "r", 1.0))
 		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
 		if shape == "cone":
-			# Конус всегда смотрит в текущую сторону `aim_dir` — не в замороженный
-			# вектор момента нанесения удара. Удар (хитбокс) уже отработал на
-			# своём aim_dir в момент тика; визуал конуса просто живёт 0.25с и
-			# во время этой жизни доворачивается за курсором.
+			# Slash-текстура «прометает» дугу за время жизни FX (0.25с).
+			# Доворачиваем за курсором — берём `aim_dir` живьём, не замороженный
+			# вектор момента удара.
 			var aim_v: Vector2 = _player.aim_dir
 			if aim_v.length_squared() < 0.0001:
 				aim_v = Vector2.RIGHT
 			var aim_angle: float = atan2(aim_v.y, aim_v.x)
 			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
 			var swing: int = int(_player.fx_get("auto", "swing", 0))
-			# Чередуем смещение начала сектора, чтобы было видно «взмах туда / сюда».
-			var bias: float = (-1.0 if swing == 0 else 1.0) * 0.10
-			var start_a: float = aim_angle - arc_rad * 0.5 + bias
-			var end_a: float = aim_angle + arc_rad * 0.5 + bias
-			draw_arc(Vector2.ZERO, r, start_a, end_a, 32, Color(1, 0.95, 0.6, 0.55 * k), 6.0)
-			draw_arc(Vector2.ZERO, r * 0.7, start_a, end_a, 24, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
-			# Радиальные «границы» сектора — тонкие линии.
-			var d_start := Vector2(cos(start_a), sin(start_a)) * r
-			var d_end := Vector2(cos(end_a), sin(end_a)) * r
-			draw_line(Vector2.ZERO, d_start, Color(1, 0.95, 0.6, 0.30 * k), 2.0)
-			draw_line(Vector2.ZERO, d_end, Color(1, 0.95, 0.6, 0.30 * k), 2.0)
+			# t — прогресс анимации 0→1 за время жизни FX.
+			var t: float = clampf(ta / 0.25, 0.0, 1.0)
+			# swing 0: справа налево  → угол идёт от +arc/2 к -arc/2 (по часовой → против)
+			# swing 1: слева направо  → угол идёт от -arc/2 к +arc/2
+			var start_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
+			var end_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
+			var sweep_offset: float = lerp(start_off, end_off, t)
+			var draw_angle: float = aim_angle + sweep_offset
+			# Размер: чуть больше длины конуса, чтобы видно было кончик slash'а.
+			var size: float = r * 1.4
+			# Зеркалим X для swing 1, чтобы кривая slash'а шла в обратную сторону.
+			var scale_x: float = 1.0 if swing == 0 else -1.0
+			# Тёплый окрас (как у legacy circle); fade-out по k.
+			var color: Color = Color(1.0, 0.92, 0.55, 0.95 * k)
+			# Текстура нативно — slash с остриём вниз. Поворачиваем так, чтобы
+			# локальный +Y (низ текстуры) указывал в направлении draw_angle —
+			# получится `draw_angle - PI/2`. Прямоугольник: верх текстуры у
+			# игрока (y=0), кончик уходит наружу (y=size).
+			draw_set_transform(Vector2.ZERO, draw_angle - PI / 2, Vector2(scale_x, 1.0))
+			draw_texture_rect(CLEAVE_SLASH_TEX, Rect2(Vector2(-size * 0.5, 0.0), Vector2(size, size)), false, color)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
 			# Legacy circular swirl (используется при наличии legendary `berserker_circle`).
 			var spin: float = ta * 18.0
