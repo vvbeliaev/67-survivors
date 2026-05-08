@@ -359,6 +359,15 @@ func apply_temp_pct_buff(stat: StringName, mod_id: StringName, amount: float, du
 # Apply an UpgradeDef. Stack index is bookkept here so duplicate picks coexist.
 var _upgrade_stacks: Dictionary = {}  # upgrade_id -> int
 
+# Активный клон от легендарки `mage_echo_clone`. Перевешивается в скилле блинка
+# при следующем приземлении; снимается клоном при `queue_free` через
+# notify_echo_clone_destroyed(). Host-only — клиенту пользы нет.
+var _echo_clone: Node = null
+
+func notify_echo_clone_destroyed(clone: Node) -> void:
+	if _echo_clone == clone:
+		_echo_clone = null
+
 func apply_upgrade_def(def: UpgradeDef) -> void:
 	if not GameState.is_authority():
 		return
