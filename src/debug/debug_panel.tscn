@@ -83,3 +83,40 @@ theme_override_styles/normal = SubResource("SB_btn_normal")
 theme_override_styles/hover = SubResource("SB_btn_normal")
 theme_override_styles/pressed = SubResource("SB_btn_normal")
 theme_override_styles/focus = SubResource("SB_btn_normal")
+
+[node name="LeftPanel" type="PanelContainer" parent="Anchor"]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 80.0
+offset_right = 156.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("SB_panel")
+
+[node name="LeftV" type="VBoxContainer" parent="Anchor/LeftPanel"]
+theme_override_constants/separation = 8
+
+[node name="LeftTitle" type="Label" parent="Anchor/LeftPanel/LeftV"]
+text = "ДЕБАГ — ПАТИ"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.95, 0.72, 0.34, 1)
+
+[node name="LevelLabel" type="Label" parent="Anchor/LeftPanel/LeftV"]
+unique_name_in_owner = true
+text = "уровень: 1"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.81, 0.74, 0.58, 1)
+
+[node name="LevelUpBtn" type="Button" parent="Anchor/LeftPanel/LeftV"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+focus_mode = 0
+text = "+ УРОВЕНЬ"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.95, 0.85, 0.62, 1)
+theme_override_styles/normal = SubResource("SB_btn_normal")
+theme_override_styles/hover = SubResource("SB_btn_normal")
+theme_override_styles/pressed = SubResource("SB_btn_normal")
+theme_override_styles/focus = SubResource("SB_btn_normal")
