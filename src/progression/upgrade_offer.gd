@@ -58,8 +58,7 @@ func _start_round(new_level: int) -> void:
 				[pid, player == null, player != null and bool(player.alive)])
 			continue
 		_waiting[pid] = true
-		var picks: Array = UpgradePool.roll_for(_rng, player, 3)
-		_ensure_milestone_pick(picks, player, new_level)
+		var picks: Array = UpgradePool.roll_for(_rng, player, 3, new_level)
 		var ids: PackedStringArray = []
 		for u in picks:
 			ids.append(String(u.id))
@@ -97,33 +96,6 @@ func _finish_round() -> void:
 		var lvl: int = int(_pending_levels.pop_front())
 		# Defer one frame so the unpause settles before re-entering.
 		call_deferred("_start_round", lvl)
-
-# Class-specific milestone upgrades. When a milestone level fires, the
-# offered picks are *replaced* by the milestone defs (less the ones already
-# taken) — no random fillers, no other upgrades. Returns silently when the
-# (class, level) pair has no milestones, leaving the random picks untouched.
-func _ensure_milestone_pick(picks: Array, player: Node, new_level: int) -> void:
-	var milestone_ids: Array = _milestones_for(player, new_level)
-	if milestone_ids.is_empty():
-		return
-	var milestone_picks: Array = []
-	for mid_v in milestone_ids:
-		var mid: StringName = mid_v
-		var def: UpgradeDef = Defs.upgrade_def(mid)
-		if def == null:
-			continue
-		if int(player._upgrade_stacks.get(mid, 0)) > 0:
-			continue
-		milestone_picks.append(def)
-	if milestone_picks.is_empty():
-		return
-	picks.clear()
-	picks.append_array(milestone_picks)
-
-func _milestones_for(player: Node, new_level: int) -> Array:
-	if new_level == 5 and player.klass == &"crossbow":
-		return [&"crossbow_roll_volley", &"crossbow_charge_master", &"crossbow_bolt_damage"]
-	return []
 
 func _on_player_downed(peer_id: int) -> void:
 	if not GameState.is_authority():
