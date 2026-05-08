@@ -1,0 +1,40 @@
+extends Skill
+
+# Berserker auto-attack: cleave-конус перед игроком (направление = aim_dir).
+# С легендаркой `berserker_circle` переключается в круговой AoE (бывший
+# MeleeSwirl). Чередуется визуально между «взмахом слева» и «взмахом справа»
+# для разнообразия (логически идентично).
+
+@export var radius: float = 80.0       # длина дуги (= range)
+@export var arc_deg: float = 90.0      # ширина конуса в градусах
+@export var damage: float = 12.0       # базовый урон, тот же, что был у swirl
+
+var _swing_index: int = 0  # 0/1 — для FX-чередования направления взмаха
+
+func _init() -> void:
+	base_cooldown = 0.4
+	icon = preload("res://assets/images/icons/axe-swing.svg")
+
+func on_tick(_delta: float) -> void:
+	if not ready_to_cast():
+		return
+	start_cooldown()
+	var r: float = radius * owner_player.range_mult()
+	var dmg: float = damage * owner_player.dmg_mult()
+	if _has_upgrade(&"berserker_circle"):
+		_aoe_damage(owner_player.global_position, r, dmg)
+		trigger_visual_fx("auto", {"r": r, "shape": "circle"})
+	else:
+		var aim: Vector2 = owner_player.aim_dir
+		var half_arc: float = deg_to_rad(arc_deg) * 0.5
+		_cone_damage(owner_player.global_position, aim, r, half_arc, dmg)
+		var swing := _swing_index
+		_swing_index = (_swing_index + 1) % 2
+		trigger_visual_fx("auto", {
+			"r": r,
+			"shape": "cone",
+			"aim_x": aim.x,
+			"aim_y": aim.y,
+			"arc": arc_deg,
+			"swing": swing,
+		})
