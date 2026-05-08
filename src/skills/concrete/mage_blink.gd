@@ -18,3 +18,11 @@ func on_pressed() -> void:
 	owner_player.teleport(target)
 	trigger_visual_fx("blink", {"from": from_pos, "to": owner_player.global_position})
 	AudioBus.play_at(&"mage_cast", from_pos)
+	if _has_upgrade(&"mage_echo_clone"):
+		var arena := get_tree().get_first_node_in_group("arena")
+		if arena != null and arena.has_method("spawn_echo_clone"):
+			arena.spawn_echo_clone({
+				"pos": from_pos,
+				"owner_peer_id": int(owner_player.peer_id),
+				"repeats": 3,
+			})
