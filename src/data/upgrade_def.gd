@@ -8,7 +8,7 @@ class_name UpgradeDef extends Resource
 # the actual stat change.
 
 enum Mode { FLAT, PCT }
-enum Rarity { COMMON, RARE, EPIC }
+enum Rarity { COMMON, RARE, EPIC, LEGENDARY }
 
 @export var id: StringName = &""
 # Short technical summary. Used in combat log lines like "Vrok взял +10% damage".
@@ -27,6 +27,10 @@ enum Rarity { COMMON, RARE, EPIC }
 # describe new behavior rather than a numeric stat change.
 @export_multiline var description: String = ""
 @export var rarity: Rarity = Rarity.COMMON
+# 0 = бесконечно для COMMON, либо тиро-зависимый дефолт (RARE=3, EPIC=2, LEGENDARY=1)
+# вычисляется через UpgradePool.effective_max_stacks(). Положительное значение
+# перекрывает дефолт (например, 5 для dodge, 8 для cooldown).
+@export var max_stacks: int = 0
 # Visual category badge: &"attack" / &"defense" / &"utility" / &"mana".
 @export var category: StringName = &"attack"
 @export_multiline var flavor: String = ""
