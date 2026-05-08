@@ -18,6 +18,24 @@ static func roll_for(rng: RandomNumberGenerator, player: Node, count: int) -> Ar
 		picks.append(def)
 	return picks
 
+# Эффективный стак-кэп карточки. 0 = бесконечно. Положительный max_stacks
+# на ресурсе перебивает тиро-дефолт.
+static func effective_max_stacks(def: UpgradeDef) -> int:
+	if def == null:
+		return 0
+	if def.max_stacks > 0:
+		return def.max_stacks
+	match def.rarity:
+		UpgradeDef.Rarity.COMMON:
+			return 0
+		UpgradeDef.Rarity.RARE:
+			return 3
+		UpgradeDef.Rarity.EPIC:
+			return 2
+		UpgradeDef.Rarity.LEGENDARY:
+			return 1
+	return 0
+
 static func _matches(def: UpgradeDef, player: Node) -> bool:
 	if def == null:
 		return false
