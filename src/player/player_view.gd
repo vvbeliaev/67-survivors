@@ -105,9 +105,29 @@ func _draw_berserker_fx() -> void:
 	if ta >= 0.0 and ta < 0.25:
 		var k: float = 1.0 - ta / 0.25
 		var r: float = float(_player.fx_get("auto", "r", 1.0))
-		var spin: float = ta * 18.0
-		draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
-		draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
+		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
+		if shape == "cone":
+			var ax: float = float(_player.fx_get("auto", "aim_x", 1.0))
+			var ay: float = float(_player.fx_get("auto", "aim_y", 0.0))
+			var aim_angle: float = atan2(ay, ax)
+			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
+			var swing: int = int(_player.fx_get("auto", "swing", 0))
+			# Чередуем смещение начала сектора, чтобы было видно «взмах туда / сюда».
+			var bias: float = (-1.0 if swing == 0 else 1.0) * 0.10
+			var start_a: float = aim_angle - arc_rad * 0.5 + bias
+			var end_a: float = aim_angle + arc_rad * 0.5 + bias
+			draw_arc(Vector2.ZERO, r, start_a, end_a, 32, Color(1, 0.95, 0.6, 0.55 * k), 6.0)
+			draw_arc(Vector2.ZERO, r * 0.7, start_a, end_a, 24, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
+			# Радиальные «границы» сектора — тонкие линии.
+			var d_start := Vector2(cos(start_a), sin(start_a)) * r
+			var d_end := Vector2(cos(end_a), sin(end_a)) * r
+			draw_line(Vector2.ZERO, d_start, Color(1, 0.95, 0.6, 0.30 * k), 2.0)
+			draw_line(Vector2.ZERO, d_end, Color(1, 0.95, 0.6, 0.30 * k), 2.0)
+		else:
+			# Legacy circular swirl (используется при наличии legendary `berserker_circle`).
+			var spin: float = ta * 18.0
+			draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
+			draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
 	var td: float = _player.fx_age("dash")
 	if td >= 0.0 and td < 0.4:
 		var k2: float = 1.0 - td / 0.4
