@@ -117,3 +117,13 @@ func _now() -> float:
 func trigger_visual_fx(kind: String, data: Dictionary = {}) -> void:
 	if owner_player != null and owner_player.has_method("play_visual_fx"):
 		owner_player.play_visual_fx(kind, data)
+
+# Уведомить активный echo-клон игрока, что только что прошёл успешный каст
+# заклинания указанного типа. Безопасно вызывать всегда — если клона нет,
+# ничего не происходит.
+func _notify_echo_clone(kind: StringName) -> void:
+	if owner_player == null:
+		return
+	var clone: Node = owner_player._echo_clone
+	if clone != null and is_instance_valid(clone) and clone.has_method("on_player_cast"):
+		clone.on_player_cast(kind)
