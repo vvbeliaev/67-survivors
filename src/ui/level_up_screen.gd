@@ -21,11 +21,12 @@ const PORTRAITS := {
 	&"crossbow":  preload("res://assets/images/crossbowman_top.png"),
 }
 
-const RARITY_LABELS := ["Обычная", "Редкая", "Эпическая"]
+const RARITY_LABELS := ["Обычная", "Редкая", "Эпическая", "Легендарная"]
 const RARITY_COLORS := [
 	Color(0.55, 0.55, 0.55),
 	Color(0.30, 0.62, 0.95),
 	Color(0.78, 0.45, 0.95),
+	Color(1.00, 0.78, 0.20),
 ]
 
 const CATEGORY_LABELS := {
@@ -45,7 +46,7 @@ const CATEGORY_COLORS := {
 const CARD_SIZE := Vector2(178, 300)
 const CARD_BG := Color(0.055, 0.045, 0.065, 1.0)        # near-black with a touch of plum
 const CARD_BG_INNER := Color(0.085, 0.07, 0.10, 1.0)    # icon-plate background
-const RARITY_BORDER_WIDTH := [1, 2, 2]
+const RARITY_BORDER_WIDTH := [1, 2, 2, 3]
 
 var _options: Array = []                  # Array[UpgradeDef]
 var _picked_locally: bool = false
@@ -342,7 +343,7 @@ func _rebuild_cards() -> void:
 		i += 1
 
 func _make_card(index: int, def: UpgradeDef) -> Control:
-	var rarity: int = clamp(int(def.rarity), 0, 2)
+	var rarity: int = clamp(int(def.rarity), 0, 3)
 	var category_id: StringName = StringName(String(def.category)) if def.category != &"" else &"attack"
 	var rarity_color: Color = RARITY_COLORS[rarity]
 	var category_color: Color = CATEGORY_COLORS.get(category_id, HUDPalette.ACCENT)
