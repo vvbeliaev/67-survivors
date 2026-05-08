@@ -118,29 +118,26 @@ func _draw_berserker_fx() -> void:
 			var aim_angle: float = atan2(aim_v.y, aim_v.x)
 			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
 			var swing: int = int(_player.fx_get("auto", "swing", 0))
-			# t — прогресс анимации 0→1 за время жизни FX.
 			var t: float = clampf(ta / 0.25, 0.0, 1.0)
-			# swing 0: справа налево  → начинаем с -arc/2 (низ, «ниже курсора» в Y-down)
-			#                            и идём к +arc/2 — для top-down глаза игрока это
-			#                            движение слева-сверху вправо-вниз = right-to-left
-			#                            forehand-взмах правой рукой.
-			# swing 1: слева направо — обратное движение, плюс зеркало по X.
 			var start_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
 			var end_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
 			var sweep_offset: float = lerp(start_off, end_off, t)
 			var draw_angle: float = aim_angle + sweep_offset
-			# Размер: чуть больше длины конуса, чтобы видно было кончик slash'а.
-			var size: float = r * 1.4
-			# Зеркалим X для swing 1, чтобы кривая slash'а шла в обратную сторону.
+			# Размер видимого slash'а. Текстура — 1254×1254, видимое пятно
+			# занимает bbox (195,3)–(673,731) ≈ 478×728. Кропим через
+			# draw_texture_rect_region и масштабируем сохранив пропорции,
+			# чтобы slash был длиной r×1.4 в сторону aim'а.
+			var slash_h: float = r * 1.4
+			var slash_w: float = slash_h * (478.0 / 728.0)
 			var scale_x: float = 1.0 if swing == 0 else -1.0
-			# Тёплый окрас (как у legacy circle); fade-out по k.
 			var color: Color = Color(1.0, 0.92, 0.55, 0.95 * k)
-			# Текстура нативно — slash с остриём вниз. Поворачиваем так, чтобы
-			# локальный +Y (низ текстуры) указывал в направлении draw_angle —
-			# получится `draw_angle - PI/2`. Прямоугольник: верх текстуры у
-			# игрока (y=0), кончик уходит наружу (y=size).
+			# Центрируем slash на игроке (0,0): половина внутрь, половина наружу.
+			# Это даёт натуральный pivot вращения «вокруг центра slash'а».
+			# Поворот: локальный +Y → world draw_angle (`draw_angle - PI/2`).
+			var dest_rect := Rect2(Vector2(-slash_w * 0.5, -slash_h * 0.5), Vector2(slash_w, slash_h))
+			var src_rect := Rect2(195.0, 3.0, 478.0, 728.0)
 			draw_set_transform(Vector2.ZERO, draw_angle - PI / 2, Vector2(scale_x, 1.0))
-			draw_texture_rect(CLEAVE_SLASH_TEX, Rect2(Vector2(-size * 0.5, 0.0), Vector2(size, size)), false, color)
+			draw_texture_rect_region(CLEAVE_SLASH_TEX, dest_rect, src_rect, color)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
 			# Legacy circular swirl (используется при наличии legendary `berserker_circle`).
