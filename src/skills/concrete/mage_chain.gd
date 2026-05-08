@@ -34,3 +34,4 @@ func on_pressed() -> void:
 		pts.append(e.global_position)
 	trigger_visual_fx("chain", {"points": pts})
 	AudioBus.play_at(&"mage_cast", owner_player.global_position)
+	_notify_echo_clone(&"chain")

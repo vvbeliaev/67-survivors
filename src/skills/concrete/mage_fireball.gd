@@ -35,3 +35,4 @@ func on_pressed() -> void:
 	)
 	var fb_flat: float = owner_player.stats.value(StatBlock.STAT_FIREBALL_DAMAGE)
 	_aoe_damage(owner_player.aim_world(), aoe_radius * rm, (aoe_damage + fb_flat) * owner_player.dmg_mult())
+	_notify_echo_clone(&"fireball")
