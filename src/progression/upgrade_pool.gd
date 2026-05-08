@@ -1,16 +1,36 @@
 class_name UpgradePool extends RefCounted
 
-# Filters and rolls UpgradeDef resources for a specific player. Class- and
-# archetype-aware so the offer screen never shows useless picks (e.g. mana
-# upgrades for a class with no mana).
+# Filters and rolls UpgradeDef resources for a specific player. Class-aware
+# and rarity-routed: legendary on level 10 (one-shot), epic on multiples of 5
+# (5, 15, 20…), common+rare on everything else. Falls back to common+rare if
+# the targeted-tier pool is too small to fill `count` slots.
 
-static func roll_for(rng: RandomNumberGenerator, player: Node, count: int) -> Array:
+static func roll_for(rng: RandomNumberGenerator, player: Node, count: int, level: int) -> Array:
+	var target: Variant = _target_rarity_for_level(level)
+	var picks: Array = _roll_tier(rng, player, count, target)
+	if picks.size() < count and target != null:
+		# Backfill from common+rare when the tier pool is empty/short.
+		var backup: Array = _roll_tier(rng, player, count - picks.size(), null)
+		var seen: Dictionary = {}
+		for p in picks:
+			seen[p.id] = true
+		for p in backup:
+			if picks.size() >= count:
+				break
+			if seen.has(p.id):
+				continue
+			picks.append(p)
+	return picks
+
+# null    → pool of {COMMON, RARE}
+# integer → pool of that single tier
+static func _roll_tier(rng: RandomNumberGenerator, player: Node, count: int, target: Variant) -> Array:
 	var pool: Array = []
 	for def in Defs.upgrades.values():
-		if not _matches(def, player):
+		if not _matches(def, player, target):
 			continue
 		pool.append(def)
-	pool = _weighted_shuffle(rng, pool)
+	pool = _uniform_shuffle(rng, pool)
 	var picks: Array = []
 	for def in pool:
 		if picks.size() >= count:
@@ -18,8 +38,45 @@ static func roll_for(rng: RandomNumberGenerator, player: Node, count: int) -> Ar
 		picks.append(def)
 	return picks
 
-# Эффективный стак-кэп карточки. 0 = бесконечно. Положительный max_stacks
-# на ресурсе перебивает тиро-дефолт.
+static func _target_rarity_for_level(level: int) -> Variant:
+	if level == 10:
+		return UpgradeDef.Rarity.LEGENDARY
+	if level > 0 and level % 5 == 0:
+		return UpgradeDef.Rarity.EPIC
+	return null
+
+static func _matches(def: UpgradeDef, player: Node, target: Variant) -> bool:
+	if def == null:
+		return false
+	# Tier filter.
+	if target == null:
+		if def.rarity != UpgradeDef.Rarity.COMMON and def.rarity != UpgradeDef.Rarity.RARE:
+			return false
+	else:
+		if def.rarity != int(target):
+			return false
+	# Class filter — empty array = universal.
+	if def.class_filter.size() > 0 and not def.class_filter.has(player.klass):
+		return false
+	# Stack-cap filter.
+	var cap: int = effective_max_stacks(def)
+	if cap > 0:
+		var picks_dict: Dictionary = player._upgrade_stacks
+		var picked: int = int(picks_dict.get(def.id, 0))
+		if picked >= cap:
+			return false
+	return true
+
+static func _uniform_shuffle(rng: RandomNumberGenerator, defs: Array) -> Array:
+	var out: Array = defs.duplicate()
+	var n: int = out.size()
+	for i in range(n - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var tmp = out[i]
+		out[i] = out[j]
+		out[j] = tmp
+	return out
+
 static func effective_max_stacks(def: UpgradeDef) -> int:
 	if def == null:
 		return 0
@@ -35,28 +92,3 @@ static func effective_max_stacks(def: UpgradeDef) -> int:
 		UpgradeDef.Rarity.LEGENDARY:
 			return 1
 	return 0
-
-static func _matches(def: UpgradeDef, player: Node) -> bool:
-	if def == null:
-		return false
-	# weight <= 0 means "milestone-only" — never appears in random rolls,
-	# inserted explicitly by the offer layer at scripted level-ups.
-	if def.weight <= 0.0:
-		return false
-	if def.class_filter.size() > 0 and not def.class_filter.has(player.klass):
-		return false
-	# Archetype filtering reserved for Tier 2.
-	return true
-
-static func _weighted_shuffle(rng: RandomNumberGenerator, defs: Array) -> Array:
-	# Simple weighted shuffle: each entry gets a key = -log(rng) / weight.
-	var keyed: Array = []
-	for def in defs:
-		var u: float = max(rng.randf(), 1e-6)
-		var w: float = max(def.weight, 0.0001)
-		keyed.append({"k": -log(u) / w, "d": def})
-	keyed.sort_custom(func (a, b): return a.k < b.k)
-	var out: Array = []
-	for kv in keyed:
-		out.append(kv.d)
-	return out
