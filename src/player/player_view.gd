@@ -109,9 +109,15 @@ func _draw_berserker_fx() -> void:
 		var r: float = float(_player.fx_get("auto", "r", 1.0))
 		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
 		if shape == "cone":
-			# Slash-текстура «прометает» дугу за время жизни FX (0.25с).
-			# Доворачиваем за курсором — берём `aim_dir` живьём, не замороженный
-			# вектор момента удара.
+			# Slash-текстура: видимый bbox (195,3)–(673,731) ≈ 478×728. Сам слэш
+			# идёт по диагонали из верхнего-левого угла bbox (рукоять/база) в
+			# нижний-правый (остриё). Угол этой диагонали в локальных коорд'ах =
+			# atan2(slash_h, slash_w) ≈ 0.99 rad ≈ 57°. Чтобы слэш указывал в
+			# сторону курсора (+ swing), компенсируем этот угол при повороте.
+			#
+			# Якорь dest-rect — в (0,0) = игрок. Слэш уходит в квадрант (+X, +Y)
+			# до полной поворота. После rotation = draw_angle - local_axis локальная
+			# диагональ совмещается с world-углом draw_angle = курсор.
 			var aim_v: Vector2 = _player.aim_dir
 			if aim_v.length_squared() < 0.0001:
 				aim_v = Vector2.RIGHT
@@ -119,24 +125,21 @@ func _draw_berserker_fx() -> void:
 			var arc_rad: float = deg_to_rad(float(_player.fx_get("auto", "arc", 90.0)))
 			var swing: int = int(_player.fx_get("auto", "swing", 0))
 			var t: float = clampf(ta / 0.25, 0.0, 1.0)
-			var start_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
-			var end_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
+			# swing 0: справа налево  → угол идёт от +arc/2 к -arc/2.
+			# swing 1: слева направо  → угол идёт от -arc/2 к +arc/2.
+			var start_off: float = arc_rad * 0.5 if swing == 0 else -arc_rad * 0.5
+			var end_off: float = -arc_rad * 0.5 if swing == 0 else arc_rad * 0.5
 			var sweep_offset: float = lerp(start_off, end_off, t)
 			var draw_angle: float = aim_angle + sweep_offset
-			# Размер видимого slash'а. Текстура — 1254×1254, видимое пятно
-			# занимает bbox (195,3)–(673,731) ≈ 478×728. Кропим через
-			# draw_texture_rect_region и масштабируем сохранив пропорции,
-			# чтобы slash был длиной r×1.4 в сторону aim'а.
+
 			var slash_h: float = r * 1.4
 			var slash_w: float = slash_h * (478.0 / 728.0)
-			var scale_x: float = 1.0 if swing == 0 else -1.0
+			var local_axis: float = atan2(slash_h, slash_w)
 			var color: Color = Color(1.0, 0.92, 0.55, 0.95 * k)
-			# Центрируем slash на игроке (0,0): половина внутрь, половина наружу.
-			# Это даёт натуральный pivot вращения «вокруг центра slash'а».
-			# Поворот: локальный +Y → world draw_angle (`draw_angle - PI/2`).
-			var dest_rect := Rect2(Vector2(-slash_w * 0.5, -slash_h * 0.5), Vector2(slash_w, slash_h))
+
+			var dest_rect := Rect2(Vector2.ZERO, Vector2(slash_w, slash_h))
 			var src_rect := Rect2(195.0, 3.0, 478.0, 728.0)
-			draw_set_transform(Vector2.ZERO, draw_angle - PI / 2, Vector2(scale_x, 1.0))
+			draw_set_transform(Vector2.ZERO, draw_angle - local_axis, Vector2.ONE)
 			draw_texture_rect_region(CLEAVE_SLASH_TEX, dest_rect, src_rect, color)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
