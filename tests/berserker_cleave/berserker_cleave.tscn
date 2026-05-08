@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0bcleave67surv"]
+
+[ext_resource type="Script" path="res://tests/berserker_cleave/berserker_cleave.gd" id="1_bcleave"]
+
+[node name="BerserkerCleaveTest" type="Node"]
+script = ExtResource("1_bcleave")

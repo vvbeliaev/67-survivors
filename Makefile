@@ -14,7 +14,7 @@ KEY      ?= ~/.ssh/id_ed25519_selectel
 SSH_PORT ?= 22
 USER     ?= root
 
-.PHONY: run editor import smoke rarity-test check server deploy logs stop peer host join clean help
+.PHONY: run editor import smoke rarity-test bcleave-test check server deploy logs stop peer host join clean help
 
 run: check
 	$(GODOT) --path $(PROJECT_DIR)
@@ -30,6 +30,9 @@ smoke:
 
 rarity-test:
 	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/rarity_offer/rarity_offer.tscn
+
+bcleave-test:
+	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/berserker_cleave/berserker_cleave.tscn
 
 # Headless dedicated server. Clients connect from the lobby (Join + server IP).
 # The round starts automatically once MIN_PLAYERS players are in the roster.
