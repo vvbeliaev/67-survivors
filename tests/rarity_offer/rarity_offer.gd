@@ -7,7 +7,7 @@ extends Node
 #
 # Run with: godot --headless res://tests/rarity_offer/rarity_offer.tscn
 
-class _PlayerStub extends RefCounted:
+class _PlayerStub extends Node:
 	var klass: StringName = &"berserker"
 	var _upgrade_stacks: Dictionary = {}
 
@@ -32,12 +32,14 @@ func _run() -> void:
 
 	# Build minimal test fixtures, all universal (empty class_filter).
 	var common_def: UpgradeDef = _make_def(&"t_common", UpgradeDef.Rarity.COMMON, 2)
+	var common2_def: UpgradeDef = _make_def(&"t_common2", UpgradeDef.Rarity.COMMON, 0)
 	var rare_def: UpgradeDef = _make_def(&"t_rare", UpgradeDef.Rarity.RARE, 0)
 	var epic_def: UpgradeDef = _make_def(&"t_epic", UpgradeDef.Rarity.EPIC, 0)
 	var leg_def: UpgradeDef = _make_def(&"t_legendary", UpgradeDef.Rarity.LEGENDARY, 0)
 
 	Defs.upgrades.clear()
 	Defs.upgrades[common_def.id] = common_def
+	Defs.upgrades[common2_def.id] = common2_def
 	Defs.upgrades[rare_def.id] = rare_def
 	Defs.upgrades[epic_def.id] = epic_def
 	Defs.upgrades[leg_def.id] = leg_def
@@ -95,6 +97,9 @@ func _run() -> void:
 	Defs.upgrades.clear()
 	for k in saved.keys():
 		Defs.upgrades[k] = saved[k]
+
+	# Free the stub Node so we don't leak ObjectDB entries on exit.
+	player.free()
 
 func _make_def(id: StringName, rarity: int, max_stacks: int) -> UpgradeDef:
 	var d := UpgradeDef.new()
