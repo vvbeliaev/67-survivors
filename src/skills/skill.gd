@@ -59,9 +59,39 @@ func _aoe_damage(center: Vector2, r: float, dmg: float) -> void:
 	for e in Targeting.enemies_in_radius(get_tree(), center, r):
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
-			var ls: float = owner_player.lifesteal()
-			if ls > 0.0:
-				owner_player.heal(dmg * ls)
+			_apply_lifesteal(dmg)
+
+# Конус-удар вокруг направления aim. half_arc_rad = половина раствора в радианах.
+# Враг попадает, если расстояние от center ≤ r и угол между (e - center) и aim
+# ≤ half_arc_rad. Враги вплотную к center (dist < 1px) считаются попаданиями.
+func _cone_damage(center: Vector2, aim: Vector2, r: float, half_arc_rad: float, dmg: float) -> void:
+	var aim_n: Vector2 = aim.normalized() if aim.length() > 0.0001 else Vector2.RIGHT
+	for e in Targeting.enemies_in_radius(get_tree(), center, r):
+		if not e.has_method("apply_damage"):
+			continue
+		var d: Vector2 = e.global_position - center
+		if d.length() < 1.0:
+			e.apply_damage(dmg, "player")
+			_apply_lifesteal(dmg)
+			continue
+		var angle: float = abs(aim_n.angle_to(d.normalized()))
+		if angle > half_arc_rad:
+			continue
+		e.apply_damage(dmg, "player")
+		_apply_lifesteal(dmg)
+
+func _apply_lifesteal(dmg: float) -> void:
+	if owner_player == null:
+		return
+	var ls: float = owner_player.lifesteal()
+	if ls > 0.0:
+		owner_player.heal(dmg * ls)
+
+# True, если у игрока хотя бы один стак указанного апгрейда.
+func _has_upgrade(id: StringName) -> bool:
+	if owner_player == null:
+		return false
+	return int(owner_player._upgrade_stacks.get(id, 0)) > 0
 
 func _spawn_projectile(pos: Vector2, vel: Vector2, dmg: float, color: Color, life: float, r: float, pierce: int, extras: Dictionary = {}) -> void:
 	var arena := get_tree().get_first_node_in_group("arena")
