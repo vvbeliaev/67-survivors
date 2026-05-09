@@ -6,18 +6,21 @@
 [resource]
 script = ExtResource("1_def")
 id = &"charge_pierce"
-label = "+1 pierce on charged bolt"
+label = "+2/3/4 pierce"
 weight = 1.0
 class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
 icon = ExtResource("2_icon")
 display_name = "Бронебойный болт"
-description = "Пробитие болта	+1"
+description = "+2|+3|+4
+к пробитию болта"
 rarity = 1
+max_stacks = 3
 category = &"attack"
 flavor = "Сквозь броню. Сквозь кость."
 stat = &"charge_pierce"
 mode = 0
 amount = 1.0
+per_stack_amounts = Array[float]([2.0, 1.0, 1.0])
 heal_on_pick = 0.0
 refill_mana = false

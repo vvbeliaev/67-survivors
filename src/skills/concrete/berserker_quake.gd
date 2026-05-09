@@ -15,11 +15,14 @@ func on_pressed() -> void:
 		return
 	consume_cost()
 	start_cooldown()
-	var r: float = radius * owner_player.range_mult()
+	var stun_radius_mult: float = owner_player.stats.value(StatBlock.STAT_STUN_RADIUS)
+	var stun_bonus: float = owner_player.stats.value(StatBlock.STAT_STUN_DURATION)
+	var r: float = radius * owner_player.range_mult() * stun_radius_mult
 	var dmg: float = damage * owner_player.dmg_mult()
+	var total_stun: float = stun_duration + stun_bonus
 	for e in Targeting.enemies_in_radius(get_tree(), owner_player.global_position, r):
 		if e.has_method("stun"):
-			e.stun(stun_duration)
+			e.stun(total_stun)
 		if e.has_method("apply_damage"):
 			e.apply_damage(dmg, "player")
 	trigger_visual_fx("quake", {"r": r})

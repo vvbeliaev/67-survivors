@@ -9,6 +9,7 @@ const ENEMY_SCENE := preload("res://src/enemy/enemy.tscn")
 const PROJECTILE_SCENE := preload("res://src/projectiles/projectile.tscn")
 const ECHO_CLONE_SCENE := preload("res://src/skills/concrete/echo_clone.tscn")
 const STAR_PLATINUM_SCENE := preload("res://src/skills/concrete/star_platinum.tscn")
+const BERSERKER_DECOY_SCENE := preload("res://src/skills/concrete/berserker_decoy.tscn")
 const DAMAGE_NUMBER_SCRIPT := preload("res://src/ui/damage_number.gd")
 const TORCH_SCENE := preload("res://src/world/torch.tscn")
 const DEBUG_PANEL_SCENE := preload("res://src/debug/debug_panel.tscn")
@@ -124,6 +125,7 @@ func _spawn_projectile(data: Variant) -> Node:
 	pr.mana_on_hit_pct = float(d.get("mana_on_hit_pct", 0.0))
 	pr.sprite_path = String(d.get("sprite_path", ""))
 	pr.sprite_size = d.get("sprite_size", Vector2.ZERO)
+	pr.pushback_force = float(d.get("pushback_force", 0.0))
 	if pr.team == "player":
 		pr.collision_layer = 1 << 3
 		pr.collision_mask = 1 << 2
@@ -148,11 +150,22 @@ func _spawn_minion(data: Variant) -> Node:
 	var scene: PackedScene = null
 	if kind == &"star_platinum":
 		scene = STAR_PLATINUM_SCENE
+	elif kind == &"berserker_decoy":
+		scene = BERSERKER_DECOY_SCENE
 	if scene == null:
 		return null
 	var m: Node2D = scene.instantiate()
 	m.position = d.get("pos", Vector2.ZERO)
 	m.owner_peer_id = int(d.get("owner_peer_id", 0))
+	if kind == &"berserker_decoy":
+		if d.has("fx_radius"):
+			m.fx_radius = float(d.get("fx_radius", 240.0))
+		if d.has("max_hp"):
+			var mh: float = float(d.get("max_hp", 50.0))
+			m.max_hp = mh
+			m.hp = mh
+		if d.has("lifetime"):
+			m.lifetime = float(d.get("lifetime", 5.0))
 	m.set_multiplayer_authority(1)
 	return m
 

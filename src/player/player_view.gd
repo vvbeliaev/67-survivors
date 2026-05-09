@@ -92,6 +92,8 @@ func _draw() -> void:
 	match String(_player.klass):
 		"berserker":
 			_draw_berserker_fx()
+			if GameState.debug_mode and GameState.debug_show_berserker_cone:
+				_draw_berserker_debug_cone()
 		"mage":
 			_draw_mage_fx()
 		"bard":
@@ -115,11 +117,9 @@ func _draw() -> void:
 	if not _player.alive:
 		draw_arc(Vector2.ZERO, _player.radius + 6, 0, TAU, 32, Color(1, 0.4, 0.4, 0.6), 2.0)
 
-	if _player.charge_started_at >= 0.0:
-		var ct: float = clampf((Time.get_ticks_msec() / 1000.0) - _player.charge_started_at, 0.0, 1.5) / 1.5
-		var top3 := Vector2(-w * 0.5, _player.radius + 4)
-		draw_rect(Rect2(top3, Vector2(w, h)), Color(0.1, 0.1, 0.1))
-		draw_rect(Rect2(top3, Vector2(w * ct, h)), Color(1.0, 0.85, 0.3))
+	# Желтой charge-полоски под игроком больше нет — у арбалетчика прогресс
+	# зарядки показывается через mp-бар над игроком (он же «концентрация»;
+	# crossbow.on_pre_move ставит mp = max_mp × charge_progress).
 
 func _draw_berserker_slash_behind() -> void:
 	# Slash-текстура для cleave-автоатаки. Рисуется ДО спрайта героя, чтобы
@@ -130,10 +130,10 @@ func _draw_berserker_slash_behind() -> void:
 	#   • swing 0: угол от -arc/2 к +arc/2 (слева направо относительно aim);
 	#   • swing 1: угол от +arc/2 к -arc/2 + зеркало по X — след оказывается
 	#     с другой стороны, мах справа налево.
+	# Размах визуального свинга масштабируется от ширины конуса (`arc`),
+	# чтобы апгрейд "+градусы к атаке" читался не только через попадания.
 	var ta: float = _player.fx_age("auto")
 	if ta < 0.0 or ta >= 0.25:
-		return
-	if String(_player.fx_get("auto", "shape", "circle")) != "cone":
 		return
 	var k: float = 1.0 - ta / 0.25
 	var r: float = float(_player.fx_get("auto", "r", 1.0))
@@ -142,9 +142,10 @@ func _draw_berserker_slash_behind() -> void:
 		aim_v = Vector2.RIGHT
 	var aim_angle: float = atan2(aim_v.y, aim_v.x)
 	var swing: int = int(_player.fx_get("auto", "swing", 0))
+	var arc_deg: float = float(_player.fx_get("auto", "arc", 90.0))
 	var t: float = clampf(ta / 0.25, 0.0, 1.0)
 
-	var sweep_rad: float = deg_to_rad(70.0)
+	var sweep_rad: float = deg_to_rad(70.0 * (arc_deg / 90.0))
 	var sweep_off: float
 	if swing == 0:
 		sweep_off = lerp(-sweep_rad * 0.5, sweep_rad * 0.5, t)
@@ -164,17 +165,8 @@ func _draw_berserker_slash_behind() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_berserker_fx() -> void:
-	# Cone-форма (cleave) рисуется отдельно за героем в _draw_berserker_slash_behind.
-	# Здесь — только legacy circular swirl при наличии legendary `berserker_circle`.
-	var ta: float = _player.fx_age("auto")
-	if ta >= 0.0 and ta < 0.25:
-		var k: float = 1.0 - ta / 0.25
-		var r: float = float(_player.fx_get("auto", "r", 1.0))
-		var shape: String = String(_player.fx_get("auto", "shape", "circle"))
-		if shape != "cone":
-			var spin: float = ta * 18.0
-			draw_arc(Vector2.ZERO, r, spin, spin + PI, 32, Color(1, 0.95, 0.6, 0.45 * k), 6.0)
-			draw_arc(Vector2.ZERO, r, spin + PI, spin + TAU, 32, Color(1, 0.7, 0.3, 0.35 * k), 4.0)
+	# Cleave (cone) рисуется отдельно за героем в _draw_berserker_slash_behind.
+	# Здесь — только остальные FX (dash, roar, quake).
 	var td: float = _player.fx_age("dash")
 	if td >= 0.0 and td < 0.4:
 		var k2: float = 1.0 - td / 0.4
@@ -183,12 +175,13 @@ func _draw_berserker_fx() -> void:
 		draw_line(Vector2.ZERO, local_start, Color(1, 0.25, 0.25, 0.55 * k2), 10.0)
 		var burst_r: float = float(_player.fx_get("dash", "r", 1.0))
 		draw_arc(Vector2.ZERO, burst_r * (0.6 + 0.4 * (1.0 - k2)), 0, TAU, 32, Color(1, 0.5, 0.3, 0.5 * k2), 3.0)
-	var tr: float = _player.fx_age("roar")
-	if tr >= 0.0 and tr < 0.6:
-		var k3: float = 1.0 - tr / 0.6
-		var rmax: float = float(_player.fx_get("roar", "r", 1.0))
-		var rcur := rmax * clampf(tr / 0.55, 0.0, 1.0)
-		draw_arc(Vector2.ZERO, rcur, 0, TAU, 64, Color(1, 0.35, 0.35, 0.55 * k3), 4.0)
+	var trt: float = _player.fx_age("retaliate")
+	if trt >= 0.0 and trt < 0.35:
+		var k_ret: float = 1.0 - trt / 0.35
+		var rmax_ret: float = float(_player.fx_get("retaliate", "r", 1.0))
+		var rcur_ret: float = rmax_ret * clampf(trt / 0.32, 0.0, 1.0)
+		draw_arc(Vector2.ZERO, rcur_ret, 0, TAU, 56, Color(1.0, 0.25, 0.25, 0.7 * k_ret), 4.0)
+		draw_arc(Vector2.ZERO, rcur_ret * 0.7, 0, TAU, 48, Color(1.0, 0.55, 0.35, 0.45 * k_ret), 2.0)
 	var tq: float = _player.fx_age("quake")
 	if tq >= 0.0 and tq < 0.55:
 		var k4: float = 1.0 - tq / 0.55
@@ -199,6 +192,42 @@ func _draw_berserker_fx() -> void:
 			var ang: float = i * (TAU / 6.0)
 			var dir := Vector2(cos(ang), sin(ang))
 			draw_line(dir * (qr * 0.2), dir * (qr * 0.7), Color(0.7, 0.4, 0.2, 0.5 * k4), 3.0)
+
+func _draw_berserker_debug_cone() -> void:
+	# Дебаг-овержей актуального hitbox-конуса cleave-автоатаки. Геометрия —
+	# ровно та же, что в Skill._cone_damage: hit_r = melee.radius × range_mult × 1.2,
+	# half_arc = (melee.arc_deg + STAT_SLASH_ARC) / 2. Параметры читаем из живого
+	# скилла, чтобы апгрейды на дальность/арку отражались мгновенно.
+	if _player.class_node == null:
+		return
+	var melee: Object = _player.class_node.auto_skill
+	if melee == null:
+		return
+	var base_r: float = float(melee.get("radius"))
+	var base_arc: float = float(melee.get("arc_deg"))
+	if base_r <= 0.0:
+		return
+	var arc_bonus: float = _player.stats.value(StatBlock.STAT_SLASH_ARC)
+	var hit_r: float = base_r * _player.range_mult() * 1.2
+	var half_arc: float = deg_to_rad(base_arc + arc_bonus) * 0.5
+	var aim_v: Vector2 = _player.aim_dir
+	if aim_v.length_squared() < 0.0001:
+		aim_v = Vector2.RIGHT
+	var aim_a: float = atan2(aim_v.y, aim_v.x)
+	var steps := 32
+	var pts: PackedVector2Array = PackedVector2Array()
+	pts.append(Vector2.ZERO)
+	for i in steps + 1:
+		var t: float = float(i) / float(steps)
+		var ang: float = aim_a - half_arc + t * (half_arc * 2.0)
+		pts.append(Vector2(cos(ang), sin(ang)) * hit_r)
+	draw_colored_polygon(pts, Color(1.0, 0.25, 0.25, 0.16))
+	var outline: PackedVector2Array = PackedVector2Array()
+	outline.append(Vector2.ZERO)
+	for i in range(1, pts.size()):
+		outline.append(pts[i])
+	outline.append(Vector2.ZERO)
+	draw_polyline(outline, Color(1.0, 0.4, 0.4, 0.95), 1.5, true)
 
 func _draw_mage_fx() -> void:
 	var ta: float = _player.fx_age("auto")

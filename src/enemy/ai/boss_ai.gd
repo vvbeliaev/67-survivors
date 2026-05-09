@@ -58,5 +58,7 @@ func _tick_aoe(delta: float, target: Node2D) -> void:
 				_aoe_cd = e.boss_aoe_cd
 
 func _resolve(e: Node) -> void:
-	for p in Targeting.players_in_radius(get_tree(), e.boss_aoe_pos, e.boss_aoe_radius):
+	# Чучело тоже ловит шок-волну: иначе босс телеграфит AoE на приманку,
+	# но при срабатывании урон проходит мимо, что выглядит как баг.
+	for p in Targeting.player_targets_in_radius(get_tree(), e.boss_aoe_pos, e.boss_aoe_radius):
 		p.apply_damage(e.boss_aoe_damage, "enemy")

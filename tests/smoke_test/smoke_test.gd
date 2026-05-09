@@ -60,6 +60,29 @@ func _ready() -> void:
 	print("[smoke] run_kills=%d run_damage=%d run_xp_gained=%d" % [
 		GameState.run_kills, GameState.run_damage, GameState.run_xp_gained
 	])
+	# Чучело берсерка: спавним напрямую через arena, дамажим, убиваем.
+	# Проверяем, что декой попадает в группу "decoys", корректно умирает
+	# на нулевом HP и пропадает из группы.
+	if arena.has_method("spawn_minion") and players.size() > 0:
+		var pp: Node = players[0]
+		arena.spawn_minion({
+			"kind": "berserker_decoy",
+			"pos": pp.global_position + Vector2(80, 0),
+			"owner_peer_id": int(pp.peer_id),
+			"fx_radius": 240.0,
+			"max_hp": 50.0,
+		})
+		await get_tree().create_timer(0.05).timeout
+		var decoys: Array = get_tree().get_nodes_in_group("decoys")
+		print("[smoke] decoy spawn count=%d" % decoys.size())
+		if decoys.size() > 0:
+			var d: Node = decoys[0]
+			var dhp: float = float(d.hp)
+			d.apply_damage(20.0, "enemy")
+			print("[smoke] decoy hp %.1f -> %.1f alive=%s" % [dhp, float(d.hp), str(d.alive)])
+			d.apply_damage(100.0, "enemy")
+			await get_tree().create_timer(0.05).timeout
+			print("[smoke] decoy after lethal: alive_in_group=%d" % get_tree().get_nodes_in_group("decoys").size())
 	# Level-up flow: force a level threshold, fire the event, verify the
 	# screen opens and the tree pauses; submit a pick and verify it resumes.
 	GameState.party_xp = 0

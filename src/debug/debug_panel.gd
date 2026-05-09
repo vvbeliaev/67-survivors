@@ -9,6 +9,8 @@ extends CanvasLayer
 @onready var hint_label: Label = %HintLabel
 @onready var level_up_btn: Button = %LevelUpBtn
 @onready var level_label: Label = %LevelLabel
+@onready var menu_btn: Button = %MenuBtn
+@onready var cone_toggle_btn: Button = %ConeToggleBtn
 
 var _enemy_ids: Array[StringName] = []
 
@@ -16,6 +18,10 @@ func _ready() -> void:
 	_populate_list()
 	spawn_btn.pressed.connect(_on_spawn)
 	level_up_btn.pressed.connect(_on_level_up)
+	menu_btn.pressed.connect(_on_to_menu)
+	cone_toggle_btn.button_pressed = GameState.debug_show_berserker_cone
+	cone_toggle_btn.toggled.connect(_on_cone_toggled)
+	_refresh_cone_label(GameState.debug_show_berserker_cone)
 	GameState.party_level_changed.connect(_refresh_level_label)
 	_refresh_level_label(GameState.party_level)
 
@@ -70,3 +76,16 @@ func _on_level_up() -> void:
 func _refresh_level_label(new_level: int) -> void:
 	if level_label != null:
 		level_label.text = "уровень: %d" % new_level
+
+func _on_cone_toggled(pressed: bool) -> void:
+	GameState.debug_show_berserker_cone = pressed
+	_refresh_cone_label(pressed)
+	hint_label.text = "конус берсерка: %s" % ("вкл" if pressed else "выкл")
+
+func _refresh_cone_label(pressed: bool) -> void:
+	if cone_toggle_btn != null:
+		cone_toggle_btn.text = "КОНУС БЕРС: %s" % ("ВКЛ" if pressed else "ВЫКЛ")
+
+func _on_to_menu() -> void:
+	Network.leave()
+	get_tree().change_scene_to_file("res://src/lobby/lobby.tscn")

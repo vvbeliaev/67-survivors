@@ -39,6 +39,10 @@ enum Rarity { COMMON, RARE, EPIC, LEGENDARY }
 @export var stat: StringName = &""
 @export var mode: Mode = Mode.FLAT
 @export var amount: float = 0.0
+# Опционально: per-stack дельта вместо постоянной `amount`. Если массив непуст,
+# при стаке N добавляется per_stack_amounts[N-1] (clamp до последнего элемента).
+# Нужен для нелинейных прогрессий вроде 30/45/60 (дельты 0.30/0.15/0.15).
+@export var per_stack_amounts: Array[float] = []
 
 # Optional secondary stats applied alongside the primary one. Parallel arrays;
 # all three must be the same length. Empty arrays = no secondary effects.

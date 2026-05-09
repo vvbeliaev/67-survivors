@@ -1,42 +1,81 @@
 class_name UpgradePool extends RefCounted
 
 # Filters and rolls UpgradeDef resources for a specific player. Class-aware
-# and rarity-routed: legendary on level 10 (one-shot), epic on multiples of 5
-# (5, 15, 20…), common+rare on everything else. Falls back to common+rare if
-# the targeted-tier pool is too small to fill `count` slots.
+# и rarity-routed: legendary on level 10 (one-shot), epic on multiples of 5
+# (5, 15, 20…). Каждый слот «спускается» по цепочке rarities — если для класса
+# нет легендарок, слот заполняется фиолетовой (эпиком), нет фиолетовых — синей
+# (rare), нет синих — белой (common). На обычных уровнях позиционный layout
+# сохраняется: последний слот стартует с COMMON-цепочки, остальные — с RARE.
+#
+# Это даёт два важных свойства:
+#   • На 10 ур. крафтер без класс-легендарки получит эпик (а не common).
+#   • На 5/15/20 ур. с пустым эпик-пулом упадёт RARE / COMMON, а не «дырка».
+
+# Цепочки фолбэка идут СТРОГО ВНИЗ. COMMON в самом низу — дальше падать некуда.
+const _RARITY_DESCEND: Dictionary = {
+	int(UpgradeDef.Rarity.LEGENDARY): [
+		UpgradeDef.Rarity.LEGENDARY, UpgradeDef.Rarity.EPIC,
+		UpgradeDef.Rarity.RARE, UpgradeDef.Rarity.COMMON,
+	],
+	int(UpgradeDef.Rarity.EPIC): [
+		UpgradeDef.Rarity.EPIC, UpgradeDef.Rarity.RARE, UpgradeDef.Rarity.COMMON,
+	],
+	int(UpgradeDef.Rarity.RARE): [
+		UpgradeDef.Rarity.RARE, UpgradeDef.Rarity.COMMON,
+	],
+	int(UpgradeDef.Rarity.COMMON): [
+		UpgradeDef.Rarity.COMMON,
+	],
+}
 
 static func roll_for(rng: RandomNumberGenerator, player: Node, count: int, level: int) -> Array:
+	var pools: Dictionary = _build_pools(rng, player)
+	var seen: Dictionary = {}
+	var picks: Array = []
 	var target: Variant = _target_rarity_for_level(level)
-	var picks: Array = _roll_tier(rng, player, count, target)
-	if picks.size() < count and target != null:
-		# Backfill from common+rare when the tier pool is empty/short.
-		var backup: Array = _roll_tier(rng, player, count - picks.size(), null)
-		var seen: Dictionary = {}
-		for p in picks:
-			seen[p.id] = true
-		for p in backup:
-			if picks.size() >= count:
+	if target != null:
+		# Tier-targeted уровень (5/10/15/...): все слоты стартуют с одной редкости
+		# и спускаются вниз. На 10 ур. цепочка LEG→EPIC→RARE→COMMON.
+		for _i in count:
+			var pick: UpgradeDef = _pick_cascade(pools, int(target), seen)
+			if pick == null:
 				break
-			if seen.has(p.id):
-				continue
-			picks.append(p)
+			picks.append(pick)
+			seen[pick.id] = true
+		return picks
+	# Обычный уровень: позиционный — последний слот идёт с COMMON, остальные с RARE.
+	# Каждый слот при пустом таргете спускается дальше вниз. RARE→COMMON, COMMON→ничего
+	# (но common-пул бесконечно стакабельный, поэтому на практике никогда не пустой).
+	for i in range(count):
+		var is_last: bool = i == count - 1
+		var start: int = int(UpgradeDef.Rarity.COMMON if is_last else UpgradeDef.Rarity.RARE)
+		var pick: UpgradeDef = _pick_cascade(pools, start, seen)
+		if pick == null:
+			continue
+		picks.append(pick)
+		seen[pick.id] = true
 	return picks
 
-# null    → pool of {COMMON, RARE}
-# integer → pool of that single tier
-static func _roll_tier(rng: RandomNumberGenerator, player: Node, count: int, target: Variant) -> Array:
-	var pool: Array = []
-	for def in Defs.upgrades.values():
-		if not _matches(def, player, target):
+# Строит и шафлит пулы по каждой редкости один раз — потом мы их «вычерпываем»
+# через _pop_first_unseen, так что один и тот же апгрейд не вылезет дважды.
+static func _build_pools(rng: RandomNumberGenerator, player: Node) -> Dictionary:
+	var out: Dictionary = {}
+	for r in [UpgradeDef.Rarity.COMMON, UpgradeDef.Rarity.RARE, UpgradeDef.Rarity.EPIC, UpgradeDef.Rarity.LEGENDARY]:
+		out[int(r)] = _uniform_shuffle(rng, _build_pool(player, r))
+	return out
+
+# Спуск по цепочке для одного слота. Берём первый доступный апгрейд из самой
+# высокой непустой ступени; останавливаемся, когда нашли.
+static func _pick_cascade(pools: Dictionary, start_rarity: int, seen: Dictionary) -> UpgradeDef:
+	var chain: Array = _RARITY_DESCEND.get(start_rarity, [])
+	for tier in chain:
+		var pool = pools.get(int(tier))
+		if pool == null:
 			continue
-		pool.append(def)
-	pool = _uniform_shuffle(rng, pool)
-	var picks: Array = []
-	for def in pool:
-		if picks.size() >= count:
-			break
-		picks.append(def)
-	return picks
+		var pick: UpgradeDef = _pop_first_unseen(pool, seen)
+		if pick != null:
+			return pick
+	return null
 
 static func _target_rarity_for_level(level: int) -> Variant:
 	if level == 10:
@@ -48,13 +87,9 @@ static func _target_rarity_for_level(level: int) -> Variant:
 static func _matches(def: UpgradeDef, player: Node, target: Variant) -> bool:
 	if def == null:
 		return false
-	# Tier filter.
-	if target == null:
-		if def.rarity != UpgradeDef.Rarity.COMMON and def.rarity != UpgradeDef.Rarity.RARE:
-			return false
-	else:
-		if def.rarity != int(target):
-			return false
+	# Tier filter — strict: каждый пул содержит ровно одну редкость.
+	if target != null and def.rarity != int(target):
+		return false
 	# Class filter — empty array = universal.
 	if def.class_filter.size() > 0 and not def.class_filter.has(player.klass):
 		return false
@@ -66,6 +101,20 @@ static func _matches(def: UpgradeDef, player: Node, target: Variant) -> bool:
 		if picked >= cap:
 			return false
 	return true
+
+static func _build_pool(player: Node, target: Variant) -> Array:
+	var out: Array = []
+	for def in Defs.upgrades.values():
+		if _matches(def, player, target):
+			out.append(def)
+	return out
+
+static func _pop_first_unseen(pool: Array, seen: Dictionary) -> UpgradeDef:
+	while pool.size() > 0:
+		var d: UpgradeDef = pool.pop_front()
+		if not seen.has(d.id):
+			return d
+	return null
 
 static func _uniform_shuffle(rng: RandomNumberGenerator, defs: Array) -> Array:
 	var out: Array = defs.duplicate()

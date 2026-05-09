@@ -16,6 +16,10 @@ var source_peer: int = 0
 var mana_on_hit_pct: float = 0.0
 var sprite_path: String = ""
 var sprite_size: Vector2 = Vector2.ZERO
+# Импульс отталкивания цели в направлении полёта снаряда. > 0 → при попадании
+# вызывает apply_knockback на враге. Используется легендаркой арбалетчика
+# «Отталкивающие стрелы» (масштаб от заряда), pierce и roll-volley тоже.
+var pushback_force: float = 0.0
 
 var _sprite_tex: Texture2D = null
 var _sprite_loaded: bool = false
@@ -81,6 +85,9 @@ func _try_hit(node: Node) -> void:
 		return
 	hit_set[node] = true
 	node.apply_damage(damage, team)
+	if pushback_force > 0.0 and node.has_method("apply_knockback"):
+		var dir: Vector2 = velocity.normalized() if velocity.length_squared() > 0.0001 else Vector2.RIGHT
+		node.apply_knockback(dir, pushback_force)
 	if mana_on_hit_pct > 0.0 and source_peer != 0:
 		_restore_source_mana()
 	if pierce > 0:

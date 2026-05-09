@@ -28,6 +28,13 @@ const STAT_BOLT_DAMAGE := &"bolt_damage"   # flat (added to crossbow auto-bolt a
 const STAT_CHAIN_HOPS := &"chain_hops"     # flat (extra hops on mage chain lightning)
 const STAT_ROLL_VOLLEY := &"roll_volley"   # flat (radial bolts fired from roll origin)
 const STAT_FIREBALL_DAMAGE := &"fireball_damage"  # flat (added to mage fireball AoE base damage)
+const STAT_SLASH_ARC := &"slash_arc"       # flat (degrees added to berserker cleave arc)
+const STAT_RETALIATION := &"retaliation"   # flat (fraction of incoming damage emitted as AoE around the victim)
+const STAT_STUN_DURATION := &"stun_duration"  # flat (seconds added to berserker quake stun)
+const STAT_STUN_RADIUS := &"stun_radius"      # pct multiplier (base 1.0); berserker quake AoE radius extra mult
+const STAT_DECOY_HP_BONUS := &"decoy_hp_bonus"  # flat (fraction of berserker max_hp added to chучело's base 50)
+const STAT_DECOY_LIFETIME := &"decoy_lifetime"  # flat (seconds added to chучело's base 5s lifetime)
+const STAT_AUTO_ATTACK_SPEED := &"auto_attack_speed"  # pct multiplier (base 1.0); applied ONLY to auto-attack cooldown — отдельно от общего STAT_COOLDOWN
 
 var _base: Dictionary = {}    # StringName -> float
 var _flats: Dictionary = {}   # StringName -> { StringName -> float }
@@ -67,16 +74,23 @@ func remove(mod_id: StringName) -> void:
 
 # Convenience: applies a UpgradeDef as a uniquely-keyed modifier so multiple
 # stacks coexist (`mod_id_<stack_index>`). Any `extra_stats` declared on the
-# def stack under sibling keys (`mod_id_<stack_index>_x<i>`).
+# def stack under sibling keys (`mod_id_<stack_index>_x<i>`). When
+# `per_stack_amounts` is non-empty, the per-stack delta overrides `def.amount`
+# (clamped to last entry for stacks beyond the array length) — used for
+# non-linear progressions like 30 → 45 → 60 (deltas 0.30 / 0.15 / 0.15).
 func apply_upgrade(def: UpgradeDef, stack_index: int) -> void:
 	if def == null:
 		return
 	var key: StringName = StringName("upg_%s_%d" % [String(def.id), stack_index])
 	if def.stat != &"":
+		var amt: float = def.amount
+		if def.per_stack_amounts.size() > 0:
+			var idx: int = clampi(stack_index - 1, 0, def.per_stack_amounts.size() - 1)
+			amt = float(def.per_stack_amounts[idx])
 		if def.mode == UpgradeDef.Mode.FLAT:
-			add_flat(def.stat, key, def.amount)
+			add_flat(def.stat, key, amt)
 		else:
-			add_pct(def.stat, key, def.amount)
+			add_pct(def.stat, key, amt)
 	var n: int = def.extra_stats.size()
 	for i in n:
 		var es: StringName = def.extra_stats[i]

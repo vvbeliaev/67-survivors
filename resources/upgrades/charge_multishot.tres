@@ -6,18 +6,21 @@
 [resource]
 script = ExtResource("1_def")
 id = &"charge_multishot"
-label = "+1 multishot bolt"
+label = "+1/2/4 multishot bolts"
 weight = 1.0
 class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
 icon = ExtResource("2_icon")
 display_name = "Веер залпа"
-description = "Болтов в залпе	+1"
-rarity = 2
+description = "+1|+2|+4
+болтов в залпе"
+rarity = 1
+max_stacks = 3
 category = &"attack"
 flavor = "Один прицел — много смертей."
 stat = &"charge_multishot"
 mode = 0
 amount = 1.0
+per_stack_amounts = Array[float]([1.0, 1.0, 2.0])
 heal_on_pick = 0.0
 refill_mana = false

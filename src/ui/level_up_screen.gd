@@ -473,12 +473,15 @@ func _make_card(index: int, def: UpgradeDef) -> Control:
 
 	# Effect lines from `description`. Tab splits a name/value pair; lines
 	# without a tab render as plain wrapped text (for prose descriptions).
+	# A value containing `|` renders as a per-stack progression with the next
+	# stack highlighted (e.g. +40°|+80°|+120° after 1 pick → middle in green).
 	var desc: String = String(def.description) if String(def.description) != "" else String(def.label)
+	var picks_so_far: int = _picks_so_far(def.id)
 	for line in desc.split("\n"):
 		var trimmed: String = line.strip_edges()
 		if trimmed.is_empty():
 			continue
-		v.add_child(_make_effect_line(trimmed))
+		v.add_child(_make_effect_line(trimmed, picks_so_far))
 
 	# Spacer pushes the flavor text to the bottom of the card.
 	var grow := Control.new()
@@ -536,7 +539,21 @@ func _make_category_badge(category_id: StringName, color: Color) -> Control:
 	panel.add_child(lbl)
 	return panel
 
-func _make_effect_line(line: String) -> Control:
+func _make_effect_line(line: String, picks_so_far: int) -> Control:
+	# Three rendering modes:
+	#   • `|` without `\t`  → centered per-stack progression, next-stack value
+	#                         highlighted bigger and bright green;
+	#   • `\t`              → key/value pair (left/right aligned);
+	#   • plain             → wrapped paragraph.
+	if line.contains("|") and not line.contains("\t"):
+		var center_row := HBoxContainer.new()
+		center_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		center_row.add_theme_constant_override("separation", 0)
+		center_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		center_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		center_row.add_child(_make_progression_value(line, picks_so_far))
+		return center_row
+
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -564,10 +581,53 @@ func _make_effect_line(line: String) -> Control:
 		l.add_theme_font_size_override("font_size", 10)
 		l.add_theme_color_override("font_color", HUDPalette.INK)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(l)
 	return row
+
+func _make_progression_value(text: String, picks_so_far: int) -> Control:
+	# Splits "a|b|c" into segments rendered as "a / b / c" with the
+	# `picks_so_far`-th segment (clamped) highlighted bright green and a tick
+	# bigger — that's the value the player will reach if they take this card.
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 0)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var parts: PackedStringArray = text.split("|")
+	var highlight_idx: int = clamp(picks_so_far, 0, parts.size() - 1)
+	for i in range(parts.size()):
+		if i > 0:
+			var sep := Label.new()
+			sep.text = " / "
+			sep.add_theme_font_override("font", FONT_MONO)
+			sep.add_theme_font_size_override("font_size", 12)
+			sep.add_theme_color_override("font_color", HUDPalette.INK_MUTE)
+			sep.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(sep)
+		var seg := Label.new()
+		seg.text = parts[i]
+		seg.add_theme_font_override("font", FONT_MONO)
+		var is_active: bool = i == highlight_idx
+		seg.add_theme_font_size_override("font_size", 16 if is_active else 12)
+		var col: Color = HUDPalette.HEAL_BRIGHT if is_active else HUDPalette.INK_DIM
+		seg.add_theme_color_override("font_color", col)
+		if is_active:
+			seg.add_theme_constant_override("outline_size", 3)
+			seg.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		seg.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		seg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(seg)
+	return box
+
+func _picks_so_far(def_id: StringName) -> int:
+	var pid: int = _local_peer_id()
+	for p in get_tree().get_nodes_in_group("players"):
+		if int(p.peer_id) == pid:
+			return int(p._upgrade_stacks.get(def_id, 0))
+	return 0
 
 # =========================================================================
 # Party panel.

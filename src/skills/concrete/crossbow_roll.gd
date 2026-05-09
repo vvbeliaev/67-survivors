@@ -14,6 +14,10 @@ func _init() -> void:
 	base_cooldown = 5.0
 	icon = preload("res://assets/images/icons/dodging.svg")
 
+const ROLL_VOLLEY_UPG: StringName = &"crossbow_roll_volley"
+const PUSHBACK_UPGRADE: StringName = &"legendary_crossbow_pushback"
+const VOLLEY_PUSHBACK: float = 300.0   # уно charged-эквивалент
+
 func on_pressed() -> void:
 	if not ready_to_cast():
 		return
@@ -21,10 +25,14 @@ func on_pressed() -> void:
 	start_cooldown()
 	var dir: Vector2 = owner_player.move_dir() if owner_player.move_dir().length_squared() > 0.01 else owner_player.aim_dir
 	var from_pos: Vector2 = owner_player.global_position
-	owner_player.teleport(owner_player.global_position + dir.normalized() * distance)
+	var to_pos: Vector2 = from_pos + dir.normalized() * distance
+	owner_player.teleport(to_pos)
 	owner_player.grant_iframes(iframe_duration)
 	trigger_visual_fx("roll", {"from": from_pos})
 	_fire_volley(from_pos)
+	# 2-й стак — ещё один веер из точки приземления.
+	if int(owner_player._upgrade_stacks.get(ROLL_VOLLEY_UPG, 0)) >= 2:
+		_fire_volley(to_pos)
 
 func _fire_volley(from_pos: Vector2) -> void:
 	var count: int = int(owner_player.stats.value(StatBlock.STAT_ROLL_VOLLEY))
@@ -32,6 +40,7 @@ func _fire_volley(from_pos: Vector2) -> void:
 		return
 	var bolt_flat: float = owner_player.stats.value(StatBlock.STAT_BOLT_DAMAGE)
 	var dmg: float = (volley_damage + bolt_flat) * owner_player.dmg_mult()
+	var pushback: float = VOLLEY_PUSHBACK if _has_upgrade(PUSHBACK_UPGRADE) else 0.0
 	for i in count:
 		var angle: float = TAU * float(i) / float(count)
 		var d: Vector2 = Vector2(cos(angle), sin(angle))
@@ -43,6 +52,10 @@ func _fire_volley(from_pos: Vector2) -> void:
 			volley_lifetime,
 			volley_radius,
 			0,
-			{"sprite_path": "res://assets/images/arrow.png", "sprite_size": Vector2(56.0, 22.0)},
+			{
+				"sprite_path": "res://assets/images/arrow.png",
+				"sprite_size": Vector2(56.0, 22.0),
+				"pushback_force": pushback,
+			},
 		)
 	AudioBus.play_at(&"crossbow_shoot", from_pos)

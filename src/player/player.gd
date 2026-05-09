@@ -288,6 +288,8 @@ func grant_iframes(duration: float) -> void:
 		return
 	iframes_until = (Time.get_ticks_msec() / 1000.0) + duration
 
+const RETALIATION_RADIUS := 110.0
+
 func apply_damage(amount: float, _src_team: String) -> void:
 	if not GameState.is_authority():
 		return
@@ -299,11 +301,24 @@ func apply_damage(amount: float, _src_team: String) -> void:
 	hp -= amount
 	_broadcast_damage_number(amount, global_position)
 	EventBus.damage_dealt.emit(self, amount, _src_team)
+	# Шипы боли: STAT_RETALIATION × входящий урон → AoE-импульс по врагам в
+	# радиусе. Срабатывает и на летальный хит — пусть варвар уйдёт с фейерверком.
+	var ret_pct: float = stats.value(StatBlock.STAT_RETALIATION)
+	if ret_pct > 0.0 and amount > 0.0:
+		_emit_retaliation(amount * ret_pct)
 	if hp <= 0.0:
 		hp = 0.0
 		_go_down()
 	else:
 		hit_recovery_until = (Time.get_ticks_msec() / 1000.0) + HIT_RECOVERY_DURATION
+
+func _emit_retaliation(dmg: float) -> void:
+	if dmg <= 0.0:
+		return
+	for e in Targeting.enemies_in_radius(get_tree(), global_position, RETALIATION_RADIUS):
+		if e.has_method("apply_damage"):
+			e.apply_damage(dmg, "player")
+	play_visual_fx("retaliate", {"r": RETALIATION_RADIUS})
 
 func play_visual_fx(kind: String, data: Dictionary = {}) -> void:
 	if not GameState.is_authority():

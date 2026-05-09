@@ -59,6 +59,7 @@ const TINT_RAMP_BY_TYPE: Dictionary = {
 	&"ranged": Vector3(0.30, 1.55, 0.55),  # acid green
 	&"tank":   Vector3(1.10, 0.45, 1.40),  # bruise purple
 	&"boss":   Vector3(1.55, 0.35, 1.30),  # magenta
+	&"dummy":  Vector3(1.55, 1.30, 0.45),  # warm gold (training dummy)
 }
 static var _tinted_spider_cache: Dictionary = {}  # StringName → Array[Texture2D]
 

@@ -68,8 +68,12 @@ var boss_aoe_windup: float = 0.0
 var boss_aoe_timer: float = 0.0
 
 var stunned_until: float = 0.0
-var forced_target_id: int = -1
-var forced_target_until: float = 0.0
+# Импульс отталкивания от стрел легендарки арбалетчика «Отталкивающие стрелы».
+# Накладывается через apply_knockback, прибавляется к velocity и затухает
+# экспоненциально по KNOCKBACK_DECAY. Хост-сторона; позиция в любом случае
+# реплицируется, клиент видит отлёт.
+const KNOCKBACK_DECAY := 12.0
+var knockback_vel: Vector2 = Vector2.ZERO
 
 var ai: EnemyAI = null
 var _def: EnemyDef = null
@@ -124,6 +128,12 @@ func _physics_process(delta: float) -> void:
 	if ai != null:
 		ai.tick(delta)
 	_apply_separation()
+	if knockback_vel.length_squared() > 0.01:
+		velocity += knockback_vel
+		var k: float = clampf(KNOCKBACK_DECAY * delta, 0.0, 1.0)
+		knockback_vel = knockback_vel.lerp(Vector2.ZERO, k)
+	else:
+		knockback_vel = Vector2.ZERO
 	move_and_slide()
 	if velocity.length_squared() > 1.0:
 		facing_dir = velocity.normalized()
@@ -209,11 +219,24 @@ func _rpc_show_damage_number(amount: float, pos: Vector2, crit: bool) -> void:
 	if arena != null and arena.has_method("spawn_damage_number"):
 		arena.spawn_damage_number(amount, pos, crit)
 
-func force_target(peer_id: int, duration: float) -> void:
+# Тяжёлые архетипы получают вдвое меньший импульс — масса как в реальности.
+# Колосс / танк / босс намеренно «вкопанные»: их позиционка важна для вол-дизайна,
+# отлёт на полный импульс ломал бы AI-телеграфы (босс-AoE, колосс-пульс).
+const KNOCKBACK_RESISTANCE: Dictionary = {
+	&"colossus": 0.5,
+	&"tank":     0.5,
+	&"boss":     0.5,
+}
+
+func apply_knockback(dir: Vector2, force: float) -> void:
 	if not GameState.is_authority():
 		return
-	forced_target_id = peer_id
-	forced_target_until = (Time.get_ticks_msec() / 1000.0) + duration
+	if not alive:
+		return
+	if force <= 0.0 or dir.length_squared() < 0.0001:
+		return
+	var resist: float = float(KNOCKBACK_RESISTANCE.get(enemy_type, 1.0))
+	knockback_vel += dir.normalized() * force * resist
 
 func stun(duration: float) -> void:
 	if not GameState.is_authority():

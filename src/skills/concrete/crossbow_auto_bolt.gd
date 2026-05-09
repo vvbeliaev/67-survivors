@@ -14,7 +14,21 @@ func _init() -> void:
 	base_cooldown = 1.0
 	icon = preload("res://assets/images/icons/arrowhead.svg")
 
+const MINIGUN_UPGRADE: StringName = &"legendary_crossbow_minigun"
+const UNCHARGED_CRIT_UPGRADE: StringName = &"epic_crossbow_uncharged_crit"
+const UNCHARGED_CRIT_CHANCE: float = 0.35
+const UNCHARGED_CRIT_MULT: float = 2.0
+const PUSHBACK_UPGRADE: StringName = &"legendary_crossbow_pushback"
+# База отталкивания (px/сек). Финальная сила = PUSHBACK_BASE × charge_mult.
+# Через KNOCKBACK_DECAY=12 в Enemy: смещение ≈ force / 12 px.
+# Незаряженный (mult=1) → ~25px; макс заряд (mult=4) → ~100px; крит (mult=2) → ~50px.
+const PUSHBACK_BASE: float = 300.0
+
 func on_tick(_delta: float) -> void:
+	# Легендарка «Болтомёт»: автоатака полностью отключается, стрельба идёт
+	# только через удержание ЛКМ в crossbow_charge_shot._minigun_tick.
+	if _has_upgrade(MINIGUN_UPGRADE):
+		return
 	if owner_player.charge_started_at >= 0.0 or owner_player._in_primary_held:
 		return
 	if not ready_to_cast():
@@ -36,20 +50,28 @@ func fire_volley(charge_mult: float) -> void:
 		dir = (nearest.global_position - owner_player.global_position).normalized()
 	var origin: Vector2 = owner_player.global_position + dir * (owner_player.radius + 4)
 	var bolt_flat: float = owner_player.stats.value(StatBlock.STAT_BOLT_DAMAGE)
+	# Эпик «Молниеносный болт»: на незаряженных выстрелах (charge_mult≈1.0)
+	# 35% шанс выстрелить как заряженный с ×2 уроном. Болтомёт-очередь тоже
+	# идёт через charge_mult=1.0, так что и она крит'ит.
+	if charge_mult <= 1.001 and _has_upgrade(UNCHARGED_CRIT_UPGRADE):
+		if randf() < UNCHARGED_CRIT_CHANCE:
+			charge_mult = UNCHARGED_CRIT_MULT
 	var dmg: float = (damage + bolt_flat) * charge_mult * owner_player.dmg_mult()
 	var pierce: int = int(owner_player.stats.value(StatBlock.STAT_CHARGE_PIERCE))
 	var multishot: int = int(owner_player.stats.value(StatBlock.STAT_CHARGE_MULTISHOT))
-	_fire_bolt(origin, dir, dmg, pierce)
+	# Отталкивание скейлится с charge_mult — заряженный болт толкает сильнее.
+	var pushback: float = PUSHBACK_BASE * charge_mult if _has_upgrade(PUSHBACK_UPGRADE) else 0.0
+	_fire_bolt(origin, dir, dmg, pierce, pushback)
 	for i in range(1, multishot + 1):
 		var step: int = (i + 1) / 2
 		var sgn: float = 1.0 if (i % 2) == 1 else -1.0
 		var angle: float = deg_to_rad(12.0) * step * sgn
 		var d: Vector2 = dir.rotated(angle)
-		_fire_bolt(origin, d, dmg, pierce)
+		_fire_bolt(origin, d, dmg, pierce, pushback)
 	trigger_visual_fx("auto", {})
 	AudioBus.play_at(&"crossbow_shoot", owner_player.global_position)
 
-func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int) -> void:
+func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int, pushback: float = 0.0) -> void:
 	_spawn_projectile(
 		pos,
 		dir * projectile_speed,
@@ -58,5 +80,9 @@ func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int) -> void:
 		projectile_lifetime,
 		projectile_radius,
 		pierce,
-		{"sprite_path": "res://assets/images/arrow.png", "sprite_size": Vector2(56.0, 22.0)},
+		{
+			"sprite_path": "res://assets/images/arrow.png",
+			"sprite_size": Vector2(56.0, 22.0),
+			"pushback_force": pushback,
+		},
 	)

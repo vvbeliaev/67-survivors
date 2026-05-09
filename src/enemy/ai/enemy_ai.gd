@@ -17,15 +17,21 @@ func tick(_delta: float) -> void:
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
+# Чучело — фейковый игрок: моб видит его в одном пуле с реальными игроками
+# и идёт к тому, кто ближе. Никакой глобальной «провокации» нет, чучело
+# просто перетягивает на себя мобов, у которых оно физически ближайший
+# таргет. Если оба живы — побеждает меньшая дистанция.
 func _pick_target() -> Node2D:
 	var e := owner_enemy
-	var n: float = _now()
-	if e.forced_target_id != -1 and n < e.forced_target_until:
-		var f := _find_player(e.forced_target_id)
-		if f != null and f.alive:
-			return f
-		e.forced_target_id = -1
-	return Targeting.nearest_alive_player(get_tree(), e.global_position)
+	var p: Node2D = Targeting.nearest_alive_player(get_tree(), e.global_position)
+	var d: Node2D = Targeting.nearest_decoy(get_tree(), e.global_position)
+	if d == null:
+		return p
+	if p == null:
+		return d
+	var dp: float = e.global_position.distance_squared_to(p.global_position)
+	var dd: float = e.global_position.distance_squared_to(d.global_position)
+	return d if dd < dp else p
 
 func _find_player(peer_id: int) -> Node2D:
 	for p in get_tree().get_nodes_in_group("players"):

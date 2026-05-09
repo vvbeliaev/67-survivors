@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/wolf-howl.svg" id="2_icon"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"legendary_berserker_blood_rage"
+label = "blood-rage scaling"
+weight = 1.0
+class_filter = Array[StringName]([&"berserker"])
+archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Кровавая ярость"
+description = "Чем меньше HP — тем
+быстрее автоатака и сильнее
+реген. Линейно до:
+−50% кд автоатаки (пол 0.3с)
++5 хп/сек"
+rarity = 3
+max_stacks = 1
+category = &"defense"
+flavor = "Боль — это топливо."
+stat = &""
+mode = 0
+amount = 0.0
+heal_on_pick = 0.0
+refill_mana = false

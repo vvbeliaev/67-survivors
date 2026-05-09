@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/data/upgrade_def.gd" id="1_def"]
+[ext_resource type="Texture2D" path="res://assets/images/icons/sprint.svg" id="2_icon"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"crossbow_steady_aim"
+label = "-25/50/75% slow while firing"
+weight = 1.0
+class_filter = Array[StringName]([&"crossbow"])
+archetype_filter = Array[StringName]([])
+icon = ExtResource("2_icon")
+display_name = "Твёрдая стойка"
+description = "−25%|−50%|−75%
+к замедлению при стрельбе
+(работает и в зарядке,
+и в очереди)"
+rarity = 1
+max_stacks = 3
+category = &"utility"
+flavor = "Ноги — тоже оружие. Когда стоят."
+stat = &"charge_slow"
+mode = 0
+amount = 0.25
+heal_on_pick = 0.0
+refill_mana = false

@@ -25,6 +25,9 @@ var roster: Dictionary = {}
 
 # Set by lobby debug entry-point. Solo-only sandbox: no waves, manual spawn UI.
 var debug_mode: bool = false
+# Debug viz: рисовать актуальный hitbox-конус cleave-автоатаки берсерка.
+# Тогл в дебаг-панели; работает только при debug_mode = true.
+var debug_show_berserker_cone: bool = false
 
 # Live arena state. Host-authoritative; replicated via RunDirector RPCs.
 var run_active: bool = false

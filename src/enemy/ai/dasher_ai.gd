@@ -145,8 +145,10 @@ func _tick_dashing(delta: float) -> void:
 	# Damage check: anyone we overlap during the lunge takes a hit. The
 	# player's i-frame window naturally prevents multi-tick multi-hit, but
 	# tracking already-hit refs avoids spamming apply_damage / damage numbers.
+	# Чучело варвара ходит в одном пуле с игроками — иначе дэшеры пролетают
+	# сквозь приманку, не повреждая её.
 	var hit_r: float = e.radius + 18.0
-	for p in Targeting.players_in_radius(get_tree(), e.global_position, hit_r):
+	for p in Targeting.player_targets_in_radius(get_tree(), e.global_position, hit_r):
 		if p == null or not is_instance_valid(p):
 			continue
 		if not p.alive:

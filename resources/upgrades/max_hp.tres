@@ -15,7 +15,7 @@ display_name = "Сердце исполина"
 description = "Max HP	+20
 Реген	+1 HP/с
 Хил сейчас	+20"
-rarity = 2
+rarity = 0
 category = &"defense"
 flavor = "Большее сердце — большее бремя."
 stat = &"max_hp"

@@ -102,7 +102,8 @@ func _on_damage_dealt(target: Node, _amount: float, _src_team: String) -> void:
 	var pos: Vector2 = target.global_position if target.has_method("get") else Vector2.ZERO
 	if target.is_in_group("enemies"):
 		play_at(&"enemy_hit", pos)
-	elif target.is_in_group("players"):
+	elif target.is_in_group("players") or target.is_in_group("decoys"):
+		# Чучело — фейковый игрок и звучит так же, чтобы попадание считывалось.
 		play_at(&"player_hit", pos)
 
 func _on_enemy_killed(enemy: Node, _killer_peer: int) -> void:
