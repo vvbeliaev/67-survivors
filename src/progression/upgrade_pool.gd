@@ -78,9 +78,11 @@ static func _pick_cascade(pools: Dictionary, start_rarity: int, seen: Dictionary
 	return null
 
 static func _target_rarity_for_level(level: int) -> Variant:
-	if level == 10:
+	# Особые уровни: 8-й — легендарный one-shot, остальные кратные 4 — эпик.
+	# Порядок проверок важен: 8 — кратное 4, но легендарка приоритетнее.
+	if level == 8:
 		return UpgradeDef.Rarity.LEGENDARY
-	if level > 0 and level % 5 == 0:
+	if level > 0 and level % 4 == 0:
 		return UpgradeDef.Rarity.EPIC
 	return null
 

@@ -175,8 +175,11 @@ func _ready() -> void:
 	Network.ready_state_changed.connect(_refresh)
 	Network.join_started.connect(_on_join_started)
 	Network.join_failed.connect(_on_join_failed)
+	Network.version_mismatch_detected.connect(_on_version_mismatch)
+	Network.version_handshake_done.connect(_on_version_handshake_done)
 	GameState.roster_changed.connect(_refresh)
-	version_label.text = "v 0.7.3 · alpha"
+	version_label.text = "v 0.7.3 · alpha · build %s" % String(BuildInfo.SHA)
+	_build_version_banner()
 	if _is_web():
 		host_btn.text = "Соло"
 		host_btn.tooltip_text = WEB_HOST_HINT
@@ -291,6 +294,8 @@ func _exit_tree() -> void:
 	Network.ready_state_changed.disconnect(_refresh)
 	Network.join_started.disconnect(_on_join_started)
 	Network.join_failed.disconnect(_on_join_failed)
+	Network.version_mismatch_detected.disconnect(_on_version_mismatch)
+	Network.version_handshake_done.disconnect(_on_version_handshake_done)
 	GameState.roster_changed.disconnect(_refresh)
 
 func _on_join_started(_addr: String, _port: int) -> void:
@@ -301,6 +306,67 @@ func _on_join_failed(addr: String, port: int, reason: String) -> void:
 	_is_ready = false
 	_join_error = "не удалось подключиться к %s:%d (%s)" % [addr, port, reason]
 	_refresh()
+
+# ── Version-mismatch banner ─────────────────────────────────────────────────
+# Создаётся программно как CanvasLayer над всем UI лобби, скрыт по умолчанию.
+# Показывается, когда Network отвечает что сервер на другом коммите. Самая
+# частая причина — браузер закешировал старый wasm/pck (HTTP cache 7d), и
+# репликация рассинхронизируется с обновлённым сервером (Node not found,
+# spawner is null и т.п.). Текст явно говорит юзеру что делать.
+
+var _version_banner_layer: CanvasLayer
+var _version_banner_label: Label
+
+func _build_version_banner() -> void:
+	_version_banner_layer = CanvasLayer.new()
+	_version_banner_layer.layer = 100
+	_version_banner_layer.visible = false
+	add_child(_version_banner_layer)
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.0
+	panel.anchor_right = 1.0
+	panel.anchor_top = 0.0
+	panel.anchor_bottom = 0.0
+	panel.offset_top = 0
+	panel.offset_bottom = 80
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.55, 0.10, 0.10, 0.95)
+	sb.border_color = Color(1.0, 0.85, 0.25, 1.0)
+	sb.set_border_width_all(2)
+	sb.content_margin_left = 24
+	sb.content_margin_right = 24
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", sb)
+	_version_banner_label = Label.new()
+	_version_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_version_banner_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_version_banner_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_version_banner_label.add_theme_font_size_override("font_size", 18)
+	panel.add_child(_version_banner_label)
+	_version_banner_layer.add_child(panel)
+	# Если уже есть state из Network (mismatch произошёл до того как лобби открылось,
+	# например при возврате из забега) — сразу показываем.
+	if Network.version_mismatch and not Network.server_version.is_empty():
+		_show_version_banner(Network.server_version, BuildInfo.SHA)
+
+func _on_version_mismatch(server_sha: StringName, local_sha: StringName) -> void:
+	_show_version_banner(server_sha, local_sha)
+
+func _on_version_handshake_done(_sha: StringName) -> void:
+	# Match — баннера не нужно. (Если до этого был mismatch и юзер реконнект —
+	# скрываем, чтобы не вводить в заблуждение.)
+	if not Network.version_mismatch and _version_banner_layer != null:
+		_version_banner_layer.visible = false
+
+func _show_version_banner(server_sha: StringName, local_sha: StringName) -> void:
+	if _version_banner_layer == null:
+		return
+	var hint := "обнови страницу: Cmd+Shift+R (Mac) / Ctrl+F5 (Win)" if _is_web() else "обнови клиент (git pull + пересобери)"
+	_version_banner_label.text = "⚠ Версии не совпадают.   Сервер: %s   Ты: %s\n%s" % [
+		String(server_sha), String(local_sha), hint,
+	]
+	_version_banner_layer.visible = true
 
 func _on_ready_toggle() -> void:
 	_is_ready = not _is_ready

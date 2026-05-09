@@ -35,6 +35,7 @@ const STAT_STUN_RADIUS := &"stun_radius"      # pct multiplier (base 1.0); berse
 const STAT_DECOY_HP_BONUS := &"decoy_hp_bonus"  # flat (fraction of berserker max_hp added to chучело's base 50)
 const STAT_DECOY_LIFETIME := &"decoy_lifetime"  # flat (seconds added to chучело's base 5s lifetime)
 const STAT_AUTO_ATTACK_SPEED := &"auto_attack_speed"  # pct multiplier (base 1.0); applied ONLY to auto-attack cooldown — отдельно от общего STAT_COOLDOWN
+const STAT_UNCHARGED_CRIT_CHANCE := &"uncharged_crit_chance"  # flat (доля); шанс крита на незаряженных болтах арбалетчика, ×2 урон
 
 var _base: Dictionary = {}    # StringName -> float
 var _flats: Dictionary = {}   # StringName -> { StringName -> float }

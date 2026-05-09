@@ -14,18 +14,25 @@ KEY      ?= ~/.ssh/id_ed25519_selectel
 SSH_PORT ?= 22
 USER     ?= root
 
-.PHONY: run editor import smoke rarity-test bcleave-test mage-echo-test check server deploy logs stop peer host join clean help
+.PHONY: run editor import smoke rarity-test bcleave-test mage-echo-test check server deploy logs stop peer host join clean help build-info
 
-run: check
+# Регенерим src/build_info.gd с текущим commit SHA. Цель — чтобы клиент и
+# сервер на handshake обменялись хешем и нашли mismatch (типичный случай —
+# браузер закешировал старый wasm/pck). Делаем дешёвой зависимостью для
+# всех точек входа, которые поднимают игру.
+build-info:
+	@bash $(PROJECT_DIR)/scripts/gen_build_info.sh
+
+run: build-info check
 	$(GODOT) --path $(PROJECT_DIR)
 
-editor:
+editor: build-info
 	$(GODOT) -e --path $(PROJECT_DIR)
 
 import:
 	$(GODOT) --headless --import --path $(PROJECT_DIR)
 
-smoke:
+smoke: build-info
 	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/smoke_test/smoke_test.tscn
 
 rarity-test:
@@ -39,7 +46,7 @@ mage-echo-test:
 
 # Headless dedicated server. Clients connect from the lobby (Join + server IP).
 # The round starts automatically once MIN_PLAYERS players are in the roster.
-server:
+server: build-info
 	$(GODOT) --headless --path $(PROJECT_DIR) res://src/server/server.tscn -- --port $(PORT) --min-players $(MIN_PLAYERS)
 
 # Two-window manual multiplayer test: run twice, host with one, join with the other.

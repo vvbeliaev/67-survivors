@@ -6,13 +6,13 @@
 [resource]
 script = ExtResource("1_def")
 id = &"crossbow_bolt_damage"
-label = "+3/6/9 base bolt damage"
+label = "+5/10/15 base bolt damage"
 weight = 1.0
 class_filter = Array[StringName]([&"crossbow"])
 archetype_filter = Array[StringName]([])
 icon = ExtResource("2_icon")
 display_name = "Калёный наконечник"
-description = "+3|+6|+9
+description = "+5|+10|+15
 к базовому урону стрелы"
 rarity = 1
 max_stacks = 3
@@ -20,6 +20,6 @@ category = &"attack"
 flavor = "Сталь, что прошла через горн дважды."
 stat = &"bolt_damage"
 mode = 0
-amount = 3.0
+amount = 5.0
 heal_on_pick = 0.0
 refill_mana = false

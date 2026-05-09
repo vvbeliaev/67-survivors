@@ -26,9 +26,16 @@ RUN curl -fL --retry 6 --retry-delay 8 --retry-all-errors --connect-timeout 30 \
 
 # --- game: dedicated ws server -----------------------------------------------
 FROM godot-base AS game
+ARG BUILD_SHA=unknown
+ARG BUILD_TIME=unknown
 WORKDIR /app
 COPY . /app
-RUN godot --headless --path /app --import 2>&1 | tail -5 || true
+# Перезаписываем src/build_info.gd под текущий билд — версия должна меняться
+# при каждом docker compose up --build, иначе клиент и сервер не поймают
+# рассинхрон. Передаётся через args в docker-compose.yml.
+RUN printf 'extends Node\nconst SHA: StringName = &"%s"\nconst BUILT_AT: String = "%s"\n' \
+        "$BUILD_SHA" "$BUILD_TIME" > /app/src/build_info.gd \
+ && godot --headless --path /app --import 2>&1 | tail -5 || true
 EXPOSE 7777
 CMD ["godot", "--headless", "--path", "/app", "res://src/server/server.tscn", \
      "--", "--port", "7777", "--transport", "ws", "--bind", "0.0.0.0"]
@@ -36,6 +43,8 @@ CMD ["godot", "--headless", "--path", "/app", "res://src/server/server.tscn", \
 # --- web-builder: godot + export templates → /out/index.html ------------------
 FROM godot-base AS web-builder
 ARG GODOT_VER
+ARG BUILD_SHA=unknown
+ARG BUILD_TIME=unknown
 RUN curl -fL --retry 6 --retry-delay 8 --retry-all-errors --connect-timeout 30 \
         "https://github.com/godotengine/godot/releases/download/${GODOT_VER}-stable/Godot_v${GODOT_VER}-stable_export_templates.tpz" \
         -o /tmp/templates.tpz \
@@ -44,7 +53,9 @@ RUN curl -fL --retry 6 --retry-delay 8 --retry-all-errors --connect-timeout 30 \
  && rm /tmp/templates.tpz
 WORKDIR /app
 COPY . /app
-RUN godot --headless --path /app --import 2>&1 | tail -5 || true
+RUN printf 'extends Node\nconst SHA: StringName = &"%s"\nconst BUILT_AT: String = "%s"\n' \
+        "$BUILD_SHA" "$BUILD_TIME" > /app/src/build_info.gd \
+ && godot --headless --path /app --import 2>&1 | tail -5 || true
 RUN mkdir -p /out && godot --headless --path /app --export-release "Web" /out/index.html
 
 # --- web: nginx serving the export -------------------------------------------

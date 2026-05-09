@@ -17,6 +17,7 @@ config/icon="res://assets/images/icon.png"
 
 [autoload]
 
+BuildInfo="*res://src/build_info.gd"
 GameState="*res://src/core/game_state.gd"
 EventBus="*res://src/core/event_bus.gd"
 Defs="*res://src/core/defs.gd"

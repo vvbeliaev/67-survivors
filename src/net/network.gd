@@ -19,6 +19,16 @@ signal start_round_requested
 signal ready_state_changed
 signal join_started(address: String, port: int)
 signal join_failed(address: String, port: int, reason: String)
+# server_sha != BuildInfo.SHA. Эмиттится на клиенте сразу после connect, когда
+# сервер прислал свой commit hash. Лобби и in-game баннер слушают этот сигнал.
+signal version_mismatch_detected(server_sha: StringName, local_sha: StringName)
+signal version_handshake_done(server_sha: StringName)
+
+# Заполняется на клиенте в _rpc_announce_server_version. Пустой = handshake'а
+# ещё не было (или мы сами сервер). UI читает это поле для рендера баннера
+# при повторном открытии лобби после неудачного забега.
+var server_version: StringName = &""
+var version_mismatch: bool = false
 
 # peer_id → bool (mirrors of who has clicked "Ready").
 var _ready_set: Array[int] = []
@@ -154,6 +164,8 @@ func leave() -> void:
 	_ready_set.clear()
 	_starting_round = false
 	reset_arena_ready()
+	server_version = &""
+	version_mismatch = false
 	GameState.roster_changed.emit()
 
 func _register_self() -> void:
@@ -164,6 +176,11 @@ func _register_self() -> void:
 
 func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
+		# Версия — первым делом, ДО roster-RPC. Клиент при mismatch покажет
+		# баннер сразу, не дожидаясь спавна. Печатаем в лог для оператора —
+		# при репортах "клиент висит" сразу видно что юзер на старой сборке.
+		_rpc_announce_server_version.rpc_id(id, BuildInfo.SHA)
+		print("[net] peer %d connected, server_sha=%s" % [id, String(BuildInfo.SHA)])
 		for pid in GameState.roster.keys():
 			rpc_id(id, "_rpc_set_roster_entry", pid, GameState.roster[pid])
 
@@ -195,6 +212,19 @@ func _on_server_disconnected() -> void:
 	GameState.roster.clear()
 	GameState.roster_changed.emit()
 	lobby_updated.emit()
+
+@rpc("authority", "reliable")
+func _rpc_announce_server_version(sha: StringName) -> void:
+	# Клиентский путь. Сервер сюда не попадёт (call_local не используется).
+	server_version = sha
+	var local: StringName = BuildInfo.SHA
+	version_mismatch = (sha != local)
+	if version_mismatch:
+		push_warning("[net] version mismatch: server=%s local=%s — нужен hard reload (Cmd+Shift+R)" % [String(sha), String(local)])
+		version_mismatch_detected.emit(sha, local)
+	else:
+		print("[net] version handshake OK: %s" % String(sha))
+	version_handshake_done.emit(sha)
 
 @rpc("any_peer", "reliable")
 func _rpc_register_peer(nick: String, klass: String) -> void:

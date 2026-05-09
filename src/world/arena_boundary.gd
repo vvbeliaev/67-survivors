@@ -6,7 +6,7 @@ class_name ArenaBoundary extends Node2D
 # ~400). The boundary is also drawn as a semi-transparent black ring in
 # world space and re-projected onto the minimap.
 
-const ARENA_RADIUS := 2160.0
+const ARENA_RADIUS := 1360.0
 const PULL_SPEED := 900.0
 const BORDER_THICKNESS := 18.0
 const BORDER_COLOR := Color(0.0, 0.0, 0.0, 0.55)

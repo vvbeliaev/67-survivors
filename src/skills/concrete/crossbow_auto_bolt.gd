@@ -15,8 +15,6 @@ func _init() -> void:
 	icon = preload("res://assets/images/icons/arrowhead.svg")
 
 const MINIGUN_UPGRADE: StringName = &"legendary_crossbow_minigun"
-const UNCHARGED_CRIT_UPGRADE: StringName = &"epic_crossbow_uncharged_crit"
-const UNCHARGED_CRIT_CHANCE: float = 0.35
 const UNCHARGED_CRIT_MULT: float = 2.0
 const PUSHBACK_UPGRADE: StringName = &"legendary_crossbow_pushback"
 # База отталкивания (px/сек). Финальная сила = PUSHBACK_BASE × charge_mult.
@@ -51,10 +49,11 @@ func fire_volley(charge_mult: float) -> void:
 	var origin: Vector2 = owner_player.global_position + dir * (owner_player.radius + 4)
 	var bolt_flat: float = owner_player.stats.value(StatBlock.STAT_BOLT_DAMAGE)
 	# Эпик «Молниеносный болт»: на незаряженных выстрелах (charge_mult≈1.0)
-	# 35% шанс выстрелить как заряженный с ×2 уроном. Болтомёт-очередь тоже
-	# идёт через charge_mult=1.0, так что и она крит'ит.
-	if charge_mult <= 1.001 and _has_upgrade(UNCHARGED_CRIT_UPGRADE):
-		if randf() < UNCHARGED_CRIT_CHANCE:
+	# шанс крита читается из STAT_UNCHARGED_CRIT_CHANCE (35% за стак, до 2-х).
+	# Болтомёт-очередь тоже идёт через charge_mult=1.0 → тоже может крит'ить.
+	if charge_mult <= 1.001:
+		var crit_chance: float = float(owner_player.stats.value(StatBlock.STAT_UNCHARGED_CRIT_CHANCE))
+		if crit_chance > 0.0 and randf() < crit_chance:
 			charge_mult = UNCHARGED_CRIT_MULT
 	var dmg: float = (damage + bolt_flat) * charge_mult * owner_player.dmg_mult()
 	var pierce: int = int(owner_player.stats.value(StatBlock.STAT_CHARGE_PIERCE))

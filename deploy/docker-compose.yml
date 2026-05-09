@@ -9,6 +9,14 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       target: game
+      args:
+        # Передавай через env, чтобы версия пересобиралась при каждом деплое:
+        #   BUILD_SHA=$(git -C /srv/67-survivors rev-parse --short=12 HEAD) \
+        #   BUILD_TIME=$(date -u +%FT%TZ) \
+        #   docker compose -f deploy/docker-compose.yml up -d --build
+        # Без них версия будет "unknown" и клиент не поймает дрифт.
+        BUILD_SHA: ${BUILD_SHA:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
     container_name: 67survivors-game
     restart: unless-stopped
     networks: [traefik]
@@ -25,6 +33,9 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       target: web
+      args:
+        BUILD_SHA: ${BUILD_SHA:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
     container_name: 67survivors-web
     restart: unless-stopped
     networks: [traefik]

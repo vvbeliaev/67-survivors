@@ -85,7 +85,7 @@ if [ -f "${PID_FILE}" ] && kill -0 \$(cat "${PID_FILE}") 2>/dev/null; then
 fi
 
 nohup godot --headless --path "${REMOTE_DIR}" res://src/server/server.tscn \
-    -- --port ${GAME_PORT} \
+    -- --port ${GAME_PORT} --transport enet \
     > "${LOG_FILE}" 2>&1 &
 echo \$! > "${PID_FILE}"
 sleep 2
