@@ -34,6 +34,23 @@ const TEAM := "enemy"
 @export var dash_state: int = 0
 @export var dash_target_pos: Vector2 = Vector2.ZERO
 
+# ---- Cage state (orc-boss-driven). Replicated so clients can render the
+# windup telegraph + the actual ring; the boundary pull itself runs host-only
+# on the targeted peer. State machine:
+#   0 — idle (no cage on screen).
+#   1 — windup (telegraph at cage_center, cage_radius previewed; boss is
+#       visibly channeling, no pull yet).
+#   2 — active (black ring up, target peer leashed inside).
+# Per-state durations live in orc_boss_ai.gd.
+@export var cage_state: int = 0
+@export var cage_target_peer: int = 0
+@export var cage_center: Vector2 = Vector2.ZERO
+@export var cage_radius: float = 0.0
+# Replicated absolute timestamp (Time.get_ticks_msec) at which the current
+# state was entered. Lets the view drive smooth windup-progress animation
+# without per-tick replication of a float timer.
+@export var cage_state_started_msec: int = 0
+
 # ---- Aura state (colossus-driven, but lives on every enemy because any
 # enemy may be buffed by a nearby colossus) ------------------------------
 # Aura type the enemy itself emits ("" = none). Set once at setup, immutable.

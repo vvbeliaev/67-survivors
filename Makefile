@@ -14,7 +14,7 @@ KEY      ?= ~/.ssh/id_ed25519_selectel
 SSH_PORT ?= 22
 USER     ?= root
 
-.PHONY: run editor import smoke rarity-test bcleave-test mage-echo-test check server deploy logs stop peer host join clean help build-info
+.PHONY: run editor import smoke rarity-test bcleave-test mage-echo-test orc-boss-test orc-boss-spawn-test check server deploy logs stop peer host join clean help build-info
 
 # Регенерим src/build_info.gd с текущим commit SHA. Цель — чтобы клиент и
 # сервер на handshake обменялись хешем и нашли mismatch (типичный случай —
@@ -43,6 +43,12 @@ bcleave-test:
 
 mage-echo-test:
 	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/mage_echo/mage_echo.tscn
+
+orc-boss-test:
+	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/orc_boss/orc_boss.tscn
+
+orc-boss-spawn-test:
+	$(GODOT) --path $(PROJECT_DIR) --headless res://tests/orc_boss_spawn/orc_boss_spawn.tscn
 
 # Headless dedicated server. Clients connect from the lobby (Join + server IP).
 # The round starts automatically once MIN_PLAYERS players are in the roster.

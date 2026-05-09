@@ -16,6 +16,13 @@ var _burst_accum: float = 0.0
 var _boss_spawned: bool = false
 var _wave_set: WaveSet = null
 
+# Орк-шаман — отдельный мини-боссовый канал спавна. Интервал = 120с (cooldown
+# с последнего спавна, не от смерти): первый спавн на 2-минутке, дальнейшие
+# каждые ровно 2 минуты, но второй экземпляр не появляется пока жив текущий —
+# плановый слот молча пропускается и проверяется каждый тик, пока не очистится.
+const ORC_BOSS_INTERVAL: float = 120.0
+var _orc_last_spawn_at: float = 0.0
+
 func _ready() -> void:
 	_rng.randomize()
 	_wave_set = Defs.wave_set
@@ -53,6 +60,7 @@ func _physics_process(delta: float) -> void:
 				_spawn_one(phase)
 	else:
 		_burst_accum = 0.0
+	_maybe_spawn_orc_boss(t)
 
 func _centroid() -> Vector2:
 	var sum := Vector2.ZERO
@@ -128,3 +136,25 @@ func _spawn_boss() -> void:
 	if arena == null:
 		return
 	arena.spawn_enemy({"type": String(_wave_set.boss_id), "pos": _centroid() + Vector2(0, -300)})
+
+func _maybe_spawn_orc_boss(t: float) -> void:
+	# Гейт 1: соблюдаем минимум 2 мин с прошлого спавна (последний спавн = 0
+	# инициирует первый спавн ровно на t=120, что совпадает с дизайном).
+	if t - _orc_last_spawn_at < ORC_BOSS_INTERVAL:
+		return
+	# Гейт 2: один на карте. Пока живой орк есть — пропускаем слот, но
+	# _orc_last_spawn_at не двигаем — следующий тик после убийства сразу
+	# заходит в спавн.
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.is_queued_for_deletion():
+			continue
+		if e.alive and e.enemy_type == &"orc_boss":
+			return
+	var arena := get_tree().get_first_node_in_group("arena")
+	if arena == null:
+		return
+	var ang := _rng.randf() * TAU
+	var rad := _rng.randf_range(_wave_set.spawn_radius_min, _wave_set.spawn_radius_max)
+	var pos := _centroid() + Vector2(cos(ang), sin(ang)) * rad
+	arena.spawn_enemy({"type": "orc_boss", "pos": pos})
+	_orc_last_spawn_at = t

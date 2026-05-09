@@ -64,6 +64,21 @@ properties/17/replication_mode = 2
 properties/18/path = NodePath(".:dash_target_pos")
 properties/18/spawn = true
 properties/18/replication_mode = 1
+properties/19/path = NodePath(".:cage_state")
+properties/19/spawn = true
+properties/19/replication_mode = 2
+properties/20/path = NodePath(".:cage_target_peer")
+properties/20/spawn = true
+properties/20/replication_mode = 2
+properties/21/path = NodePath(".:cage_center")
+properties/21/spawn = true
+properties/21/replication_mode = 2
+properties/22/path = NodePath(".:cage_radius")
+properties/22/spawn = true
+properties/22/replication_mode = 0
+properties/23/path = NodePath(".:cage_state_started_msec")
+properties/23/spawn = true
+properties/23/replication_mode = 2
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_enemy")

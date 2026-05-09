@@ -43,7 +43,31 @@ var _last_trail_t: float = -999.0
 # Loaded at runtime so the game doesn't crash if slime sprites are missing.
 var _swarm_frames: Array[Texture2D] = []
 var _colossus_frames: Array[Texture2D] = []
+var _orc_boss_frames: Array[Texture2D] = []
 var _icon_textures: Dictionary = {}     # StringName aura kind → Texture2D
+
+# Black-cage ring matches ArenaBoundary's visual treatment so players read it
+# as "the same kind of leash, just smaller". Rendered in enemy-view local
+# coords by offsetting cage_center against the enemy's world position.
+const CAGE_BORDER_THICKNESS := 18.0
+const CAGE_BORDER_COLOR := Color(0.0, 0.0, 0.0, 0.55)
+const CAGE_ARC_SEGMENTS := 96
+# Цвет windup-телеграфа: тёмно-фиолетовый (магия орка-шамана) + полу-прозрачная
+# заливка, опасность которой нарастает по мере приближения каста.
+const CAGE_WINDUP_FILL := Color(0.45, 0.10, 0.55, 0.35)
+const CAGE_WINDUP_RING := Color(0.65, 0.18, 0.78, 0.85)
+# Подсветка вокруг самого орка во время каста: магическая «пентаграмма» под
+# ногами, видимая в любой клиент. Тайминг привязан к cage_state_started_msec.
+const ORC_CAST_HALO_COLOR := Color(0.65, 0.18, 0.78, 0.65)
+const ORC_CAST_HALO_RADIUS_MULT := 1.6
+# Длительности должны совпадать с оrc_boss_ai (нет разделяемой константы между
+# нодами и AI-модулем — реплицировать enum-длительности было бы overkill).
+const ORC_CAST_WINDUP_DURATION := 1.5
+const ORC_CAST_CAGE_DURATION := 5.0
+# Дарк-modulate для орка: оригинальный спрайт колосса слишком светлый, чтобы
+# читаться как «тёмная и маленькая» версия. Просто сжимаем RGB к 40%, alpha
+# не трогаем — силуэт остаётся целым.
+const ORC_BOSS_TINT := Color(0.4, 0.4, 0.4, 1.0)
 
 # Default-art enemies all reuse the spider sprite, recolored via a per-type
 # luminance ramp. Source PNG is warm-toned (avg R≈0.35, G≈0.20, B≈0.09) and
@@ -85,6 +109,10 @@ func _ready() -> void:
 		var orc_path := "res://assets/images/orc.png"
 		if ResourceLoader.exists(orc_path):
 			_colossus_frames.append(load(orc_path) as Texture2D)
+	if _enemy != null and _enemy.enemy_type == &"orc_boss":
+		var orc_path := "res://assets/images/orc.png"
+		if ResourceLoader.exists(orc_path):
+			_orc_boss_frames.append(load(orc_path) as Texture2D)
 	if _enemy != null and TINT_RAMP_BY_TYPE.has(_enemy.enemy_type):
 		_bake_tinted_spider_frames(_enemy.enemy_type, TINT_RAMP_BY_TYPE[_enemy.enemy_type])
 	# Aura icons — loaded for any enemy because anyone can be buffed.
@@ -130,6 +158,13 @@ func _draw() -> void:
 		_draw_slime_trail()
 	if _enemy.aura_kind != &"":
 		_draw_aura_field(_enemy.aura_kind)
+	if _enemy.cage_radius > 0.0:
+		match _enemy.cage_state:
+			1:
+				_draw_cage_windup()
+				_draw_orc_cast_halo()
+			2:
+				_draw_cage()
 	if _enemy.enemy_type == &"dasher":
 		_draw_dash_indicator()
 	var frames: Array[Texture2D] = _frames_for(_enemy.enemy_type)
@@ -170,6 +205,45 @@ func _draw_shockwave() -> void:
 	# Two concentric rings give the wave a clear leading edge.
 	draw_arc(center, ring_r, 0, TAU, 64, Color(1.0, 0.95, 0.7, alpha_ring), 6.0)
 	draw_arc(center, ring_r * 0.78, 0, TAU, 48, Color(1.0, 0.4, 0.15, alpha_ring * 0.7), 3.0)
+
+func _draw_cage() -> void:
+	# Чёрный круг в мире (визуально матчится с ArenaBoundary), посчитанный
+	# в локалках вью: enemy движется, клетка остаётся приколочена к точке
+	# каста.
+	var center: Vector2 = _enemy.cage_center - _enemy.global_position
+	draw_arc(center, _enemy.cage_radius, 0.0, TAU, CAGE_ARC_SEGMENTS, CAGE_BORDER_COLOR, CAGE_BORDER_THICKNESS, true)
+
+func _draw_cage_windup() -> void:
+	# Телеграф: фиолетовая полупрозрачная зона на месте будущей клетки.
+	# Прогресс каста (0→1) усиливает заполнение, пульсирующий ринг — на 4 Гц.
+	var center: Vector2 = _enemy.cage_center - _enemy.global_position
+	var elapsed_ms: int = Time.get_ticks_msec() - _enemy.cage_state_started_msec
+	var progress: float = clampf(float(elapsed_ms) / 1000.0 / ORC_CAST_WINDUP_DURATION, 0.0, 1.0)
+	var fill := CAGE_WINDUP_FILL
+	fill.a = CAGE_WINDUP_FILL.a * (0.4 + 0.6 * progress)
+	draw_circle(center, _enemy.cage_radius, fill)
+	# Внешний ринг — пульсирует, чтобы привлечь внимание; на финале каста
+	# ширина и яркость растут.
+	var pulse: float = 0.5 + 0.5 * sin(float(Time.get_ticks_msec()) / 1000.0 * TAU * 4.0)
+	var ring := CAGE_WINDUP_RING
+	ring.a = CAGE_WINDUP_RING.a * (0.5 + 0.5 * progress)
+	var thickness: float = 4.0 + 4.0 * pulse + 6.0 * progress
+	draw_arc(center, _enemy.cage_radius, 0.0, TAU, CAGE_ARC_SEGMENTS, ring, thickness, true)
+
+func _draw_orc_cast_halo() -> void:
+	# Магический круг под самим орком — индикатор «он сейчас кастует». Растёт
+	# по радиусу к концу windup и одновременно усиливает альфу: сначала тонкая
+	# дуга, к моменту каста — полноценный круг с двойным контуром.
+	var elapsed_ms: int = Time.get_ticks_msec() - _enemy.cage_state_started_msec
+	var progress: float = clampf(float(elapsed_ms) / 1000.0 / ORC_CAST_WINDUP_DURATION, 0.0, 1.0)
+	var r: float = _enemy.radius * lerpf(1.0, ORC_CAST_HALO_RADIUS_MULT, progress)
+	var col := ORC_CAST_HALO_COLOR
+	col.a = ORC_CAST_HALO_COLOR.a * (0.3 + 0.7 * progress)
+	draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, col, 2.5 + 2.0 * progress, true)
+	# Внутренний слабый круг — даёт ощущение «вторая руна вращается».
+	var col_inner := col
+	col_inner.a *= 0.55
+	draw_arc(Vector2.ZERO, r * 0.7, 0.0, TAU, 48, col_inner, 1.5, true)
 
 func _draw_dash_indicator() -> void:
 	if _enemy.dash_state != 1 and _enemy.dash_state != 2:
@@ -308,6 +382,8 @@ func _frames_for(t: StringName) -> Array[Texture2D]:
 			return _swarm_frames
 		&"colossus":
 			return _colossus_frames
+		&"orc_boss":
+			return _orc_boss_frames
 		_:
 			return []
 
@@ -362,7 +438,7 @@ func _sprite_mult_for(t: StringName) -> float:
 # spider/slime art. Orc art faces DOWN, so it needs the opposite offset
 # (-PI/2) to keep its head pointing along the velocity vector.
 func _sprite_rot_offset_for(t: StringName) -> float:
-	if t == &"colossus":
+	if t == &"colossus" or t == &"orc_boss":
 		return -PI * 0.5
 	return PI * 0.5
 
@@ -384,6 +460,8 @@ func _draw_animated_sprite(frames: Array[Texture2D], frame_dur: float, size_mult
 	# Dasher uses a baked blue palette (see _bake_dasher_frames), so plain
 	# white modulate keeps the recolored pixels intact.
 	var tint := Color(1, 1, 1, 1)
+	if _enemy.enemy_type == &"orc_boss":
+		tint = ORC_BOSS_TINT
 	if not _enemy.alive:
 		tint.a = 0.45
 	draw_set_transform(Vector2.ZERO, rot, Vector2.ONE)

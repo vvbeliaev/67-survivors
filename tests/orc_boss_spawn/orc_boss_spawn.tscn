@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0orcbossspawn67surv"]
+
+[ext_resource type="Script" path="res://tests/orc_boss_spawn/orc_boss_spawn.gd" id="1_orc_spawn"]
+
+[node name="OrcBossSpawnTest" type="Node"]
+script = ExtResource("1_orc_spawn")

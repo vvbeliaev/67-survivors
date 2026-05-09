@@ -47,6 +47,7 @@ const ENEMY_NAMES := {
 	&"tank":     "Танк",
 	&"colossus": "Колосс",
 	&"boss":     "Паучья Матерь",
+	&"orc_boss": "Орк-шаман",
 }
 
 const BOSS_NAMES := {
