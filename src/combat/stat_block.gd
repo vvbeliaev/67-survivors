@@ -29,6 +29,7 @@ const STAT_CHAIN_HOPS := &"chain_hops"     # flat (extra hops on mage chain ligh
 const STAT_ROLL_VOLLEY := &"roll_volley"   # flat (radial bolts fired from roll origin)
 const STAT_FIREBALL_DAMAGE := &"fireball_damage"  # flat (added to mage fireball AoE base damage)
 const STAT_SLASH_ARC := &"slash_arc"       # flat (degrees added to berserker cleave arc)
+const STAT_CLEAVE_DAMAGE := &"cleave_damage"   # flat (added to berserker cleave base damage before dmg_mult)
 const STAT_RETALIATION := &"retaliation"   # flat (fraction of incoming damage emitted as AoE around the victim)
 const STAT_STUN_DURATION := &"stun_duration"  # flat (seconds added to berserker quake stun)
 const STAT_STUN_RADIUS := &"stun_radius"      # pct multiplier (base 1.0); berserker quake AoE radius extra mult

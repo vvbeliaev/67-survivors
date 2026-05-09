@@ -4,5 +4,5 @@ extends Node
 # = клиент и сервер из разных коммитов (типичный случай — закешированный
 # wasm/pck в браузере) → лобби показывает баннер с инструкцией обновиться.
 
-const SHA: StringName = &"9bb69c1a5547-dirty"
-const BUILT_AT: String = "2026-05-09T12:36:05Z"
+const SHA: StringName = &"394114e1ebb6-dirty"
+const BUILT_AT: String = "2026-05-09T12:38:04Z"

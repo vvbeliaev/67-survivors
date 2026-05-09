@@ -34,7 +34,8 @@ func on_tick(_delta: float) -> void:
 		return
 	start_cooldown()
 	var r: float = radius * owner_player.range_mult()
-	var dmg: float = damage * owner_player.dmg_mult()
+	var cleave_flat: float = owner_player.stats.value(StatBlock.STAT_CLEAVE_DAMAGE)
+	var dmg: float = (damage + cleave_flat) * owner_player.dmg_mult()
 	var arc_bonus: float = owner_player.stats.value(StatBlock.STAT_SLASH_ARC)
 	var effective_arc: float = arc_deg + arc_bonus
 	var aim: Vector2 = owner_player.aim_dir
