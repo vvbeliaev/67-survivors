@@ -20,6 +20,13 @@ var sprite_size: Vector2 = Vector2.ZERO
 # вызывает apply_knockback на враге. Используется легендаркой арбалетчика
 # «Отталкивающие стрелы» (масштаб от заряда), pierce и roll-volley тоже.
 var pushback_force: float = 0.0
+# Самонаведение (легендарка «Самонаводящиеся стрелы»). 0 — выключено. >0 —
+# радианы/сек, на которые вектор скорости доворачивается к ближайшему врагу.
+# Логика гоняется на каждом пире (детерминирована относительно реплицируемых
+# позиций врагов; коллизии всё равно считает только хост), поэтому отдельный
+# host-only гейт здесь не нужен.
+var homing_turn_rate: float = 0.0
+var homing_search_radius: float = 600.0
 
 var _sprite_tex: Texture2D = null
 var _sprite_loaded: bool = false
@@ -33,6 +40,12 @@ func _ready() -> void:
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
+	if homing_turn_rate > 0.0:
+		_apply_homing(delta)
+		# Угол спрайта берётся из velocity.angle() в _draw, но CanvasItem
+		# кеширует команды рисования — без явного запроса перерисовки стрела
+		# летит вбок, пока вектор уже довернулся.
+		queue_redraw()
 	position += velocity * delta
 	lifetime -= delta
 	if lifetime <= 0.0:
@@ -40,6 +53,26 @@ func _physics_process(delta: float) -> void:
 			queue_free()
 		else:
 			visible = false
+
+func _apply_homing(delta: float) -> void:
+	var speed: float = velocity.length()
+	if speed <= 0.0001:
+		return
+	# В цели не берём уже задетых врагов — иначе после pierce-удара болт
+	# попытается снова навестись на ту же тушу.
+	var ignore: Array = hit_set.keys()
+	var target: Node2D = SpatialIndex.nearest_enemy(global_position, homing_search_radius, ignore)
+	if target == null:
+		return
+	var to_target: Vector2 = target.global_position - global_position
+	if to_target.length_squared() < 0.0001:
+		return
+	var cur_angle: float = velocity.angle()
+	var want_angle: float = to_target.angle()
+	var diff: float = wrapf(want_angle - cur_angle, -PI, PI)
+	var max_step: float = homing_turn_rate * delta
+	var step: float = clampf(diff, -max_step, max_step)
+	velocity = Vector2.RIGHT.rotated(cur_angle + step) * speed
 
 func _draw() -> void:
 	var tex: Texture2D = _get_sprite()

@@ -17,6 +17,8 @@ func _init() -> void:
 const ROLL_VOLLEY_UPG: StringName = &"crossbow_roll_volley"
 const PUSHBACK_UPGRADE: StringName = &"legendary_crossbow_pushback"
 const VOLLEY_PUSHBACK: float = 300.0   # уно charged-эквивалент
+const HOMING_UPGRADE: StringName = &"legendary_crossbow_homing"
+const HOMING_TURN_RATE: float = 1.8
 
 func on_pressed() -> void:
 	if not ready_to_cast():
@@ -41,6 +43,7 @@ func _fire_volley(from_pos: Vector2) -> void:
 	var bolt_flat: float = owner_player.stats.value(StatBlock.STAT_BOLT_DAMAGE)
 	var dmg: float = (volley_damage + bolt_flat) * owner_player.dmg_mult()
 	var pushback: float = VOLLEY_PUSHBACK if _has_upgrade(PUSHBACK_UPGRADE) else 0.0
+	var homing: float = HOMING_TURN_RATE if _has_upgrade(HOMING_UPGRADE) else 0.0
 	for i in count:
 		var angle: float = TAU * float(i) / float(count)
 		var d: Vector2 = Vector2(cos(angle), sin(angle))
@@ -56,6 +59,7 @@ func _fire_volley(from_pos: Vector2) -> void:
 				"sprite_path": "res://assets/images/arrow.png",
 				"sprite_size": Vector2(56.0, 22.0),
 				"pushback_force": pushback,
+				"homing_turn_rate": homing,
 			},
 		)
 	AudioBus.play_at(&"crossbow_shoot", from_pos)

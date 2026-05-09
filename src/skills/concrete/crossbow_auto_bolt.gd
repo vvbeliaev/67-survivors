@@ -21,6 +21,11 @@ const PUSHBACK_UPGRADE: StringName = &"legendary_crossbow_pushback"
 # Через KNOCKBACK_DECAY=12 в Enemy: смещение ≈ force / 12 px.
 # Незаряженный (mult=1) → ~25px; макс заряд (mult=4) → ~100px; крит (mult=2) → ~50px.
 const PUSHBACK_BASE: float = 300.0
+const HOMING_UPGRADE: StringName = &"legendary_crossbow_homing"
+# 1.8 рад/с ≈ 103°/с. На lifetime 2.5с теоретический потолок доворота ~258°,
+# но с такой скоростью полёта (520 px/с) болт почти всегда либо догоняет цель
+# в первые 0.5–1.0с, либо уходит мимо — не превращается в bullet-hell наводку.
+const HOMING_TURN_RATE: float = 1.8
 
 func on_tick(_delta: float) -> void:
 	# Легендарка «Болтомёт»: автоатака полностью отключается, стрельба идёт
@@ -60,17 +65,18 @@ func fire_volley(charge_mult: float) -> void:
 	var multishot: int = int(owner_player.stats.value(StatBlock.STAT_CHARGE_MULTISHOT))
 	# Отталкивание скейлится с charge_mult — заряженный болт толкает сильнее.
 	var pushback: float = PUSHBACK_BASE * charge_mult if _has_upgrade(PUSHBACK_UPGRADE) else 0.0
-	_fire_bolt(origin, dir, dmg, pierce, pushback)
+	var homing: float = HOMING_TURN_RATE if _has_upgrade(HOMING_UPGRADE) else 0.0
+	_fire_bolt(origin, dir, dmg, pierce, pushback, homing)
 	for i in range(1, multishot + 1):
 		var step: int = (i + 1) / 2
 		var sgn: float = 1.0 if (i % 2) == 1 else -1.0
 		var angle: float = deg_to_rad(12.0) * step * sgn
 		var d: Vector2 = dir.rotated(angle)
-		_fire_bolt(origin, d, dmg, pierce, pushback)
+		_fire_bolt(origin, d, dmg, pierce, pushback, homing)
 	trigger_visual_fx("auto", {})
 	AudioBus.play_at(&"crossbow_shoot", owner_player.global_position)
 
-func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int, pushback: float = 0.0) -> void:
+func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int, pushback: float = 0.0, homing: float = 0.0) -> void:
 	_spawn_projectile(
 		pos,
 		dir * projectile_speed,
@@ -83,5 +89,6 @@ func _fire_bolt(pos: Vector2, dir: Vector2, dmg: float, pierce: int, pushback: f
 			"sprite_path": "res://assets/images/arrow.png",
 			"sprite_size": Vector2(56.0, 22.0),
 			"pushback_force": pushback,
+			"homing_turn_rate": homing,
 		},
 	)

@@ -126,6 +126,8 @@ func _spawn_projectile(data: Variant) -> Node:
 	pr.sprite_path = String(d.get("sprite_path", ""))
 	pr.sprite_size = d.get("sprite_size", Vector2.ZERO)
 	pr.pushback_force = float(d.get("pushback_force", 0.0))
+	pr.homing_turn_rate = float(d.get("homing_turn_rate", 0.0))
+	pr.homing_search_radius = float(d.get("homing_search_radius", 600.0))
 	if pr.team == "player":
 		pr.collision_layer = 1 << 3
 		pr.collision_mask = 1 << 2
